@@ -32,10 +32,18 @@ DB_PATH = os.path.join(DATA_DIR, "antigravity.db")
 
 
 
+SEED_DB_PATH = os.path.join(CORE_DIR, "data", "seed_antigravity.db")
+
 def get_db():
+    if not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0:
+        if os.path.exists(SEED_DB_PATH):
+            import shutil
+            shutil.copyfile(SEED_DB_PATH, DB_PATH)
+            print(f"[News] Initialized antigravity.db from seed: {SEED_DB_PATH}")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 
 def init_tech_news_table():

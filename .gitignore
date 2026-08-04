@@ -38,7 +38,9 @@ Thumbs.db
 # Local state & databases (stored in Neon online)
 state.json
 *.db
+!antigravity_core/data/seed_*.db
 *.sqlite
+
 
 # Large binary / app files (serve from releases, not git)
 static/app-debug.apk

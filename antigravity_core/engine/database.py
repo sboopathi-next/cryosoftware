@@ -19,9 +19,18 @@ EXAM_SCRATCHPAD_PATH = os.path.join(DB_DIR, "exam_scratchpad.md")
 _DB_WRITE_LOCK = threading.Lock()
 
 
+SEED_DB_PATH = os.path.join(CORE_DIR, "data", "seed_system_solo.db")
+
 def init_db():
     os.makedirs(DB_DIR, exist_ok=True)
+    if not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0:
+        if os.path.exists(SEED_DB_PATH):
+            import shutil
+            shutil.copyfile(SEED_DB_PATH, DB_PATH)
+            print(f"[DB] Initialized system_solo.db from seed: {SEED_DB_PATH}")
+
     conn = sqlite3.connect(DB_PATH, timeout=30.0)
+
     conn.execute("PRAGMA journal_mode=WAL;")
     cursor = conn.cursor()
     
@@ -369,10 +378,13 @@ def init_db():
 
 
 def get_db_connection():
+    if not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0:
+        init_db()
     conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA busy_timeout=15000;")
     return conn
+
 
 def calculate_xp_required(level: int) -> int:
     """XP required to level up: XP_req = 100 * level^1.5"""
