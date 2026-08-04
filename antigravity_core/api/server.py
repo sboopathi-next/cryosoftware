@@ -5,14 +5,49 @@ import re
 import sqlite3
 import datetime
 import httpx
-from fastapi import FastAPI, HTTPException
+import secrets as _secrets
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import random
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs
 from engine.fatigue_governor import update_daily_energy
+
+# ─── Auth configuration ────────────────────────────────────────────────────
+# If APP_SECRET is not set in .env → auth is fully bypassed (offline/local mode)
+_APP_SECRET   = os.getenv("APP_SECRET", "")
+_APP_PASSWORD = os.getenv("APP_PASSWORD", "")
+_AUTH_DISABLED = os.getenv("AUTH_DISABLED", "false").lower() in ("true", "1", "yes")
+
+_bearer_scheme = HTTPBearer(auto_error=False)
+
+def verify_token(
+    request: Request,
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme)
+):
+    """
+    FastAPI dependency injected on protected routes.
+    Rules:
+      - If APP_SECRET is empty or AUTH_DISABLED=true  → always pass (offline/local mode).
+      - Otherwise validate the Bearer token.
+    """
+    if _AUTH_DISABLED or not _APP_SECRET:
+        return True  # Offline / local dev — no auth required
+    if creds and creds.credentials == _APP_SECRET:
+        return True
+    raise HTTPException(status_code=401, detail="Unauthorized. Open /login to authenticate.")
+
+
 
 class SpeechEvaluationPayload(BaseModel):
     topic: str
@@ -241,12 +276,139 @@ COACH_MOODS = [
 
 # ─── Static Routes ────────────────────────────────────────────────────────────
 
+@app.get("/login", include_in_schema=False)
+def get_login_page():
+    """Serve the login page — always public, no auth required."""
+    html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity — Login</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#060818;min-height:100vh;display:flex;align-items:center;
+         justify-content:center;font-family:'Inter',system-ui,sans-serif;
+         background-image:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(99,102,241,.18),transparent)}
+    .card{background:rgba(10,13,30,.9);border:1px solid rgba(99,102,241,.25);
+          border-radius:16px;padding:40px 36px;width:100%;max-width:380px;
+          box-shadow:0 24px 64px rgba(0,0,0,.6)}
+    .logo{text-align:center;margin-bottom:28px}
+    .logo h1{font-size:22px;font-weight:700;color:#e2e8f0;letter-spacing:-.02em}
+    .logo p{font-size:12px;color:#64748b;margin-top:4px}
+    .tag{display:inline-block;background:rgba(99,102,241,.15);color:#818cf8;
+         font-size:10px;font-weight:600;letter-spacing:.08em;padding:2px 10px;
+         border-radius:20px;border:1px solid rgba(99,102,241,.3);margin-bottom:12px}
+    label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;
+          color:#94a3b8;margin-bottom:6px;margin-top:20px;text-transform:uppercase}
+    input{width:100%;background:#0a0d1e;border:1px solid rgba(99,102,241,.25);
+          border-radius:8px;padding:11px 14px;color:#e2e8f0;font-size:14px;
+          outline:none;transition:border .2s}
+    input:focus{border-color:#6366f1}
+    button{width:100%;margin-top:24px;padding:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);
+           border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;
+           cursor:pointer;transition:opacity .2s;letter-spacing:.02em}
+    button:hover{opacity:.88}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .err{color:#f87171;font-size:12px;margin-top:12px;text-align:center;min-height:18px}
+    .bypass-note{font-size:11px;color:#475569;text-align:center;margin-top:20px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="tag">ANTIGRAVITY OS</div>
+      <h1>⚡ Welcome back, Boopathi</h1>
+      <p>Personal Workstation — Private Access</p>
+    </div>
+    <label>Access Password</label>
+    <input type="password" id="pwd" placeholder="Enter your password" autofocus
+           onkeydown="if(event.key==='Enter')login()">
+    <button id="btn" onclick="login()">Authenticate →</button>
+    <p class="err" id="err"></p>
+    <p class="bypass-note">Offline / local mode: auth auto-bypassed</p>
+  </div>
+  <script>
+    // If already authenticated, go straight to dashboard
+    const tok = localStorage.getItem('ag_token');
+    if (tok) {
+      fetch('/api/auth/check', { headers: { 'Authorization': 'Bearer ' + tok } })
+        .then(r => { if (r.ok) window.location.replace('/'); })
+        .catch(() => {});
+    }
+
+    async function login() {
+      const pwd = document.getElementById('pwd').value.trim();
+      const btn = document.getElementById('btn');
+      const err = document.getElementById('err');
+      if (!pwd) { err.textContent = 'Please enter your password.'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Authenticating…';
+      err.textContent = '';
+      try {
+        const r = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+        const d = await r.json();
+        if (r.ok && d.token) {
+          localStorage.setItem('ag_token', d.token);
+          window.location.replace('/');
+        } else {
+          err.textContent = d.detail || 'Incorrect password.';
+          btn.disabled = false;
+          btn.textContent = 'Authenticate →';
+        }
+      } catch(e) {
+        err.textContent = 'Server unreachable. If offline, auth is auto-bypassed.';
+        btn.disabled = false;
+        btn.textContent = 'Authenticate →';
+      }
+    }
+  </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html)
+
+
+@app.post("/api/auth/login", include_in_schema=False)
+def api_auth_login(payload: dict):
+    """
+    Accepts { "password": "..." } and returns { "token": "..." }.
+    If auth is disabled (offline/local), always succeeds.
+    """
+    if _AUTH_DISABLED or not _APP_SECRET:
+        return {"token": "offline", "message": "Auth disabled — offline mode active."}
+    password = payload.get("password", "")
+    if not _APP_PASSWORD or not _secrets.compare_digest(password, _APP_PASSWORD):
+        raise HTTPException(status_code=401, detail="Incorrect password.")
+    return {"token": _APP_SECRET, "message": "Authenticated successfully."}
+
+
+@app.get("/api/auth/check", include_in_schema=False)
+def api_auth_check(_: bool = Depends(verify_token)):
+    """Simple token validation endpoint used by the login page and frontend."""
+    return {"authenticated": True, "mode": "offline" if (not _APP_SECRET or _AUTH_DISABLED) else "online"}
+
+
 @app.get("/")
-def get_dashboard():
+def get_dashboard(request: Request):
+    """Serve dashboard. Redirects to /login when auth is enabled and no valid token detected."""
+    # Server-side redirect only when auth is active — browser will also check
+    if _APP_SECRET and not _AUTH_DISABLED:
+        auth_header = request.headers.get("Authorization", "")
+        token = auth_header.replace("Bearer ", "").strip()
+        if token != _APP_SECRET:
+            # Don't hard-redirect HTML pages (breaks SPA) — return the page,
+            # shared.js will validate the token and redirect if needed.
+            pass
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"message": "Antigravity UI server online. static/index.html is missing."}
+
+
 
 @app.get("/gym")
 def get_gym_page():

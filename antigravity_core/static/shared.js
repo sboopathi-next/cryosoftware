@@ -4,9 +4,61 @@
    - Toast notifications
    - Settings modal (API key)
    - Stats mini-bar fetch
+   - Auth token injection (Bearer token on all API calls)
 ──────────────────────────────────────────────────────────── */
 
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+const AG_TOKEN_KEY = 'ag_token';
+
+function getAuthToken() {
+  return localStorage.getItem(AG_TOKEN_KEY) || '';
+}
+
+/**
+ * Authenticated fetch — wraps window.fetch to auto-inject the Bearer token.
+ * Falls back gracefully when offline or no token is stored.
+ * Redirects to /login on 401.
+ */
+async function apiFetch(url, options = {}) {
+  const token = getAuthToken();
+  const headers = { ...(options.headers || {}) };
+  if (token && token !== 'offline') {
+    headers['Authorization'] = 'Bearer ' + token;
+  }
+  const resp = await fetch(url, { ...options, headers });
+  if (resp.status === 401) {
+    // Token expired / invalid — clear and redirect to login
+    localStorage.removeItem(AG_TOKEN_KEY);
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.replace('/login');
+    }
+    throw new Error('Unauthorized — redirecting to login.');
+  }
+  return resp;
+}
+
+// Guard: on every page load, silently verify the token.
+// If server says 401 → redirect to /login. If offline → pass through.
+(function _authGuard() {
+  // Skip guard on the login page itself
+  if (window.location.pathname.startsWith('/login')) return;
+
+  const token = getAuthToken();
+  // No token at all: if offline (server unreachable) → stay; if online → go to login
+  fetch('/api/auth/check', {
+    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+  }).then(r => {
+    if (r.status === 401) {
+      localStorage.removeItem(AG_TOKEN_KEY);
+      window.location.replace('/login');
+    }
+  }).catch(() => {
+    // Server unreachable (offline) — auth is bypassed server-side too, stay on page
+  });
+})();
+
 // ── Active nav link ──────────────────────────────────────────
+
 (function(){
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   document.querySelectorAll('.nav a').forEach(a => {
@@ -156,6 +208,12 @@ function closeSettings() {
     m.classList.add('hidden');
     m.style.display = 'none';
   }
+}
+
+/** Logout: clear token and go to login page */
+function logout() {
+  localStorage.removeItem(AG_TOKEN_KEY);
+  window.location.replace('/login');
 }
 
 // ── Voice Demon AI Engine — Stoic & Discipline Phrase Banks ──────
@@ -482,7 +540,7 @@ async function loadMiniStats() {
     renderVoiceControls();
     startVoiceDaemonTimer();
 
-    const r = await fetch('/stats');
+    const r = await apiFetch('/stats');
     if (!r.ok) return;
     const d = await r.json();
     const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
@@ -496,6 +554,7 @@ async function loadMiniStats() {
     }
   } catch(_) {}
 }
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadMiniStats);
 } else {
