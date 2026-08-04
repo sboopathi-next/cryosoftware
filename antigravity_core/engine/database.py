@@ -379,71 +379,107 @@ def calculate_xp_required(level: int) -> int:
     return int(100 * (level ** 1.5))
 
 def get_state() -> dict:
-    conn = get_db_connection()
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
-    row = cursor.fetchone()
-    conn.close()
-    if row:
-        return dict(row)
+    try:
+        from state import load_state
+        db_state = load_state()
+        if db_state:
+            # Merge with any local SQLite specific columns
+            try:
+                conn = get_db_connection()
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                cur.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
+                r = cur.fetchone()
+                if r:
+                    for k, v in dict(r).items():
+                        if k not in db_state:
+                            db_state[k] = v
+                conn.close()
+            except Exception:
+                pass
+            return db_state
+    except Exception as e:
+        print(f"Error loading state via Neon sync engine: {e}")
+
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+    except Exception:
+        pass
     return {}
 
 def save_state(state: dict):
-    with _DB_WRITE_LOCK:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-        UPDATE system_state
-        SET level = ?,
-            xp = ?,
-            str = ?,
-            int = ?,
-            agi = ?,
-            wil = ?,
-            energy = ?,
-            lockout_active = ?,
-            last_update = ?,
-            streak_days = ?,
-            continuous_study_days = ?,
-            active_subject = ?,
-            gym_completed = ?,
-            study_completed = ?,
-            leetcode_completed = ?,
-            cooking_completed = ?,
-            nopmo_completed = ?,
-            heart = ?,
-            stoic = ?,
-            reading_completed = ?,
-            reading_book = ?,
-            english_completed = ?
-        WHERE id = (SELECT id FROM system_state ORDER BY id DESC LIMIT 1)
-        """, (
-            state.get("level", 1),
-            state.get("xp", 0),
-            state.get("str", 10),
-            state.get("int", 10),
-            state.get("agi", 10),
-            state.get("wil", 10),
-            state.get("energy", 100.0),
-            1 if state.get("lockout_active") else 0,
-            state.get("last_update", date.today().isoformat()),
-            state.get("streak_days", 0),
-            state.get("continuous_study_days", 0),
-            state.get("active_subject", "Python_Data_Science"),
-            state.get("gym_completed", 0),
-            state.get("study_completed", 0),
-            state.get("leetcode_completed", 0),
-            state.get("cooking_completed", 0),
-            state.get("nopmo_completed", 0),
-            state.get("heart", 10),
-            state.get("stoic", 10),
-            state.get("reading_completed", 0),
-            state.get("reading_book", "None"),
-            state.get("english_completed", 0)
-        ))
-        conn.commit()
-        conn.close()
+    # 1. Save via root state.py sync engine (Neon PostgreSQL DB + local file sync)
+    try:
+        from state import save_state as root_save_state
+        root_save_state(state)
+    except Exception as e:
+        print(f"Error saving state via Neon sync engine: {e}")
+
+    # 2. Update local SQLite DB if available
+    try:
+        with _DB_WRITE_LOCK:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+            UPDATE system_state
+            SET level = ?,
+                xp = ?,
+                str = ?,
+                int = ?,
+                agi = ?,
+                wil = ?,
+                energy = ?,
+                lockout_active = ?,
+                last_update = ?,
+                streak_days = ?,
+                continuous_study_days = ?,
+                active_subject = ?,
+                gym_completed = ?,
+                study_completed = ?,
+                leetcode_completed = ?,
+                cooking_completed = ?,
+                nopmo_completed = ?,
+                heart = ?,
+                stoic = ?,
+                reading_completed = ?,
+                reading_book = ?,
+                english_completed = ?
+            WHERE id = (SELECT id FROM system_state ORDER BY id DESC LIMIT 1)
+            """, (
+                state.get("level", 1),
+                state.get("xp", 0),
+                state.get("str", 10),
+                state.get("int", 10),
+                state.get("agi", 10),
+                state.get("wil", 10),
+                state.get("energy", 100.0),
+                1 if state.get("lockout_active") else 0,
+                state.get("last_update", date.today().isoformat()),
+                state.get("streak_days", 0),
+                state.get("continuous_study_days", 0),
+                state.get("active_subject", "Python_Data_Science"),
+                1 if state.get("gym_completed") else 0,
+                1 if state.get("study_completed") else 0,
+                1 if state.get("leetcode_completed") else 0,
+                1 if state.get("cooking_completed") else 0,
+                1 if state.get("nopmo_completed") else 0,
+                state.get("heart", 10),
+                state.get("stoic", 10),
+                1 if state.get("reading_completed") else 0,
+                state.get("reading_book", "None"),
+                1 if state.get("english_completed") else 0
+            ))
+            conn.commit()
+            conn.close()
+    except Exception:
+        pass
 
 def add_xp(amount: int) -> dict:
     with _DB_WRITE_LOCK:

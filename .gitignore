@@ -43,6 +43,5 @@ state.json
 # Large binary / app files (serve from releases, not git)
 static/app-debug.apk
 *.apk
-.env
-# Syllabus & data files (large, generated - exclude from repo if desired)
-syllabus.json
+# Syllabus & data files
+# syllabus.json included for online deployment

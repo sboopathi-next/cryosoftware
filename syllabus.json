@@ -1,0 +1,5148 @@
+{
+  "courses": {
+    "Calculus_Optimization": {
+      "name": "Calculus & Optimization (GATE)",
+      "code": "Calculus_Optimization",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Limits, Continuity, Differentiability & Taylor Series",
+          "start_date": "2026-08-01",
+          "end_date": "2026-08-01",
+          "items": [
+            {
+              "id": "Calculus_Optimization_w1_v1",
+              "name": "L02: Differentiability Rules: Product, Quotient, and Chain Rule Derivations from First Principles",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2026-08-01"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Maxima/Minima, Convexity & Gradient Descent Foundations",
+          "start_date": "2026-08-03",
+          "end_date": "2026-08-09",
+          "items": [
+            {
+              "id": "Calculus_Optimization_w2_v1",
+              "name": "L03: Taylor and Maclaurin Polynomial Approximations and Remainder Error Bound Estimations",
+              "type": "video",
+              "xp": 40,
+              "level": 2,
+              "date": "2026-08-03"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v2",
+              "name": "L04: First and Second Derivative Tests for Local Maxima and Minima in Single-Variable Functions",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2026-08-03"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v3",
+              "name": "L05: Convex Function Properties: Jensen Inequality and Sub-Gradient Descent Formulations",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2026-08-04"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v4",
+              "name": "L06: Gradient Descent Algorithm: Step-Size Selection and Convergence Rate Proofs",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2026-08-04"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v5",
+              "name": "L07: Stochastic Gradient Descent Variance Reduction and Mini-Batch Mechanics",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2026-08-05"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v6",
+              "name": "L08: Lagrange Multipliers for Equality-Constrained Optimization Problems",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2026-08-06"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v7",
+              "name": "L09: KKT Conditions for Inequality-Constrained Convex Programming",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2026-08-06"
+            },
+            {
+              "id": "Calculus_Optimization_w2_v8",
+              "name": "L10: Numerical Differentiation: Forward, Backward, and Central Finite Difference Approximations",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2026-08-07"
+            },
+            {
+              "id": "Calculus_Optimization_midterm",
+              "name": "CAT: GATE Calculus and Optimization Assessment: Derivative Analysis and Gradient Descent",
+              "type": "quiz",
+              "xp": 500,
+              "level": 5,
+              "date": "2026-08-09"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Constrained Optimization: Lagrangians & KKT Conditions",
+          "start_date": "2026-08-10",
+          "end_date": "2026-08-16",
+          "items": [
+            {
+              "id": "Calculus_Optimization_w3_v1",
+              "name": "L11: Newton-Raphson Root Finding and Quasi-Newton BFGS Optimization Algorithms",
+              "type": "video",
+              "xp": 75,
+              "level": 6,
+              "date": "2026-08-10"
+            },
+            {
+              "id": "Calculus_Optimization_w3_v2",
+              "name": "L12: Partial Derivatives, Gradient Vectors, and Jacobian Matrix Computations",
+              "type": "video",
+              "xp": 80,
+              "level": 6,
+              "date": "2026-08-10"
+            },
+            {
+              "id": "Calculus_Optimization_w3_v3",
+              "name": "L13: Hessian Matrix Definiteness Tests for Multi-Variable Saddle Point Detection",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2026-08-11"
+            },
+            {
+              "id": "Calculus_Optimization_w3_v4",
+              "name": "L14: Coordinate Descent and Alternating Minimization for Block-Separable Objectives",
+              "type": "video",
+              "xp": 90,
+              "level": 7,
+              "date": "2026-08-11"
+            },
+            {
+              "id": "Calculus_Optimization_w3_v5",
+              "name": "L15: Automatic Differentiation via Forward and Reverse Mode Computational Graph Passes",
+              "type": "video",
+              "xp": 95,
+              "level": 8,
+              "date": "2026-08-12"
+            },
+            {
+              "id": "Calculus_Optimization_da",
+              "name": "DA: End-to-End Gradient Descent Implementation with Convergence Analysis Production Engine",
+              "type": "quiz",
+              "xp": 800,
+              "level": 8,
+              "date": "2026-08-16"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Numerical Methods & Automatic Differentiation",
+          "start_date": "2026-08-17",
+          "end_date": "2026-08-17",
+          "items": [
+            {
+              "id": "Calculus_Optimization_w4_v1",
+              "name": "L16: Proximal Gradient Methods and ISTA/FISTA Accelerated Composite Minimizers",
+              "type": "video",
+              "xp": 100,
+              "level": 9,
+              "date": "2026-08-17"
+            }
+          ]
+        }
+      ]
+    },
+    "Python_Data_Science": {
+      "name": "Python Programming",
+      "code": "Python_Data_Science",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Fundamentals of NumPy, Slicing & Broadcasting",
+          "start_date": "2026-08-17",
+          "end_date": "2026-08-22",
+          "items": [
+            {
+              "id": "Python_Data_Science_w1_v1",
+              "name": "L01: NumPy N-Dimensional Array Memory Architecture: Strides, Contiguity, and C vs Fortran Memory Formats",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2026-08-17"
+            },
+            {
+              "id": "Python_Data_Science_w1_v2",
+              "name": "L02: Non-Copy View Mutations vs Explicit Deep Memory Allocations during Vector Arrays Reshaping",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2026-08-18"
+            },
+            {
+              "id": "Python_Data_Science_w1_v3",
+              "name": "L03: High-Dimensional Boolean Masking, Fancy Indexing, and Coordinate Selection Matrix Operations",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2026-08-18"
+            },
+            {
+              "id": "Python_Data_Science_w1_v4",
+              "name": "L04: Vectorized Broadcasting Mathematical Rules and In-Memory Dimensional Extension Layouts",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2026-08-19"
+            },
+            {
+              "id": "Python_Data_Science_w1_v5",
+              "name": "L05: Universal Functions (Ufuncs) Compilation and Accelerated Element-Wise Array Transformations",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2026-08-20"
+            },
+            {
+              "id": "Python_Data_Science_w1_v6",
+              "name": "L06: Linear and Cubic Spline Data Interpolation Mechanics via SciPy Interpolate Profiles",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-08-20"
+            },
+            {
+              "id": "Python_Data_Science_w1_v7",
+              "name": "L07: Object-Oriented Canvas Architectures: Controlling Figure, Axes, and Artist Collections in Matplotlib",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2026-08-21"
+            },
+            {
+              "id": "Python_Data_Science_w1_v8",
+              "name": "L08: Advanced Multi-Panel Dashboards Layouts via Matplotlib GridSpec Projection Ensembles",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-08-21"
+            },
+            {
+              "id": "Python_Data_Science_w1_v9",
+              "name": "L09: Multi-Dimensional Polynomial Data Mapping and Vector Meshgrid Coordinate Generations",
+              "type": "video",
+              "xp": 60,
+              "level": 2,
+              "date": "2026-08-22"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "SciPy Interpolation & Figure Canvas Layouts",
+          "start_date": "2026-08-24",
+          "end_date": "2026-08-29",
+          "items": [
+            {
+              "id": "Python_Data_Science_w2_v1",
+              "name": "L10: Mathematical Optimization: Unconstrained Non-Linear Minimization via SciPy Optimize L-BFGS-B Solvers",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2026-08-24"
+            },
+            {
+              "id": "Python_Data_Science_w2_v2",
+              "name": "L11: High-Performance Linear Algebra Solvers: Vectorized QR, LU, and Cholesky Matrix Inversions via SciPy Linalg",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2026-08-24"
+            },
+            {
+              "id": "Python_Data_Science_w2_v3",
+              "name": "L12: Continuous Probability Distribution Model Fitting and Parameter Likelihood Profiling via SciPy Stats",
+              "type": "video",
+              "xp": 70,
+              "level": 3,
+              "date": "2026-08-25"
+            },
+            {
+              "id": "Python_Data_Science_w2_v4",
+              "name": "L13: Automated Parametric Inferential Test Engines: Two-Sample Independent and Paired T-Tests via SciPy",
+              "type": "video",
+              "xp": 75,
+              "level": 3,
+              "date": "2026-08-25"
+            },
+            {
+              "id": "Python_Data_Science_w2_v5",
+              "name": "L14: Advanced Non-Parametric Distribution Testing: Kolmogorov-Smirnov and Mann-Whitney U Inferences",
+              "type": "video",
+              "xp": 80,
+              "level": 3,
+              "date": "2026-08-26"
+            },
+            {
+              "id": "Python_Data_Science_w2_v6",
+              "name": "L15: Columnar Memory Layouts: Constructing High-Performance Pandas Series Vectors and Index Alignments",
+              "type": "video",
+              "xp": 50,
+              "level": 4,
+              "date": "2026-08-27"
+            },
+            {
+              "id": "Python_Data_Science_w2_v7",
+              "name": "L16: Memory-Optimized DataFrame Partitions, Dynamic Row Slicing, and Vectorized Data Extraction Profiles",
+              "type": "video",
+              "xp": 55,
+              "level": 4,
+              "date": "2026-08-27"
+            },
+            {
+              "id": "Python_Data_Science_w2_v8",
+              "name": "L17: Explicit Index Mutators: Reindexing Arrays, Label Swapping, and Forward/Backward Value Propagation",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2026-08-28"
+            },
+            {
+              "id": "Python_Data_Science_w2_v9",
+              "name": "L18: Accelerated Custom Function Ingestions: Optimizing Vector Appliers via .apply, .map, and .transform Engine Hooks",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2026-08-28"
+            },
+            {
+              "id": "Python_Data_Science_w2_v10",
+              "name": "L19: Rolling, Expanding, and Exponentially Weighted Window Statistical Math Calculations across Time-Series",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2026-08-29"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Non-Linear Minimization & Numerical Solvers",
+          "start_date": "2026-08-31",
+          "end_date": "2026-09-06",
+          "items": [
+            {
+              "id": "Python_Data_Science_w3_v1",
+              "name": "L20: Strategic Missing Data Imputation Pipelines: Vectorized Masking, Forward-Fills, and Moving Average Recoveries",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2026-08-31"
+            },
+            {
+              "id": "Python_Data_Science_w3_v2",
+              "name": "L21: High-Cardinality Categorical Array Configurations: Dynamic Categorical Sorting and Sparse Object Types Memory Tuning",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2026-08-31"
+            },
+            {
+              "id": "Python_Data_Science_w3_v3",
+              "name": "L22: Native Pandas Visualization Engines and Backend Subplot Figure Configurations",
+              "type": "video",
+              "xp": 60,
+              "level": 5,
+              "date": "2026-09-01"
+            },
+            {
+              "id": "Python_Data_Science_w3_v4",
+              "name": "L23: High-Performance Multi-Column Sorting, Lexicographical Priorities, and In-Place Matrix Transformations",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2026-09-01"
+            },
+            {
+              "id": "Python_Data_Science_w3_v5",
+              "name": "L24: Closed-Form Ordinary Least Squares (OLS) Linear Regression Matrix Solvers from Scratch in Python",
+              "type": "video",
+              "xp": 80,
+              "level": 6,
+              "date": "2026-09-02"
+            },
+            {
+              "id": "Python_Data_Science_w3_v6",
+              "name": "L25: High-Dimensional Multiple Linear Regression Vectorized Coefficient Estimators and Prediction Inferences",
+              "type": "video",
+              "xp": 90,
+              "level": 6,
+              "date": "2026-09-03"
+            },
+            {
+              "id": "Python_Data_Science_w3_v7",
+              "name": "L26: Non-Linear Coordinate Transformations: Generating High-Order Vandermonde Arrays for Polynomial Regression Layers",
+              "type": "video",
+              "xp": 95,
+              "level": 6,
+              "date": "2026-09-03"
+            },
+            {
+              "id": "Python_Data_Science_w3_v8",
+              "name": "L27: Production-Grade Exception Environments: Architecting Custom Data-Pipeline Exception Classes and Assertion Loops",
+              "type": "video",
+              "xp": 70,
+              "level": 6,
+              "date": "2026-09-04"
+            },
+            {
+              "id": "Python_Data_Science_w3_v9",
+              "name": "L28: Dynamic Exception Handling Layers: Multi-Tiered Try-Except Block Chains and Context-Aware Error Recovery Daemons",
+              "type": "video",
+              "xp": 85,
+              "level": 6,
+              "date": "2026-09-04"
+            },
+            {
+              "id": "Python_Data_Science_midterm",
+              "name": "CAT: Mid-Term Mathematical Matrix Manipulation & Vectorized Data Transformation Sprint",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2026-09-06"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Data Slicing, Exceptions & Final Project",
+          "start_date": "2026-09-13",
+          "end_date": "2026-09-13",
+          "items": [
+            {
+              "id": "Python_Data_Science_da",
+              "name": "DA: End-to-End High-Dimensional Feature Engineering & Polynomial Regression Production Pipeline Optimization Challenge",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2026-09-13"
+            }
+          ]
+        }
+      ]
+    },
+    "Linear_Algebra": {
+      "name": "Linear Algebra",
+      "code": "Linear_Algebra",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "NumPy Matrix Formats, Hadamard & Determinants",
+          "start_date": "2026-09-14",
+          "end_date": "2026-09-19",
+          "items": [
+            {
+              "id": "Linear_Algebra_w1_v1",
+              "name": "L01: NumPy Matrix Memory Architecture, C-Contiguous vs Fortran-Contiguous Layouts",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2026-09-14"
+            },
+            {
+              "id": "Linear_Algebra_w1_v2",
+              "name": "L02: Matrix Addition, Scalar Multiplication, and Hadamard Product Vectorization Optimization",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2026-09-14"
+            },
+            {
+              "id": "Linear_Algebra_w1_v3",
+              "name": "L03: Vectorized Dot Products and Block Matrix Multiplication via BLAS/LAPACK Backends",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2026-09-15"
+            },
+            {
+              "id": "Linear_Algebra_w1_v4",
+              "name": "L04: Laplace Expansion Determinant Computations and Matrix Inversion Singularity Boundaries",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2026-09-15"
+            },
+            {
+              "id": "Linear_Algebra_w1_v5",
+              "name": "L05: Matrix Rank Determination using Singular Values and Epsilon Numerical Thresholding",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2026-09-16"
+            },
+            {
+              "id": "Linear_Algebra_w1_v6",
+              "name": "L06: Characteristic Equation Polynomial Solvers for Analytical Eigenvalue Evaluation",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-09-17"
+            },
+            {
+              "id": "Linear_Algebra_w1_v7",
+              "name": "L07: Power Iteration and Rayleigh Quotient Algorithms for Dominant Eigenpair Extraction",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2026-09-17"
+            },
+            {
+              "id": "Linear_Algebra_w1_v8",
+              "name": "L08: Spectral Expansion and Eigen-Decomposition Arrays for Symmetric Matrices",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-09-18"
+            },
+            {
+              "id": "Linear_Algebra_w1_v9",
+              "name": "L09: Orthogonal Transformations, Reflection Matrices, and Subspace Rotations",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2026-09-18"
+            },
+            {
+              "id": "Linear_Algebra_w1_v10",
+              "name": "L10: Idempotent Projection Matrix Verification and Compressed Sparse Row (CSR) Optimizations",
+              "type": "video",
+              "xp": 60,
+              "level": 2,
+              "date": "2026-09-19"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Characteristic Polynomials & Eigen-Decomposition",
+          "start_date": "2026-09-21",
+          "end_date": "2026-09-26",
+          "items": [
+            {
+              "id": "Linear_Algebra_w2_v1",
+              "name": "L11: Augmented Matrix Formulations for Systems of Non-Homogeneous Linear Equations",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2026-09-21"
+            },
+            {
+              "id": "Linear_Algebra_w2_v2",
+              "name": "L12: Forward Elimination Algorithms for Row Echelon Form (REF) Conversions",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2026-09-21"
+            },
+            {
+              "id": "Linear_Algebra_w2_v3",
+              "name": "L13: Gauss-Jordan Back Substitution Transformations for Reduced Row Echelon Form (RREF)",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2026-09-22"
+            },
+            {
+              "id": "Linear_Algebra_w2_v4",
+              "name": "L14: Complete Gaussian Elimination Solver Development with Partial Pivoting Mechanics",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2026-09-22"
+            },
+            {
+              "id": "Linear_Algebra_w2_v5",
+              "name": "L15: Cramer’s Rule Determinant Ratio Solvers for Small-Scale Non-Singular Frameworks",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2026-09-23"
+            },
+            {
+              "id": "Linear_Algebra_w2_v6",
+              "name": "L16: Vector Space Condition Number Calculations and Ill-Conditioned System Diagnoses",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2026-09-24"
+            },
+            {
+              "id": "Linear_Algebra_w2_v7",
+              "name": "L17: LU Decomposition via Doolittle’s Algorithm and Triangular System Solvers",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2026-09-24"
+            },
+            {
+              "id": "Linear_Algebra_w2_v8",
+              "name": "L18: Cholesky Factorization for Symmetric Positive-Definite Machine Learning Kernel Matrices",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2026-09-25"
+            },
+            {
+              "id": "Linear_Algebra_w2_v9",
+              "name": "L19: QR Decomposition Pipelines via Householder Reflections and Givens Rotations",
+              "type": "video",
+              "xp": 80,
+              "level": 5,
+              "date": "2026-09-25"
+            },
+            {
+              "id": "Linear_Algebra_w2_v10",
+              "name": "L20: Singular Value Decomposition (SVD) Factorization and Low-Rank Matrix Approximations",
+              "type": "video",
+              "xp": 90,
+              "level": 5,
+              "date": "2026-09-26"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Systems of Linear Equations & Forward Elimination",
+          "start_date": "2026-09-28",
+          "end_date": "2026-10-04",
+          "items": [
+            {
+              "id": "Linear_Algebra_w3_v1",
+              "name": "L21: Spectral Decomposition and Orthogonal Diagonalization of Symmetric Operators",
+              "type": "video",
+              "xp": 85,
+              "level": 5,
+              "date": "2026-09-28"
+            },
+            {
+              "id": "Linear_Algebra_w3_v2",
+              "name": "L22: Axiomatic Vector Space Vector Fields and Linear Closure Property Audits",
+              "type": "video",
+              "xp": 50,
+              "level": 6,
+              "date": "2026-09-28"
+            },
+            {
+              "id": "Linear_Algebra_w3_v3",
+              "name": "L23: Subspace Spanning Sets and Nullspace Basis Dimension Counting Operations",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2026-09-29"
+            },
+            {
+              "id": "Linear_Algebra_w3_v4",
+              "name": "L24: Linear Dependence Analysis via Wronskian Matrices and Row Pivot Counting",
+              "type": "video",
+              "xp": 60,
+              "level": 6,
+              "date": "2026-09-29"
+            },
+            {
+              "id": "Linear_Algebra_w3_v5",
+              "name": "L25: Minimal Generating Sets, Coordinate Vector Mappings, and Vector Space Dimensions",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2026-09-30"
+            },
+            {
+              "id": "Linear_Algebra_midterm",
+              "name": "CAT: Mid-Term Linear Algebraic Foundation & Geometric Vector Transformation Assessment",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2026-10-04"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Matrix Inversion Singularity & LU/Cholesky/QR Decompositions",
+          "start_date": "2026-10-05",
+          "end_date": "2026-10-10",
+          "items": [
+            {
+              "id": "Linear_Algebra_w4_v1",
+              "name": "L26: Linear Transformation Kernel (Null Space) and Range (Column Space) Structural Builders",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2026-10-05"
+            },
+            {
+              "id": "Linear_Algebra_w4_v2",
+              "name": "L27: Explicit Matrix Representation Mapping of High-Dimensional Geometric Transforms",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2026-10-05"
+            },
+            {
+              "id": "Linear_Algebra_w4_v3",
+              "name": "L28: Rank-Nullity Theorem Dimensional Constancy Verifications for Linear Mappings",
+              "type": "video",
+              "xp": 80,
+              "level": 8,
+              "date": "2026-10-06"
+            },
+            {
+              "id": "Linear_Algebra_w4_v4",
+              "name": "L29: Transition Matrix Generation and Change-of-Basis Vector Conversions",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2026-10-06"
+            },
+            {
+              "id": "Linear_Algebra_w4_v5",
+              "name": "L30: Matrix Similarity Transformations and Invariant Field Coordinate Inferences",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2026-10-07"
+            },
+            {
+              "id": "Linear_Algebra_w4_v6",
+              "name": "L31: Invertible Linear Transformation Operators and Vector Space Isomorphisms",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2026-10-08"
+            },
+            {
+              "id": "Linear_Algebra_w4_v7",
+              "name": "L32: Custom Inner Product Space Definitions and Cauchy-Schwarz Geometric Bound Validations",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2026-10-08"
+            },
+            {
+              "id": "Linear_Algebra_w4_v8",
+              "name": "L33: Induced Vector Norm Calculations and Multi-Dimensional Orthogonality Confirmations",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2026-10-09"
+            },
+            {
+              "id": "Linear_Algebra_w4_v9",
+              "name": "L34: Gram-Schmidt Orthogonalization Vector Pipelines with Modified Numerical Stability",
+              "type": "video",
+              "xp": 105,
+              "level": 9,
+              "date": "2026-10-09"
+            },
+            {
+              "id": "Linear_Algebra_w4_v10",
+              "name": "L35: Orthogonal Projection Error Minimization for Subspace Optimization Coordinates",
+              "type": "video",
+              "xp": 100,
+              "level": 9,
+              "date": "2026-10-10"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Vector Spaces, Dimensions & Spectral Decomposition",
+          "start_date": "2026-10-12",
+          "end_date": "2026-10-17",
+          "items": [
+            {
+              "id": "Linear_Algebra_w5_v1",
+              "name": "L36: Moore-Penrose Pseudo-Inverse Construction using Singular Value Decompositions",
+              "type": "video",
+              "xp": 110,
+              "level": 10,
+              "date": "2026-10-12"
+            },
+            {
+              "id": "Linear_Algebra_w5_v2",
+              "name": "L37: Generalized Inverse (G-Inverse) Formulations for Underdetermined Matrix Approximations",
+              "type": "video",
+              "xp": 115,
+              "level": 10,
+              "date": "2026-10-12"
+            },
+            {
+              "id": "Linear_Algebra_w5_v3",
+              "name": "L38: Canonical Correlation Analysis (CCA) Shared Subspace Projections and Maxima Search",
+              "type": "video",
+              "xp": 120,
+              "level": 10,
+              "date": "2026-10-13"
+            },
+            {
+              "id": "Linear_Algebra_w5_v4",
+              "name": "L39: Quadratic Form Simplification and Symmetric Matrix Congruence Transform Transformations",
+              "type": "video",
+              "xp": 110,
+              "level": 11,
+              "date": "2026-10-13"
+            },
+            {
+              "id": "Linear_Algebra_w5_v5",
+              "name": "L40: Sylvester's Criterion Evaluations for Definiteness Shapes of Multivariate Surfaces",
+              "type": "video",
+              "xp": 115,
+              "level": 11,
+              "date": "2026-10-14"
+            },
+            {
+              "id": "Linear_Algebra_w5_v6",
+              "name": "L41: Fisher's Linear Discriminant Analysis (LDA) Between-Class Scattering Vector Maximizers",
+              "type": "video",
+              "xp": 130,
+              "level": 11,
+              "date": "2026-10-15"
+            },
+            {
+              "id": "Linear_Algebra_w5_v7",
+              "name": "L42: Rayleigh-Ritz Ratio Minimization for Discriminant Subspace Machine Learning Projections",
+              "type": "video",
+              "xp": 125,
+              "level": 11,
+              "date": "2026-10-15"
+            },
+            {
+              "id": "Linear_Algebra_w5_v8",
+              "name": "L43: Empirical Covariance Matrix Inversion and Mahalanobis Distance Meshgrid Generations",
+              "type": "video",
+              "xp": 120,
+              "level": 12,
+              "date": "2026-10-16"
+            },
+            {
+              "id": "Linear_Algebra_w5_v9",
+              "name": "L44: Ordinary Least Squares (OLS) Linear Regression Matrix Normal Equation Solvers",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2026-10-16"
+            },
+            {
+              "id": "Linear_Algebra_w5_v10",
+              "name": "L45: Tikhonov Regularization (Ridge Regression) L2 Matrix Penalization Pipelines",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2026-10-17"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "Least Squares regression, Ridge & Final Project",
+          "start_date": "2026-10-19",
+          "end_date": "2026-10-25",
+          "items": [
+            {
+              "id": "Linear_Algebra_w6_v1",
+              "name": "L46: Projection Matrix (Hat Matrix) Leverage Vector Inferences and Outlier Diagnostic Checks",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2026-10-19"
+            },
+            {
+              "id": "Linear_Algebra_w6_v2",
+              "name": "L47: Multivariate Linear Model Redundancies and Matrix Rank Deficiency Diagnostics",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2026-10-19"
+            },
+            {
+              "id": "Linear_Algebra_w6_v3",
+              "name": "L48: High-Dimensional Multivariate Coordinate Field Rotations and Principal Component Alignments",
+              "type": "video",
+              "xp": 145,
+              "level": 12,
+              "date": "2026-10-20"
+            },
+            {
+              "id": "Linear_Algebra_da",
+              "name": "DA: High-Dimensional Singular Value Decomposition & Latent Matrix Projection Production Pipeline",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2026-10-25"
+            }
+          ]
+        }
+      ]
+    },
+    "Probability_Stats": {
+      "name": "Probability & Statistics",
+      "code": "Probability_Stats",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Sample Space Formulations & Addition/Multiplication Laws",
+          "start_date": "2026-10-26",
+          "end_date": "2026-10-31",
+          "items": [
+            {
+              "id": "Probability_Stats_w1_v1",
+              "name": "L01: Axiomatic Probability Theory & Set-Theoretic Sample Space Formulations",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2026-10-26"
+            },
+            {
+              "id": "Probability_Stats_w1_v2",
+              "name": "L02: Discrete, Continuous, and Mixed Random Variable Mathematical Classifications",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2026-10-26"
+            },
+            {
+              "id": "Probability_Stats_w1_v3",
+              "name": "L03: Empirical Limiting Probability Simulation Engines via Vectorized NumPy Loops",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2026-10-27"
+            },
+            {
+              "id": "Probability_Stats_w1_v4",
+              "name": "L04: Joint, Total Probability Axioms & Vectorized Addition/Multiplication Laws",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2026-10-27"
+            },
+            {
+              "id": "Probability_Stats_w1_v5",
+              "name": "L05: Stochastic Simulations of Dependent & Independent Sample Space Combinations",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2026-10-28"
+            },
+            {
+              "id": "Probability_Stats_w1_v6",
+              "name": "L06: High-Performance Data Stream Ingestion Pipelines for Stochastic Inferences",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-10-29"
+            },
+            {
+              "id": "Probability_Stats_w1_v7",
+              "name": "L07: Conditional Probability Bounds & Pairwise vs Mutual Independence Proofs",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2026-10-29"
+            },
+            {
+              "id": "Probability_Stats_w1_v8",
+              "name": "L08: Bayes’ Theorem Mathematical Derivations & Direct Odds-Ratio Updating",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2026-10-30"
+            },
+            {
+              "id": "Probability_Stats_w1_v9",
+              "name": "L09: Production Naive Bayes Classifier Engine from First Principles in Python",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2026-10-30"
+            },
+            {
+              "id": "Probability_Stats_w1_v10",
+              "name": "L10: Probability Mass Functions & Probability Density Functions Integration Calculus",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2026-10-31"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Conditional Probability Bounds & Bayes Theorem",
+          "start_date": "2026-11-02",
+          "end_date": "2026-11-08",
+          "items": [
+            {
+              "id": "Probability_Stats_w2_v1",
+              "name": "L11: Unidimensional Cumulative Distribution Function Inversion Frameworks",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2026-11-02"
+            },
+            {
+              "id": "Probability_Stats_w2_v2",
+              "name": "L12: Bivariate Two-Dimensional Random Variable Transformation Mechanics",
+              "type": "video",
+              "xp": 75,
+              "level": 4,
+              "date": "2026-11-02"
+            },
+            {
+              "id": "Probability_Stats_w2_v3",
+              "name": "L13: Joint Probability Distributions & Marginal Function Derivations via Continuous Integration",
+              "type": "video",
+              "xp": 55,
+              "level": 5,
+              "date": "2026-11-03"
+            },
+            {
+              "id": "Probability_Stats_w2_v4",
+              "name": "L14: Conditional Distribution Density Formulations for Continuous Bivariate Surfaces",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2026-11-03"
+            },
+            {
+              "id": "Probability_Stats_w2_v5",
+              "name": "L15: Statistical Independence Proofs for Product-Moment Probability Fields",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2026-11-04"
+            },
+            {
+              "id": "Probability_Stats_w2_v6",
+              "name": "L16: First-Moment Derivations: Mathematical Expectation Operator & Linear Properties",
+              "type": "video",
+              "xp": 45,
+              "level": 6,
+              "date": "2026-11-05"
+            },
+            {
+              "id": "Probability_Stats_w2_v7",
+              "name": "L17: Expected Value Computations for Complex Piecewise Continuous Probability Functions",
+              "type": "video",
+              "xp": 50,
+              "level": 6,
+              "date": "2026-11-05"
+            },
+            {
+              "id": "Probability_Stats_w2_v8",
+              "name": "L18: Conditional Expectation Operators & Law of Total Expectation Proofs",
+              "type": "video",
+              "xp": 60,
+              "level": 6,
+              "date": "2026-11-06"
+            },
+            {
+              "id": "Probability_Stats_w2_v9",
+              "name": "L19: Covariance Matrices & Variance-Covariance Linear Transformation Frameworks",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2026-11-06"
+            },
+            {
+              "id": "Probability_Stats_midterm",
+              "name": "CAT: Mid-Term Probability Foundations & Bivariate Distribution Math Simulation",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2026-11-08"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Probability Mass & Joint Cumulative Distributions",
+          "start_date": "2026-11-09",
+          "end_date": "2026-11-14",
+          "items": [
+            {
+              "id": "Probability_Stats_w3_v1",
+              "name": "L20: Bernoulli & Binomial Distribution Probability Mass Derivations & SciPy Implementations",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2026-11-09"
+            },
+            {
+              "id": "Probability_Stats_w3_v2",
+              "name": "L21: Poisson Process Modeling & Limiting Law of Rare Events Derivations",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2026-11-09"
+            },
+            {
+              "id": "Probability_Stats_w3_v3",
+              "name": "L22: Geometric & Negative Binomial Waiting-Time Probability Formulations",
+              "type": "video",
+              "xp": 75,
+              "level": 8,
+              "date": "2026-11-10"
+            },
+            {
+              "id": "Probability_Stats_w3_v4",
+              "name": "L23: Hypergeometric Sampling Without Replacement Probability Math Profiles",
+              "type": "video",
+              "xp": 80,
+              "level": 8,
+              "date": "2026-11-10"
+            },
+            {
+              "id": "Probability_Stats_w3_v5",
+              "name": "L24: Maximum Likelihood Estimation for Fitting Empirical Discrete Distributions",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2026-11-11"
+            },
+            {
+              "id": "Probability_Stats_w3_v6",
+              "name": "L25: Continuous Gaussian Normal Distribution Geometry & Analytical Integration Derivations",
+              "type": "video",
+              "xp": 85,
+              "level": 9,
+              "date": "2026-11-12"
+            },
+            {
+              "id": "Probability_Stats_w3_v7",
+              "name": "L26: Standard Normal Variate Transformation Engines & Error Function Interpolation",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2026-11-12"
+            },
+            {
+              "id": "Probability_Stats_w3_v8",
+              "name": "L27: Exponential Distribution Memoryless Property Proofs & Reliability Engineering",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2026-11-13"
+            },
+            {
+              "id": "Probability_Stats_w3_v9",
+              "name": "L28: Gamma Distribution Factorial Extensions & Continuous Waiting-Time Modeling",
+              "type": "video",
+              "xp": 100,
+              "level": 10,
+              "date": "2026-11-13"
+            },
+            {
+              "id": "Probability_Stats_w3_v10",
+              "name": "L29: Weibull Distribution Hazard Function Profiles & Failure Rate Vectorization",
+              "type": "video",
+              "xp": 105,
+              "level": 10,
+              "date": "2026-11-14"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Continuous Distributions: Normal, Poisson & waiting-time",
+          "start_date": "2026-11-16",
+          "end_date": "2026-11-22",
+          "items": [
+            {
+              "id": "Probability_Stats_w4_v1",
+              "name": "L30: De Moivre-Laplace Theorem: Normal Approximation of Binomial Systems with Continuity Corrections",
+              "type": "video",
+              "xp": 110,
+              "level": 10,
+              "date": "2026-11-16"
+            },
+            {
+              "id": "Probability_Stats_w4_v2",
+              "name": "L31: Central Limit Theorem Asymptotics & Convergence in Distribution Simulations",
+              "type": "video",
+              "xp": 115,
+              "level": 11,
+              "date": "2026-11-16"
+            },
+            {
+              "id": "Probability_Stats_w4_v3",
+              "name": "L32: Chi-Square Distribution Derivations from Sums of Squared Standard Normals",
+              "type": "video",
+              "xp": 120,
+              "level": 11,
+              "date": "2026-11-17"
+            },
+            {
+              "id": "Probability_Stats_w4_v4",
+              "name": "L33: Student’s T-Distribution Heavy-Tailed Sampling Models & Degrees of Freedom Math",
+              "type": "video",
+              "xp": 120,
+              "level": 11,
+              "date": "2026-11-17"
+            },
+            {
+              "id": "Probability_Stats_w4_v5",
+              "name": "L34: Snedecor’s F-Distribution Variance Ratio Probability Density Formulations",
+              "type": "video",
+              "xp": 125,
+              "level": 11,
+              "date": "2026-11-18"
+            },
+            {
+              "id": "Probability_Stats_w4_v6",
+              "name": "L35: Standard & Generalized Logistic Distribution CDF/PDF Geometric Proportions",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2026-11-19"
+            },
+            {
+              "id": "Probability_Stats_w4_v7",
+              "name": "L36: Frequentist Hypothesis Testing Frameworks: Null/Alternative Setups & Type I/II Error Tradeoffs",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2026-11-19"
+            },
+            {
+              "id": "Probability_Stats_w4_v8",
+              "name": "L37: Parametric Z-Tests & T-Tests for Single and Two-Sample Population Mean Discrepancies",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2026-11-20"
+            },
+            {
+              "id": "Probability_Stats_w4_v9",
+              "name": "L38: Chi-Square Goodness-of-Fit & Contingency Table Independence Testing Engines",
+              "type": "video",
+              "xp": 145,
+              "level": 12,
+              "date": "2026-11-20"
+            },
+            {
+              "id": "Probability_Stats_w4_v10",
+              "name": "L39: Likelihood Ratio Tests & Neyman-Pearson Lemma Optimizations for Target Boundaries",
+              "type": "video",
+              "xp": 150,
+              "level": 12,
+              "date": "2026-11-21"
+            },
+            {
+              "id": "Probability_Stats_da",
+              "name": "DA: End-to-End Frequentist Inference & Parametric Distribution Fitting Production Engine",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2026-11-22"
+            }
+          ]
+        }
+      ]
+    },
+    "Statistical_Inference": {
+      "name": "Statistical Inference",
+      "code": "Statistical_Inference",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Population Parameter Estimations & Cramer-Rao Bounds",
+          "start_date": "2026-11-23",
+          "end_date": "2026-11-28",
+          "items": [
+            {
+              "id": "Statistical_Inference_w1_v1",
+              "name": "L01: Empirical vs Theoretical Data Generation: Simulating Population Parameters and Sample Statistics via Vectorized NumPy Engines",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2026-11-23"
+            },
+            {
+              "id": "Statistical_Inference_w1_v2",
+              "name": "L02: Asymptotic Consistency and Invariance Testing of Estimators using Multi-Scale Sample Size Loops",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2026-11-23"
+            },
+            {
+              "id": "Statistical_Inference_w1_v3",
+              "name": "L03: Bias-Variance Decomposition Mathematical Formulations and Mean Squared Error (MSE) Surface Optimizers",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2026-11-24"
+            },
+            {
+              "id": "Statistical_Inference_w1_v4",
+              "name": "L04: Fisher Information Matrix Computations and Analytical Cramér-Rao Lower Bound Constraint Builders",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2026-11-24"
+            },
+            {
+              "id": "Statistical_Inference_w1_v5",
+              "name": "L05: Relative Efficiency Audits of Completeness and Minimum Variance Bounds across Competing Estimator Systems",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2026-11-25"
+            },
+            {
+              "id": "Statistical_Inference_w1_v6",
+              "name": "L06: Sufficiency Metrics and Neyman-Factorization Theorem Matrix Inversion Proofs from Scratch",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-11-26"
+            },
+            {
+              "id": "Statistical_Inference_w1_v7",
+              "name": "L07: Minimum Variance Unbiased Estimator (MVUE) Formulations via Rao-Blackwellization Conditioning Functions",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2026-11-26"
+            },
+            {
+              "id": "Statistical_Inference_w1_v8",
+              "name": "L08: Maximum Likelihood Estimation (MLE) Log-Likelihood Continuous Cost Functions and Gradient Evaluators",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2026-11-27"
+            },
+            {
+              "id": "Statistical_Inference_w1_v9",
+              "name": "L09: Multi-Dimensional Parameter MLE Optimization Solvers via SciPy Optimize L-BFGS-B Backends",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2026-11-27"
+            },
+            {
+              "id": "Statistical_Inference_w1_v10",
+              "name": "L10: Profile Likelihood Ratio Constraint Frameworks for Parameter Identifiability Analysis",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2026-11-28"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Maximum Likelihood Estimation & Wald Intervals",
+          "start_date": "2026-11-30",
+          "end_date": "2026-12-06",
+          "items": [
+            {
+              "id": "Statistical_Inference_w2_v1",
+              "name": "L11: Method of Moments vs MLE Estimator Parameter Discrepancy Audits for Non-Standard Distributions",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2026-11-30"
+            },
+            {
+              "id": "Statistical_Inference_w2_v2",
+              "name": "L12: Gauss-Markov Classical Linear Regression Parameter Closures via Least-Squares Minimization Matrices",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2026-11-30"
+            },
+            {
+              "id": "Statistical_Inference_w2_v3",
+              "name": "L13: Multi-Dimensional Confidence Interval Pivoting and Frequentist Variance Coverage Simulation Iterators",
+              "type": "video",
+              "xp": 55,
+              "level": 5,
+              "date": "2026-12-01"
+            },
+            {
+              "id": "Statistical_Inference_w2_v4",
+              "name": "L14: Non-Parametric Studentized Bootstrap Confidence Interval Resampling Frameworks from First Principles",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2026-12-01"
+            },
+            {
+              "id": "Statistical_Inference_w2_v5",
+              "name": "L15: Exact Wald-Interval Formulations for Population Proportions with Continuity Correction Adjustments",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2026-12-02"
+            },
+            {
+              "id": "Statistical_Inference_w2_v6",
+              "name": "L16: Iterative Sample Size Determinations based on Strict Statistical Power and Effect-Size Margin Targets",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2026-12-03"
+            },
+            {
+              "id": "Statistical_Inference_w2_v7",
+              "name": "L17: Frequentist Neyman-Pearson Neyman Bounds: Simulating Type I (Alpha) and Type II (Beta) Error Vector Spaces",
+              "type": "video",
+              "xp": 45,
+              "level": 6,
+              "date": "2026-12-03"
+            },
+            {
+              "id": "Statistical_Inference_w2_v8",
+              "name": "L18: Statistical Power Curve Compilers and ROC Area Formulations as a Function of Sample Count Metrics",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2026-12-04"
+            },
+            {
+              "id": "Statistical_Inference_w2_v9",
+              "name": "L19: Neyman-Pearson Lemma Likelihood Ratio Test (LRT) Optimizations for Simple vs Simple Hypotheses",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2026-12-04"
+            },
+            {
+              "id": "Statistical_Inference_w2_v10",
+              "name": "L20: Monotone Likelihood Ratios (MLR) and Uniformly Most Powerful (UMP) Test Space Decision Boundaries",
+              "type": "video",
+              "xp": 70,
+              "level": 6,
+              "date": "2026-12-05"
+            },
+            {
+              "id": "Statistical_Inference_midterm",
+              "name": "CAT: Mid-Term Parametric Estimation, Maximum Likelihood Optimization & Hypothesis Testing Assessment",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2026-12-06"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Hypothesis Testing alpha/beta & Large/Small Sample Tests",
+          "start_date": "2026-12-07",
+          "end_date": "2026-12-12",
+          "items": [
+            {
+              "id": "Statistical_Inference_w3_v1",
+              "name": "L21: Large Sample Two-Tailed Z-Tests for Population Mean Convergence via Central Limit Theorem Models",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2026-12-07"
+            },
+            {
+              "id": "Statistical_Inference_w3_v2",
+              "name": "L22: Large Sample Difference of Means Inference Solvers over Heterogeneous Vector Stream Matrices",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2026-12-07"
+            },
+            {
+              "id": "Statistical_Inference_w3_v3",
+              "name": "L23: Large Sample Population Proportion Z-Test Verification Arrays using Gaussian Approximation Tools",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2026-12-08"
+            },
+            {
+              "id": "Statistical_Inference_w3_v4",
+              "name": "L24: Small Sample Student's T-Test Solvers under Unknown Population Variance Conditions",
+              "type": "video",
+              "xp": 75,
+              "level": 8,
+              "date": "2026-12-08"
+            },
+            {
+              "id": "Statistical_Inference_w3_v5",
+              "name": "L25: Independent Two-Sample T-Tests with Pooled vs Welch-Satterthwaite Degrees-of-Freedom Calculations",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2026-12-09"
+            },
+            {
+              "id": "Statistical_Inference_w3_v6",
+              "name": "L26: Dependent Paired-Sample T-Tests for Before-and-After Engineering Pipeline Feature Transformations",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2026-12-10"
+            },
+            {
+              "id": "Statistical_Inference_w3_v7",
+              "name": "L27: Snedecor's F-Test Variance-Ratio Probability Density Optimizers for Multi-Sample Variance Constraints",
+              "type": "video",
+              "xp": 95,
+              "level": 8,
+              "date": "2026-12-10"
+            },
+            {
+              "id": "Statistical_Inference_w3_v8",
+              "name": "L28: Pearson's Chi-Square Goodness-of-Fit Test Engines over Categorical Multinomial Model Alignments",
+              "type": "video",
+              "xp": 80,
+              "level": 9,
+              "date": "2026-12-11"
+            },
+            {
+              "id": "Statistical_Inference_w3_v9",
+              "name": "L29: Multi-Dimensional Contingency Table Independence Chi-Square Matrices & Cramér's V Effect Size Analytics",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2026-12-11"
+            },
+            {
+              "id": "Statistical_Inference_w3_v10",
+              "name": "L30: Exact Multi-Sample Variance Scale Hypotheses Testing using Chi-Square Distribution Surfaces",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2026-12-12"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Chi-Square Independence Tests & Wald Correlation",
+          "start_date": "2026-12-14",
+          "end_date": "2026-12-20",
+          "items": [
+            {
+              "id": "Statistical_Inference_w4_v1",
+              "name": "L31: Wald Hypothesis Testing for Causal Correlation Matrix Coefficients via Fisher Z-Transformations",
+              "type": "video",
+              "xp": 85,
+              "level": 10,
+              "date": "2026-12-14"
+            },
+            {
+              "id": "Statistical_Inference_w4_v2",
+              "name": "L32: Multiple Linear Regression Partial T-Statistic Inference Loops over Beta Coefficient Vectors",
+              "type": "video",
+              "xp": 95,
+              "level": 10,
+              "date": "2026-12-14"
+            },
+            {
+              "id": "Statistical_Inference_w4_v3",
+              "name": "L33: Non-Parametric Single-Sample Sign-Test Pipelines for Median Location Parameter Inferences",
+              "type": "video",
+              "xp": 80,
+              "level": 11,
+              "date": "2026-12-15"
+            },
+            {
+              "id": "Statistical_Inference_w4_v4",
+              "name": "L34: Wilcoxon Signed-Rank Sum Algorithms for Matched-Pair Dependent Ordinal Array Measurements",
+              "type": "video",
+              "xp": 90,
+              "level": 11,
+              "date": "2026-12-15"
+            },
+            {
+              "id": "Statistical_Inference_w4_v5",
+              "name": "L35: Mood's Median Matrix Subspace Multi-Class Partitioning and Non-Parametric Homogeneity Checks",
+              "type": "video",
+              "xp": 95,
+              "level": 11,
+              "date": "2026-12-16"
+            },
+            {
+              "id": "Statistical_Inference_w4_v6",
+              "name": "L36: Mann-Whitney U Test Stochastic Dominance Ranking Systems for Independent Group Comparison",
+              "type": "video",
+              "xp": 105,
+              "level": 11,
+              "date": "2026-12-17"
+            },
+            {
+              "id": "Statistical_Inference_w4_v7",
+              "name": "L37: Wald-Wolfowitz Runs Test Network Automations for Direct Sequence Randomness Trend Testing",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2026-12-17"
+            },
+            {
+              "id": "Statistical_Inference_w4_v8",
+              "name": "L38: Two-Sample Kolmogorov-Smirnov (KS) Empirical Continuous Cumulative Distribution Maximum Distance Solvers",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2026-12-18"
+            },
+            {
+              "id": "Statistical_Inference_w4_v9",
+              "name": "L39: Kruskal-Wallis Non-Parametric Multi-Group One-Way Analysis of Variance Rank Extractor Compilers",
+              "type": "video",
+              "xp": 125,
+              "level": 12,
+              "date": "2026-12-18"
+            },
+            {
+              "id": "Statistical_Inference_da",
+              "name": "DA: Complete End-to-End Non-Parametric Subspace Validation & Automated Statistical Inference Engine Pipeline",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2026-12-20"
+            }
+          ]
+        }
+      ]
+    },
+    "EDA": {
+      "name": "Exploratory Data Analysis",
+      "code": "EDA",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Vectorization Mechanics, Pandas Alignments & Time-Series",
+          "start_date": "2026-12-21",
+          "end_date": "2026-12-26",
+          "items": [
+            {
+              "id": "EDA_w1_v1",
+              "name": "L01: NumPy Array Memory Architecture & Vectorization Mechanics",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2026-12-21"
+            },
+            {
+              "id": "EDA_w1_v2",
+              "name": "L02: Pandas DataFrame Indexing Alignments & Memory Optimization",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2026-12-21"
+            },
+            {
+              "id": "EDA_w1_v3",
+              "name": "L03: Vectorized Broadcasting Operations & Custom Element-Wise Ufuncs",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2026-12-22"
+            },
+            {
+              "id": "EDA_w1_v4",
+              "name": "L04: Resampling & Moving-Window Algebra for Non-Stationary Time-Series",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2026-12-22"
+            },
+            {
+              "id": "EDA_w1_v5",
+              "name": "L05: ACID Transactional Data Aggregation & Analytical Window Functions",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2026-12-23"
+            },
+            {
+              "id": "EDA_w1_v6",
+              "name": "L06: Spatial Clustering & Geometric Data Analysis via GeoPandas",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-12-24"
+            },
+            {
+              "id": "EDA_w1_v7",
+              "name": "L07: NetworkX Graph Topology Construction & Node Centrality Layouts",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2026-12-24"
+            },
+            {
+              "id": "EDA_w1_v8",
+              "name": "L08: Biological Sequence String Alignment & Matrix Representations",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2026-12-25"
+            },
+            {
+              "id": "EDA_w1_v9",
+              "name": "L09: Deduplication Algorithms & High-Performance Row-Wise Locality Cleansing",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2026-12-25"
+            },
+            {
+              "id": "EDA_w1_v10",
+              "name": "L10: Relational Data Integration, Concurrency Handling & Structural Merge Logic",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2026-12-26"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Row-Wise Locality Cleansing, Box-Cox & MCAR/MAR Diagnoses",
+          "start_date": "2026-12-28",
+          "end_date": "2027-01-02",
+          "items": [
+            {
+              "id": "EDA_w2_v1",
+              "name": "L11: Numerosity Data Reduction & Stratified Sampling Implementations",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2026-12-28"
+            },
+            {
+              "id": "EDA_w2_v2",
+              "name": "L12: Min-Max, Z-Score Scaling & Box-Cox Mathematical Power Transformations",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2026-12-28"
+            },
+            {
+              "id": "EDA_w2_v3",
+              "name": "L50: High-Cardinality Categorical Shannon Entropy Diagnostics & Rare Label Consolidation",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2026-12-29"
+            },
+            {
+              "id": "EDA_w2_v4",
+              "name": "L13: MCAR, MAR, and MNAR Missing Data Structural Mechanism Diagnoses",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2026-12-29"
+            },
+            {
+              "id": "EDA_w2_v5",
+              "name": "L14: Non-Parametric KNN & Distance-Weighted Missing Value Estimations",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2026-12-30"
+            },
+            {
+              "id": "EDA_w2_v6",
+              "name": "L15: Bayesian Estimation Frameworks for Incomplete Covariance Matrices",
+              "type": "video",
+              "xp": 80,
+              "level": 4,
+              "date": "2026-12-31"
+            },
+            {
+              "id": "EDA_w2_v7",
+              "name": "L16: Multivariate Imputation by Chained Equations (MICE) via IterativeImputer",
+              "type": "video",
+              "xp": 90,
+              "level": 4,
+              "date": "2026-12-31"
+            },
+            {
+              "id": "EDA_w2_v8",
+              "name": "L47: Target Leakage Diagnostic Engines via Temporal Splits & Cross-Validation Counterfactuals",
+              "type": "video",
+              "xp": 75,
+              "level": 4,
+              "date": "2027-01-01"
+            },
+            {
+              "id": "EDA_w2_v9",
+              "name": "L17: Describing Shapes: Analytical Covariance, Skewness & Kurtosis Derivations",
+              "type": "video",
+              "xp": 55,
+              "level": 5,
+              "date": "2027-01-01"
+            },
+            {
+              "id": "EDA_w2_v10",
+              "name": "L18: Parametric Hypothesis Tests: Z-test, Two-Sample T-test & ANOVA Frameworks",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-01-02"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Bayesian Estimations & Multivariate Imputations via MICE",
+          "start_date": "2027-01-04",
+          "end_date": "2027-01-10",
+          "items": [
+            {
+              "id": "EDA_w3_v1",
+              "name": "L19: N-Dimensional Covariance Matrices & Mahalanobis Distance Metrics",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-01-04"
+            },
+            {
+              "id": "EDA_w3_v2",
+              "name": "L48: Variance Inflation Factor (VIF) Calculations & Multicollinearity Matrix Determinants",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2027-01-04"
+            },
+            {
+              "id": "EDA_w3_v3",
+              "name": "L49: Weight of Evidence (WoE) & Information Value (IV) Mathematical Banning Engines",
+              "type": "video",
+              "xp": 80,
+              "level": 5,
+              "date": "2027-01-05"
+            },
+            {
+              "id": "EDA_w3_v4",
+              "name": "L20: Empirical Cumulative Distribution Functions (ECDF) Performance Mapping",
+              "type": "video",
+              "xp": 45,
+              "level": 6,
+              "date": "2027-01-05"
+            },
+            {
+              "id": "EDA_w3_v5",
+              "name": "L21: Optimization of Histogram Bin Widths via Scott’s & Freedman-Diaconis Rules",
+              "type": "video",
+              "xp": 50,
+              "level": 6,
+              "date": "2027-01-06"
+            },
+            {
+              "id": "EDA_w3_v6",
+              "name": "L22: Dispersion Geometry Analysis via Violin Plots & Interquartile Ranges",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2027-01-07"
+            },
+            {
+              "id": "EDA_w3_v7",
+              "name": "L23: Textual Stem-and-Leaf Density Distribution Plot Automations",
+              "type": "video",
+              "xp": 45,
+              "level": 6,
+              "date": "2027-01-07"
+            },
+            {
+              "id": "EDA_midterm",
+              "name": "CAT: Mid-Term Comprehensive Analytical Assessment Pipeline Deployment",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-01-10"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Covariance, Skewness, Histograms & Andrews Plots",
+          "start_date": "2027-01-11",
+          "end_date": "2027-01-16",
+          "items": [
+            {
+              "id": "EDA_w4_v1",
+              "name": "L24: Multidimensional Scaling (MDS) Coordinate Projection Engine",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-01-11"
+            },
+            {
+              "id": "EDA_w4_v2",
+              "name": "L25: Andrews Plots Evaluation (High-Dimensional Fourier Transformations)",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2027-01-11"
+            },
+            {
+              "id": "EDA_w4_v3",
+              "name": "L26: Hierarchical Clustering Visualizations via Heatmap Dendrogram Layouts",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-01-12"
+            },
+            {
+              "id": "EDA_w4_v4",
+              "name": "L27: Spatial Voronoi Tessellation & Delaunay Triangulation Formulations",
+              "type": "video",
+              "xp": 90,
+              "level": 7,
+              "date": "2027-01-12"
+            },
+            {
+              "id": "EDA_w4_v5",
+              "name": "L51: Non-Linear Coordinate Manifold Projections via t-SNE Kullback-Leibler Minimization",
+              "type": "video",
+              "xp": 95,
+              "level": 7,
+              "date": "2027-01-13"
+            },
+            {
+              "id": "EDA_w4_v6",
+              "name": "L28: Parametric Extreme Value Distribution fitting for Univariate Streams",
+              "type": "video",
+              "xp": 75,
+              "level": 8,
+              "date": "2027-01-14"
+            },
+            {
+              "id": "EDA_w4_v7",
+              "name": "L29: Modified Z-Score & Absolute Median Deviation (MAD) Thresholding Engine",
+              "type": "video",
+              "xp": 75,
+              "level": 8,
+              "date": "2027-01-14"
+            },
+            {
+              "id": "EDA_w4_v8",
+              "name": "L30: Automated IQR Inner/Outer Fence Outlier Masking Pipelines",
+              "type": "video",
+              "xp": 70,
+              "level": 8,
+              "date": "2027-01-15"
+            },
+            {
+              "id": "EDA_w4_v9",
+              "name": "L31: Generalized Extreme Studentized Deviate (ESD) Recursive Outlier Testing",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-01-15"
+            },
+            {
+              "id": "EDA_w4_v10",
+              "name": "L52: Uniform Manifold Approximation and Projection (UMAP) Fuzzy Simplicial Set Layouts",
+              "type": "video",
+              "xp": 110,
+              "level": 8,
+              "date": "2027-01-16"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Extreme Value fitting, Modified Z-score & LOF",
+          "start_date": "2027-01-18",
+          "end_date": "2027-01-23",
+          "items": [
+            {
+              "id": "EDA_w5_v1",
+              "name": "L32: Vector Angle-Based Outlier Detection (ABOD) Math Models",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2027-01-18"
+            },
+            {
+              "id": "EDA_w5_v2",
+              "name": "L33: Non-Parametric Subspace Partitioning via Isolation Forest Ensembles",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2027-01-18"
+            },
+            {
+              "id": "EDA_w5_v3",
+              "name": "L34: Local Outlier Factor (LOF) Density-Based Neighborhood Calculations",
+              "type": "video",
+              "xp": 85,
+              "level": 9,
+              "date": "2027-01-19"
+            },
+            {
+              "id": "EDA_w5_v4",
+              "name": "L35: PyOD High-Dimensional Proximity Subspace Pipeline Integration",
+              "type": "video",
+              "xp": 100,
+              "level": 9,
+              "date": "2027-01-19"
+            },
+            {
+              "id": "EDA_w5_v5",
+              "name": "L53: Population Stability Index (PSI) & Characteristic Stability Matrix Drift Computations",
+              "type": "video",
+              "xp": 105,
+              "level": 9,
+              "date": "2027-01-20"
+            },
+            {
+              "id": "EDA_w5_v6",
+              "name": "L54: Two-Sample Kolmogorov-Smirnov (KS) Non-Parametric Testing for Distribution Shifts",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2027-01-21"
+            },
+            {
+              "id": "EDA_w5_v7",
+              "name": "L36: Information Gain & Mutual Information Rank Filtering Systems",
+              "type": "video",
+              "xp": 80,
+              "level": 10,
+              "date": "2027-01-21"
+            },
+            {
+              "id": "EDA_w5_v8",
+              "name": "L37: Recursive Feature Elimination (RFE) Greedy Wrapper Architectures",
+              "type": "video",
+              "xp": 90,
+              "level": 10,
+              "date": "2027-01-22"
+            },
+            {
+              "id": "EDA_w5_v9",
+              "name": "L38: L1 Regularization (Lasso) Sparsity Coefficients for Feature Selection",
+              "type": "video",
+              "xp": 85,
+              "level": 10,
+              "date": "2027-01-22"
+            },
+            {
+              "id": "EDA_w5_v10",
+              "name": "L39: Cost-Function Optimization for Embedded Tree-Based Feature Rankers",
+              "type": "video",
+              "xp": 80,
+              "level": 10,
+              "date": "2027-01-23"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "Information Gain, WCSS Elbow Convergence & PCA",
+          "start_date": "2027-01-25",
+          "end_date": "2027-01-31",
+          "items": [
+            {
+              "id": "EDA_w6_v1",
+              "name": "L55: Maximal Information Coefficient (MIC) for Universal Non-Linear Association Grid Searches",
+              "type": "video",
+              "xp": 100,
+              "level": 10,
+              "date": "2027-01-25"
+            },
+            {
+              "id": "EDA_w6_v2",
+              "name": "L40: K-Means Distortion Mechanics, WCSS, and Elbow Convergence Math",
+              "type": "video",
+              "xp": 90,
+              "level": 11,
+              "date": "2027-01-25"
+            },
+            {
+              "id": "EDA_w6_v3",
+              "name": "L41: Silhouette Coefficient Geometry for Optimal Partitioning Evaluation",
+              "type": "video",
+              "xp": 95,
+              "level": 11,
+              "date": "2027-01-26"
+            },
+            {
+              "id": "EDA_w6_v4",
+              "name": "L42: Combinatorial Feature Space Searches via Genetic Selection Algorithms",
+              "type": "video",
+              "xp": 120,
+              "level": 11,
+              "date": "2027-01-26"
+            },
+            {
+              "id": "EDA_w6_v5",
+              "name": "L56: Vector Embedding Space EDA via Inter-Cluster Cosine Similarity Matrix Heatmaps",
+              "type": "video",
+              "xp": 115,
+              "level": 11,
+              "date": "2027-01-27"
+            },
+            {
+              "id": "EDA_w6_v6",
+              "name": "L43: Singular Value Decomposition (SVD) Matrix Factorization Logic",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2027-01-28"
+            },
+            {
+              "id": "EDA_w6_v7",
+              "name": "L44: Principal Component Analysis (PCA) Covariance Eigen-Asset Derivations",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-01-28"
+            },
+            {
+              "id": "EDA_w6_v8",
+              "name": "L45: Latent Variable Parameter Estimations via Structural Factor Analysis",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2027-01-29"
+            },
+            {
+              "id": "EDA_w6_v9",
+              "name": "L46: Canonical Correlation Analysis (CCA) Cross-Covariance Maximization",
+              "type": "video",
+              "xp": 125,
+              "level": 12,
+              "date": "2027-01-29"
+            },
+            {
+              "id": "EDA_da",
+              "name": "DA: High-Dimensional Industrial Feature Engineering Production Pipeline",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2027-01-31"
+            }
+          ]
+        }
+      ]
+    },
+    "Database_Systems": {
+      "name": "Database Management System",
+      "code": "Database_Systems",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Evolution of Storage, ER Graphs & EER Union Categories",
+          "start_date": "2027-02-01",
+          "end_date": "2027-02-06",
+          "items": [
+            {
+              "id": "Database_Systems_w1_v1",
+              "name": "L01: Evolution of Storage Architectures: From Flat Files to Relational Engines and Data Lakehouses",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2027-02-01"
+            },
+            {
+              "id": "Database_Systems_w1_v2",
+              "name": "L02: Three-Schema Database Abstraction: Physical, Conceptual, and External Mapping Inverses",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2027-02-01"
+            },
+            {
+              "id": "Database_Systems_w1_v3",
+              "name": "L03: Data Definition Language (DDL) and Data Manipulation Language (DML) Compiler Parsing Mechanics",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2027-02-02"
+            },
+            {
+              "id": "Database_Systems_w1_v4",
+              "name": "L04: Entity-Relationship (ER) Graph Models: Strong vs Weak Entity Set Geometric Structural Mappings",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-02-02"
+            },
+            {
+              "id": "Database_Systems_w1_v5",
+              "name": "L05: Cardinality and Participation Structural Constraints: Formulating Min-Max Bounds in Subspace Schemas",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-02-03"
+            },
+            {
+              "id": "Database_Systems_w1_v6",
+              "name": "L06: Ternary and N-ary Relationship Degree Decompositions and Degree Resolution Arrays",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2027-02-04"
+            },
+            {
+              "id": "Database_Systems_w1_v7",
+              "name": "L07: Enhanced ER (EER) Modeling: Class-Subclass Specialization and Generalization Disjointness Constraints",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2027-02-04"
+            },
+            {
+              "id": "Database_Systems_w1_v8",
+              "name": "L08: EER Category Union and Aggregation Topologies for Complex Attribute Polymorphism",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2027-02-05"
+            },
+            {
+              "id": "Database_Systems_w1_v9",
+              "name": "L09: Algorithmic Transformation of ER and EER Graphic Schemas into Normalized Relational Relations",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2027-02-05"
+            },
+            {
+              "id": "Database_Systems_w1_v10",
+              "name": "L10: Relational Model Integrity Constraints: Domain, Entity, and Referential Foreign Key Invariants",
+              "type": "video",
+              "xp": 55,
+              "level": 4,
+              "date": "2027-02-06"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Integrity Constraints & Relational Algebra Join Operators",
+          "start_date": "2027-02-08",
+          "end_date": "2027-02-13",
+          "items": [
+            {
+              "id": "Database_Systems_w2_v1",
+              "name": "L11: Relational Algebra (RA) Foundational Operators: Selection Filter and Projection Column Scopes",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2027-02-08"
+            },
+            {
+              "id": "Database_Systems_w2_v2",
+              "name": "L12: Set-Theoretic Relational Operations: Cartesian Products, Intersections, and Set Difference Engines",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2027-02-08"
+            },
+            {
+              "id": "Database_Systems_w2_v3",
+              "name": "L13: Relational Algebra Join Mechanics: Theta-Joins, Equi-Joins, and Natural Join Outer Transformations",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2027-02-09"
+            },
+            {
+              "id": "Database_Systems_w2_v4",
+              "name": "L14: Advanced Relational Operators: Formal Database Division and Universal Quantifier Emulations",
+              "type": "video",
+              "xp": 75,
+              "level": 4,
+              "date": "2027-02-09"
+            },
+            {
+              "id": "Database_Systems_w2_v5",
+              "name": "L15: Mathematical Verification of Complex Relational Algebra Expressions for Target Schema Optimization",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-02-10"
+            },
+            {
+              "id": "Database_Systems_w2_v6",
+              "name": "L16: First-Order Predicate Calculus: Tuple Relational Calculus (TRC) Well-Formed Formula (WFF) Evaluation",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-02-11"
+            },
+            {
+              "id": "Database_Systems_w2_v7",
+              "name": "L17: Domain Relational Calculus (DRC) Variable Mappings and Safe Expression Constraint Checks",
+              "type": "video",
+              "xp": 80,
+              "level": 5,
+              "date": "2027-02-11"
+            },
+            {
+              "id": "Database_Systems_w2_v8",
+              "name": "L18: Production SQL Schema Definition: Compiling DDL Tables with Exact Domain and Check Constraints",
+              "type": "video",
+              "xp": 60,
+              "level": 5,
+              "date": "2027-02-12"
+            },
+            {
+              "id": "Database_Systems_w2_v9",
+              "name": "L19: High-Performance DML Operations: Multi-Row Inserts, Positional Updates, and Cascading Deletes",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-02-12"
+            },
+            {
+              "id": "Database_Systems_w2_v10",
+              "name": "L20: Basic Declarative SQL Query Pipelines: Filtering using Multi-Valued Logical Connective Operators",
+              "type": "video",
+              "xp": 45,
+              "level": 6,
+              "date": "2027-02-13"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Predicate Calculus & SQL domain check constraints",
+          "start_date": "2027-02-15",
+          "end_date": "2027-02-21",
+          "items": [
+            {
+              "id": "Database_Systems_w3_v1",
+              "name": "L21: Schema Mutation Engines: Altering Table Constraints, Modifying Column Types, and Catalog Cascades",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2027-02-15"
+            },
+            {
+              "id": "Database_Systems_w3_v2",
+              "name": "L22: Metadata Ingestion: Querying System Catalog Tables and Information Schemas for DB Introspection",
+              "type": "video",
+              "xp": 50,
+              "level": 6,
+              "date": "2027-02-15"
+            },
+            {
+              "id": "Database_Systems_w3_v3",
+              "name": "L23: Aggregate Inbuilt Functions: Computing Group Math over Partitioned Matrix Row Blocks",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2027-02-16"
+            },
+            {
+              "id": "Database_Systems_w3_v4",
+              "name": "L24: Single-Row Vectorized Manipulations: Character String Transformations and Regular Expression Matches",
+              "type": "video",
+              "xp": 60,
+              "level": 6,
+              "date": "2027-02-16"
+            },
+            {
+              "id": "Database_Systems_w3_v5",
+              "name": "L25: Temporal Data Operations: Timezone-Aware Date Arithmetic, Inter-Interval Parsing, and Conversions",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2027-02-17"
+            },
+            {
+              "id": "Database_Systems_midterm",
+              "name": "CAT: Mid-Term Relational Calculus, Schema Normalization & Query Execution Plan Assessment",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-02-21"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Subquery Declarative Formulations & Functional Dependencies",
+          "start_date": "2027-02-22",
+          "end_date": "2027-02-27",
+          "items": [
+            {
+              "id": "Database_Systems_w4_v1",
+              "name": "L26: Multi-Set Operations: UNION ALL, INTERSECT, and EXCEPT Declarative Data Pipelines",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-02-22"
+            },
+            {
+              "id": "Database_Systems_w4_v2",
+              "name": "L27: Relational Join Performance Tuning: Hash Joins, Nested Loops, and Sort-Merge Query Execution Plans",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2027-02-22"
+            },
+            {
+              "id": "Database_Systems_w4_v3",
+              "name": "L28: Subquery Declarative Formulations: Correlated vs Uncorrelated Nested Query Optimization Sweeps",
+              "type": "video",
+              "xp": 80,
+              "level": 7,
+              "date": "2027-02-23"
+            },
+            {
+              "id": "Database_Systems_w4_v4",
+              "name": "L29: Informal Design Guidelines for Relation Attributes: Minimizing Redundancies and Null Anomalies",
+              "type": "video",
+              "xp": 70,
+              "level": 8,
+              "date": "2027-02-23"
+            },
+            {
+              "id": "Database_Systems_w4_v5",
+              "name": "L30: Functional Dependency (FD) Matrix Identification and Superkey/Candidate Key Mathematical Discovery",
+              "type": "video",
+              "xp": 75,
+              "level": 8,
+              "date": "2027-02-24"
+            },
+            {
+              "id": "Database_Systems_w4_v6",
+              "name": "L31: Inference Rules for Functional Dependencies: Formal Algebraic Proofs using Armstrong's Axioms",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-02-25"
+            },
+            {
+              "id": "Database_Systems_w4_v7",
+              "name": "L32: Computing Closure Sets of Functional Dependencies ($F^+$) via Recursive Matrix Closure Algorithms",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2027-02-25"
+            },
+            {
+              "id": "Database_Systems_w4_v8",
+              "name": "L33: Redundant Dependency Pruning: Computing the Minimal Cover (Canonical Cover) of FD Sets",
+              "type": "video",
+              "xp": 95,
+              "level": 8,
+              "date": "2027-02-26"
+            },
+            {
+              "id": "Database_Systems_w4_v9",
+              "name": "L34: Normalization Algorithms: First (1NF), Second (2NF), and Third (3NF) Normal Form Decomposition Models",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2027-02-26"
+            },
+            {
+              "id": "Database_Systems_w4_v10",
+              "name": "L35: Boyce-Codd Normal Form (BCNF) Structural Criteria & Lossless-Join Decomposition Verification",
+              "type": "video",
+              "xp": 105,
+              "level": 9,
+              "date": "2027-02-27"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Armstrong Axioms, Normal Forms (1NF-5NF) & Slotted Records",
+          "start_date": "2027-03-01",
+          "end_date": "2027-03-06",
+          "items": [
+            {
+              "id": "Database_Systems_w5_v1",
+              "name": "L36: Dependency Preservation Audits for BCNF/3NF Multi-Table Subspace Partition Schemas",
+              "type": "video",
+              "xp": 100,
+              "level": 9,
+              "date": "2027-03-01"
+            },
+            {
+              "id": "Database_Systems_w5_v2",
+              "name": "L37: Advanced Normalization Boundaries: Multi-Valued Dependencies (4NF) and Join Dependencies (5NF)",
+              "type": "video",
+              "xp": 115,
+              "level": 9,
+              "date": "2027-03-01"
+            },
+            {
+              "id": "Database_Systems_w5_v3",
+              "name": "L38: Database Storage Hardware Profiles: Block Size Optimization, Page Layouts, and Slotted Page Records",
+              "type": "video",
+              "xp": 75,
+              "level": 10,
+              "date": "2027-03-02"
+            },
+            {
+              "id": "Database_Systems_w5_v4",
+              "name": "L39: Sequential File Operations: Heap Files, Ordered Files, and Primary Block Space Allocations",
+              "type": "video",
+              "xp": 85,
+              "level": 10,
+              "date": "2027-03-02"
+            },
+            {
+              "id": "Database_Systems_w5_v5",
+              "name": "L40: Direct File Addressing: Static vs Dynamic Extendible Hashing Directory Space Formulations",
+              "type": "video",
+              "xp": 95,
+              "level": 10,
+              "date": "2027-03-03"
+            },
+            {
+              "id": "Database_Systems_w5_v6",
+              "name": "L41: Indexing Topologies: Dense vs Sparse Primary, Secondary, and Clustering Index Pointer Maps",
+              "type": "video",
+              "xp": 100,
+              "level": 10,
+              "date": "2027-03-04"
+            },
+            {
+              "id": "Database_Systems_w5_v7",
+              "name": "L42: Multi-Level Search Tree Indexing: Balanced B+ Tree Node-Splitting, Inversion, and Merge Mechanics",
+              "type": "video",
+              "xp": 115,
+              "level": 11,
+              "date": "2027-03-04"
+            },
+            {
+              "id": "Database_Systems_w5_v8",
+              "name": "L43: Relational Query Processing Cost Formulations: Cost Estimation of Selection and Join Disk I/Os",
+              "type": "video",
+              "xp": 110,
+              "level": 11,
+              "date": "2027-03-05"
+            },
+            {
+              "id": "Database_Systems_w5_v9",
+              "name": "L44: Database Performance Tuning: Statistics Generation, Index Selection, and Database Vacuuming",
+              "type": "video",
+              "xp": 120,
+              "level": 11,
+              "date": "2027-03-05"
+            },
+            {
+              "id": "Database_Systems_w5_v10",
+              "name": "L45: Transaction State Machines: Mathematical Modeling of ACID Properties and Execution Lifecycles",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2027-03-06"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "B+ Tree Indexing, ACID Transaction Concurrency & Final Engine",
+          "start_date": "2027-03-08",
+          "end_date": "2027-03-14",
+          "items": [
+            {
+              "id": "Database_Systems_w6_v1",
+              "name": "L46: Conflict Serializability Tracking: Generating and Pruning Precedence (Serialization) Directed Graphs",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-03-08"
+            },
+            {
+              "id": "Database_Systems_w6_v2",
+              "name": "L47: View Serializability Criteria and Blind Write Operation Equivalence Verification Controls",
+              "type": "video",
+              "xp": 125,
+              "level": 12,
+              "date": "2027-03-08"
+            },
+            {
+              "id": "Database_Systems_w6_v3",
+              "name": "L48: Lock-Based Concurrency Control: Two-Phase Locking (2PL), Strict 2PL, and Rigorous 2PL Proofs",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2027-03-09"
+            },
+            {
+              "id": "Database_Systems_w6_v4",
+              "name": "L49: Deadlock Handling Mechanics: Wait-For Graphs, Deadlock Detection, and Wound-Wait/Wait-Die Schemes",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-03-09"
+            },
+            {
+              "id": "Database_Systems_w6_v5",
+              "name": "L50: Timestamp-Based Concurrency Control: Thomas’ Write Rule and Timestamp Ordering Serializations",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2027-03-10"
+            },
+            {
+              "id": "Database_Systems_w6_v6",
+              "name": "L51: Granularity of Data Items: Multiple-Granularity Locking Matrices and Intent Lock (IS/IX) Routing",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2027-03-11"
+            },
+            {
+              "id": "Database_Systems_w6_v7",
+              "name": "L52: Log-Based Recovery Architectures: Deferred vs Immediate Database Modification WAL Protocols",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2027-03-11"
+            },
+            {
+              "id": "Database_Systems_w6_v8",
+              "name": "L53: ARIES Recovery Algorithm: Analysis, Redo (Physiological Logging), and Undo Idempotent Passes",
+              "type": "video",
+              "xp": 150,
+              "level": 12,
+              "date": "2027-03-12"
+            },
+            {
+              "id": "Database_Systems_w6_v9",
+              "name": "L54: Database Security Profiles: Discretionary Access Control (DAC) via SQL GRANT/REVOKE Matrix Maps",
+              "type": "video",
+              "xp": 115,
+              "level": 12,
+              "date": "2027-03-12"
+            },
+            {
+              "id": "Database_Systems_da",
+              "name": "DA: Complete High-Throughput Normalized SQL Database Engine Optimization & B+ Tree Tuning Pipeline",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2027-03-14"
+            }
+          ]
+        }
+      ]
+    },
+    "Data_Mining_Forecasting": {
+      "name": "Data Mining & Forecasting",
+      "code": "Data_Mining_Forecasting",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "OLAP Cube slicing & Minkowski Jaccard Dissimilarity",
+          "start_date": "2027-03-15",
+          "end_date": "2027-03-20",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w1_v1",
+              "name": "L01: Three-Tier Data Warehousing Architectures & OLAP Cube Multi-Dimensional Slice/Dice Vectorization",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2027-03-15"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v2",
+              "name": "L02: Supervised vs Unsupervised Generalization Bounds & Structural Risk Minimization Principles",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2027-03-15"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v3",
+              "name": "L03: Equi-Width vs Equi-Frequency Histogram Binning Algebra & Data Smoothing Pipelines",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2027-03-16"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v4",
+              "name": "L04: Vectorized Chi-Square Test of Independence Contingency Matrix Scaling",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-03-16"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v5",
+              "name": "L05: Data Warehousing Schema Layouts: Star, Snowflake, and Fact Constellation NumPy Emulations",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-03-17"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v6",
+              "name": "L06: Nominal, Ordinal, Interval, and Ratio Attribute Distance-Metric Formulations",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2027-03-18"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v7",
+              "name": "L07: Proximity Matrix Computations: Minkowski, Cosine, and Jaccard Dissimilarity Layouts",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2027-03-18"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v8",
+              "name": "L08: Pearson Product-Moment Correlation Matrix Covariance Normalization Mechanics",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2027-03-19"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v9",
+              "name": "L09: Spearman Rank and Kendall’s Tau Non-Linear Correlation Coefficient Rankers",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2027-03-19"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w1_v10",
+              "name": "L10: One-Hot, Binary, and Target Categorical Inversion Encoding Architectures",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2027-03-20"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Nominal Ordinal Distance Metrics & PCA SVD",
+          "start_date": "2027-03-22",
+          "end_date": "2027-03-27",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w2_v1",
+              "name": "L11: Principal Component Analysis (PCA) SVD Subspace Reconstruction Variance Retention",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2027-03-22"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v2",
+              "name": "L12: Ordinary Least Squares (OLS) Univariate Cost-Function Gradient Calculations",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2027-03-22"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v3",
+              "name": "L13: Multiple Linear Regression Closed-Form Matrix Solving via Pseudoinverses",
+              "type": "video",
+              "xp": 75,
+              "level": 4,
+              "date": "2027-03-23"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v4",
+              "name": "L14: Information Gain, Entropy, and Gini Impurity Mathematical Minimizers for Decision Splits",
+              "type": "video",
+              "xp": 55,
+              "level": 5,
+              "date": "2027-03-23"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v5",
+              "name": "L15: Recursive Binary Partitioning Tree Compilers from Scratch in NumPy",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-03-24"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v6",
+              "name": "L16: Cost-Complexity Tree Pruning Algorithms via Alpha-Parameter Tuning Matrix States",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2027-03-25"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v7",
+              "name": "L17: CART Classification and Regression Tree Leaf Node Optimization Criteria",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-03-25"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v8",
+              "name": "L18: Bootstrap Aggregation (Bagging) Mechanics & Out-of-Bag (OOB) Error Estimation Math",
+              "type": "video",
+              "xp": 45,
+              "level": 6,
+              "date": "2027-03-26"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v9",
+              "name": "L19: Random Forest Classifier Feature Subspace Subsampling Randomization Engines",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2027-03-26"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w2_v10",
+              "name": "L20: K-Nearest Neighbor Brute-Force Vectorized Distance Sorting Pipelines",
+              "type": "video",
+              "xp": 50,
+              "level": 6,
+              "date": "2027-03-27"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Information Gain, Decision Trees & Cost-Complexity pruning",
+          "start_date": "2027-03-29",
+          "end_date": "2027-04-04",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w3_v1",
+              "name": "L21: Spatial Indexing Optimizations for KNN: KD-Trees and Ball-Trees Ball Traversals",
+              "type": "video",
+              "xp": 60,
+              "level": 6,
+              "date": "2027-03-29"
+            },
+            {
+              "id": "Data_Mining_Forecasting_midterm",
+              "name": "CAT: Mid-Term Statistical Classification & Pattern Mining Optimization Sprint",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-04-04"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Bagging, Random Forests & KNN KD-Trees",
+          "start_date": "2027-04-05",
+          "end_date": "2027-04-10",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w4_v1",
+              "name": "L22: MAP (Maximum A Posteriori) Classification & Gaussian Naive Bayes Log-Likelihood Arrays",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-04-05"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v2",
+              "name": "L23: Logistic Regression Sigmoid Cross-Entropy Loss Derivative Formulations",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2027-04-05"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v3",
+              "name": "L24: Newton-Raphson Optimization Algorithms for Log-Likelihood Maximization",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2027-04-06"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v4",
+              "name": "L25: Regularized Logistic Regression: Analytical L1/L2 Weight Penalty Matrix Updates",
+              "type": "video",
+              "xp": 90,
+              "level": 7,
+              "date": "2027-04-06"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v5",
+              "name": "L26: Support Vector Machine (SVM) Soft-Margin Primal Convex Optimization Problems",
+              "type": "video",
+              "xp": 80,
+              "level": 8,
+              "date": "2027-04-07"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v6",
+              "name": "L27: Dual SVM Lagrange Multipliers & Mercer Kernel Space Coordinate Layouts",
+              "type": "video",
+              "xp": 95,
+              "level": 8,
+              "date": "2027-04-08"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v7",
+              "name": "L28: Fisher’s Linear Discriminant Analysis (LDA) Discriminant Functions Matrix Equations",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-04-08"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v8",
+              "name": "L29: Quadratic Discriminant Analysis (QDA) Non-Equal Covariance Hyper-Surfaces",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2027-04-09"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v9",
+              "name": "L30: Apriori Frequent Itemset Generation: Support, Confidence, and Lift Pruning Matrices",
+              "type": "video",
+              "xp": 80,
+              "level": 9,
+              "date": "2027-04-09"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w4_v10",
+              "name": "L31: Bitwise Array Transformations for Accelerated Transaction Database Scans",
+              "type": "video",
+              "xp": 85,
+              "level": 9,
+              "date": "2027-04-10"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "MAP Classification, Newton-Raphson & Regularized Weights",
+          "start_date": "2027-04-12",
+          "end_date": "2027-04-17",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w5_v1",
+              "name": "L32: FP-Growth Frequent Pattern Prefix-Tree Dynamic Construction Mechanics",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2027-04-12"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v2",
+              "name": "L33: Conditional FP-Tree Recursive Mining Engines from First Principles",
+              "type": "video",
+              "xp": 105,
+              "level": 9,
+              "date": "2027-04-12"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v3",
+              "name": "L34: K-Means Vector Quantization Distortion & Convergence Bound Proofs",
+              "type": "video",
+              "xp": 90,
+              "level": 10,
+              "date": "2027-04-13"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v4",
+              "name": "L35: Vectorized K-Medoids Partitioning around Medoids (PAM) Swap Implementations",
+              "type": "video",
+              "xp": 95,
+              "level": 10,
+              "date": "2027-04-13"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v5",
+              "name": "L36: Agglomerative Hierarchical Clustering Proximity Traversal Layouts",
+              "type": "video",
+              "xp": 100,
+              "level": 10,
+              "date": "2027-04-14"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v6",
+              "name": "L37: Single-Linkage Hierarchical Clustering Minimal Spanning Tree Conversions",
+              "type": "video",
+              "xp": 105,
+              "level": 10,
+              "date": "2027-04-15"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v7",
+              "name": "L38: Complete-Linkage Hierarchical Clustering Diametric Subspace Pruning",
+              "type": "video",
+              "xp": 110,
+              "level": 10,
+              "date": "2027-04-15"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v8",
+              "name": "L39: Average-Linkage and Ward’s Minimum Variance Geometric Distance Merges",
+              "type": "video",
+              "xp": 115,
+              "level": 11,
+              "date": "2027-04-16"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v9",
+              "name": "L40: Cophenetic Correlation Coefficient Calculations for Hierarchical Tree Evaluation",
+              "type": "video",
+              "xp": 120,
+              "level": 11,
+              "date": "2027-04-16"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w5_v10",
+              "name": "L41: DBScan Density-Based Spatial Clustering Core, Border, and Noise Allocations",
+              "type": "video",
+              "xp": 125,
+              "level": 11,
+              "date": "2027-04-17"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "SVM Dual Space Lagrangians, Apriori & Final Forecasting",
+          "start_date": "2027-04-19",
+          "end_date": "2027-04-24",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w6_v1",
+              "name": "L42: Classical Time-Series Decomposition: Additive and Multiplicative Trend/Seasonality Filters",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2027-04-19"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v2",
+              "name": "L43: Autocorrelation (ACF) and Partial Autocorrelation (PACF) Mathematical Convolutions",
+              "type": "video",
+              "xp": 120,
+              "level": 12,
+              "date": "2027-04-19"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v3",
+              "name": "L44: Stationary Time Series Criteria: Dickey-Fuller & Augmented Dickey-Fuller (ADF) Matrix Roots",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-04-20"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v4",
+              "name": "L45: Backshift Operator Notations and Polynomial Difference Equations",
+              "type": "video",
+              "xp": 115,
+              "level": 12,
+              "date": "2027-04-20"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v5",
+              "name": "L46: Autoregressive (AR) Yule-Walker Matrix Equation Systems & Parameter Fitting",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2027-04-21"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v6",
+              "name": "L47: Moving Average (MA) Error Term Stochastic Process Inversion Algorithms",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2027-04-22"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v7",
+              "name": "L48: ARIMA Integrated Non-Seasonal Process State-Space Modelers via Statsmodels",
+              "type": "video",
+              "xp": 145,
+              "level": 12,
+              "date": "2027-04-22"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v8",
+              "name": "L49: Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC) Order Selectors",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-04-23"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v9",
+              "name": "L50: Simple Exponential Smoothing (SES) Recursive Weighting Convolution Formulations",
+              "type": "video",
+              "xp": 125,
+              "level": 12,
+              "date": "2027-04-23"
+            },
+            {
+              "id": "Data_Mining_Forecasting_w6_v10",
+              "name": "L51: Holt-Winters Double and Triple Exponential Smoothing Multiplicative Forecast Systems",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2027-04-24"
+            }
+          ]
+        },
+        {
+          "week": 7,
+          "title": "Week 7: Advanced Topics & Practice",
+          "start_date": "2027-04-26",
+          "end_date": "2027-05-02",
+          "items": [
+            {
+              "id": "Data_Mining_Forecasting_w7_v1",
+              "name": "L52: Vector Autoregression (VAR) Interdependent Multivariate Time-Series Production Engines",
+              "type": "video",
+              "xp": 150,
+              "level": 12,
+              "date": "2027-04-26"
+            },
+            {
+              "id": "Data_Mining_Forecasting_da",
+              "name": "DA: High-Dimensional Time-Series Pipeline Decomposition & Autoregressive Forecasting System",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2027-05-02"
+            }
+          ]
+        }
+      ]
+    },
+    "Advanced_Forecasting": {
+      "name": "Forecasting & Predictive Analytics",
+      "code": "Advanced_Forecasting",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Forecast Error profiles MSE/MAE & Prediction Intervals",
+          "start_date": "2027-05-03",
+          "end_date": "2027-05-08",
+          "items": [
+            {
+              "id": "Advanced_Forecasting_w1_v1",
+              "name": "L01: Vectorized Forecast Error Architectures: Analytical Implementations of MSE, RMSE, MAE, and MAPE Profiles",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2027-05-03"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v2",
+              "name": "L02: Derivation and Computation of Prediction Intervals vs Frequentist Confidence Intervals in High-Dimensional Streams",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2027-05-03"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v3",
+              "name": "L03: Parametric Least-Squares Linear and Non-Linear Trend Measurement Mathematical Modeling",
+              "type": "video",
+              "xp": 40,
+              "level": 2,
+              "date": "2027-05-04"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v4",
+              "name": "L04: Single Exponential Smoothing Recursive Filtering Weight Algorithms from First Principles",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-05-04"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v5",
+              "name": "L05: Holt’s Linear Exponential Smoothing Equations: Dynamic Level and Trend Tracking Models",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2027-05-05"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v6",
+              "name": "L06: Classical Time-Series Convolution Matrix Decompositions: Additive vs Multiplicative Geometric Inverses",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2027-05-06"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v7",
+              "name": "L07: Strict Stochastic Stationarity Boundary Audits via Unit Root Augmented Dickey-Fuller Formulations",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2027-05-06"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v8",
+              "name": "L08: Classical Linear Regression Ordinary Least Squares (OLS) Foundational Convex Assumptions",
+              "type": "video",
+              "xp": 50,
+              "level": 4,
+              "date": "2027-05-07"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v9",
+              "name": "L09: Univariate Descriptive Regression Mapping and Error Sum of Squares Tensor Formulations",
+              "type": "video",
+              "xp": 55,
+              "level": 4,
+              "date": "2027-05-07"
+            },
+            {
+              "id": "Advanced_Forecasting_w1_v10",
+              "name": "L10: Inferential Analysis of Slopes: Two-Tailed T-Distribution Hypothesis Testing for Beta Coefficients",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2027-05-08"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Holts Linear Smoothing & Ordinary Least Squares",
+          "start_date": "2027-05-10",
+          "end_date": "2027-05-16",
+          "items": [
+            {
+              "id": "Advanced_Forecasting_w2_v1",
+              "name": "L11: Model Significance Testing: Analysis of Variance (ANOVA) F-Ratio Derivative Target Engines",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2027-05-10"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v2",
+              "name": "L12: General Cross-Validation Estimation of Prediction Errors to Mitigate Structural Overfitting Traps",
+              "type": "video",
+              "xp": 60,
+              "level": 5,
+              "date": "2027-05-10"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v3",
+              "name": "L13: Coefficient of Determination (R-Squared) Decomposition Algebra and Maximization Analysis",
+              "type": "video",
+              "xp": 55,
+              "level": 5,
+              "date": "2027-05-11"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v4",
+              "name": "L14: Degrees-of-Freedom Adjustments for Multi-Feature R-Squared Loss Degradation Vectors",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-05-11"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v5",
+              "name": "L15: Leverage Score Metrics, Cook's Distance Outlier Diagnoses, and Influence Matrix Constraints",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-05-12"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v6",
+              "name": "L16: Non-Parametric Shapiro-Wilk and Jarque-Bera Residual Normality Diagnostic Test Compilers",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2027-05-13"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v7",
+              "name": "L17: Design and Execution of Multi-Variable Matrix Regression Models with Vectorized Partial Derivatives",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2027-05-13"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v8",
+              "name": "L18: Simultaneous Confidence Interval Inferences for Multiple Covariate Elasticity Slopes",
+              "type": "video",
+              "xp": 70,
+              "level": 6,
+              "date": "2027-05-14"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v9",
+              "name": "L19: Gauss-Markov Theorem Mathematical Proofs: Deriving the Best Linear Unbiased Estimator (BLUE) Space",
+              "type": "video",
+              "xp": 85,
+              "level": 6,
+              "date": "2027-05-14"
+            },
+            {
+              "id": "Advanced_Forecasting_w2_v10",
+              "name": "L20: Partial F-Test Matrix Nested Model Comparisons for Parsimonious Feature Pruning",
+              "type": "video",
+              "xp": 80,
+              "level": 6,
+              "date": "2027-05-15"
+            },
+            {
+              "id": "Advanced_Forecasting_midterm",
+              "name": "CAT: Mid-Term Regression Diagnostics, Model Selection & Residual Analysis Marathon",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-05-16"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Cross-Validation prediction errors & Leverage Cook distance",
+          "start_date": "2027-05-17",
+          "end_date": "2027-05-22",
+          "items": [
+            {
+              "id": "Advanced_Forecasting_w3_v1",
+              "name": "L21: Exact Multicollinearity Determinants: Ill-Conditioned Design Matrices and Singular Value Drops",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2027-05-17"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v2",
+              "name": "L22: Variance Inflation Factor (VIF) Inverse Correlation Matrix Diagnostics and Threshold Systems",
+              "type": "video",
+              "xp": 80,
+              "level": 7,
+              "date": "2027-05-17"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v3",
+              "name": "L23: Remedial Shrinkage Regressions: L2 Regularized Ridge Operator Matrix Inversion Defenses",
+              "type": "video",
+              "xp": 90,
+              "level": 7,
+              "date": "2027-05-18"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v4",
+              "name": "L24: Heteroscedasticity Identification: Breusch-Pagan and White Mathematical Residual Variance Solvers",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2027-05-18"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v5",
+              "name": "L25: Heteroscedasticity Defenses: Weighted Least Squares (WLS) Analytical Covariance Scaling Matrices",
+              "type": "video",
+              "xp": 95,
+              "level": 7,
+              "date": "2027-05-19"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v6",
+              "name": "L26: Stochastic Autocorrelation Mapping: Vectorized Lagged Residual Covariance Computations",
+              "type": "video",
+              "xp": 75,
+              "level": 8,
+              "date": "2027-05-20"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v7",
+              "name": "L27: First-Order Serial Dependency Verification via Durbin-Watson Matrix Ratio Bounds Test Rules",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-05-20"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v8",
+              "name": "L28: Higher-Order Autoregressive Residual Testing via Breusch-Godfrey LM Optimization Models",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2027-05-21"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v9",
+              "name": "L29: First-Order Autoregressive AR(1) Time-Series Process Parameter Estimation Algorithms",
+              "type": "video",
+              "xp": 85,
+              "level": 9,
+              "date": "2027-05-21"
+            },
+            {
+              "id": "Advanced_Forecasting_w3_v10",
+              "name": "L30: Second-Order Autoregressive AR(2) Stochastic Inversion Models and Characteristic Polynomial Roots",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2027-05-22"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Multi-Variable Matrix Regression & Heteroscedasticity",
+          "start_date": "2027-05-24",
+          "end_date": "2027-05-29",
+          "items": [
+            {
+              "id": "Advanced_Forecasting_w4_v1",
+              "name": "L31: Mathematical Relationship Boundaries Linking Durbin-Watson Statistics directly to Serial Coefficients",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2027-05-24"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v2",
+              "name": "L32: Curvilinear and Polynomial Map Formulations for Multi-Dimensional Matrix Structural Transformations",
+              "type": "video",
+              "xp": 80,
+              "level": 9,
+              "date": "2027-05-24"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v3",
+              "name": "L33: Out-of-Sample Predictive Power Audits: Symmetrical Data Splitting Validation Strategies",
+              "type": "video",
+              "xp": 75,
+              "level": 10,
+              "date": "2027-05-25"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v4",
+              "name": "L34: Predicted Residual Error Sum of Squares (PRESS) Statistical Calculation Automation Modules",
+              "type": "video",
+              "xp": 95,
+              "level": 10,
+              "date": "2027-05-25"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v5",
+              "name": "L35: Variance Stabilizing Projections via Box-Cox Maximum Likelihood Lambda Grid Search Engines",
+              "type": "video",
+              "xp": 100,
+              "level": 10,
+              "date": "2027-05-26"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v6",
+              "name": "L36: Analytical Information Criteria: Akaike Information Criterion (AIC) Structural Penalty Calculators",
+              "type": "video",
+              "xp": 85,
+              "level": 11,
+              "date": "2027-05-27"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v7",
+              "name": "L37: Schwarz Bayesian Information Criterion (BIC) Log-Sample Size Penalty Parameter Optimization Sets",
+              "type": "video",
+              "xp": 90,
+              "level": 11,
+              "date": "2027-05-27"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v8",
+              "name": "L38: Mallows’ Cp Standardized Mean Square Error Optimizers for Feature Space Selection Matrix Arrays",
+              "type": "video",
+              "xp": 95,
+              "level": 11,
+              "date": "2027-05-28"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v9",
+              "name": "L39: Model Misspecification Analysis: Omitted Variable Bias and Irrelevant Feature Inflation Traps",
+              "type": "video",
+              "xp": 105,
+              "level": 11,
+              "date": "2027-05-28"
+            },
+            {
+              "id": "Advanced_Forecasting_w4_v10",
+              "name": "L40: Generalized Linear Models (GLM) Foundations: Exponential Family Distribution Vector Forms",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2027-05-29"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Autoregressive serial dependency & Box-Cox stabilizers",
+          "start_date": "2027-05-31",
+          "end_date": "2027-06-06",
+          "items": [
+            {
+              "id": "Advanced_Forecasting_w5_v1",
+              "name": "L41: Monotonic Link Function Formulations: Canonical Link Derivations for Gaussian, Binomial, and Poisson Systems",
+              "type": "video",
+              "xp": 120,
+              "level": 12,
+              "date": "2027-05-31"
+            },
+            {
+              "id": "Advanced_Forecasting_w5_v2",
+              "name": "L42: Iteratively Reweighted Least Squares (IRLS) Optimization Algorithms for Maximum Likelihood Parameters",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2027-05-31"
+            },
+            {
+              "id": "Advanced_Forecasting_w5_v3",
+              "name": "L43: GLM Inference Operators: Wald Tests, Score Tests, and Likelihood Ratio Deviance Decompositions",
+              "type": "video",
+              "xp": 125,
+              "level": 12,
+              "date": "2027-06-01"
+            },
+            {
+              "id": "Advanced_Forecasting_w5_v4",
+              "name": "L44: Residual Analytics for Non-Linear Mappings: Anscombe and Pearson Standardized Target Profiles",
+              "type": "video",
+              "xp": 115,
+              "level": 12,
+              "date": "2027-06-01"
+            },
+            {
+              "id": "Advanced_Forecasting_w5_v5",
+              "name": "L45: Mathematical Diagnosis of Overdispersion Anomalies via Negative Binomial Iterative Relaxations",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-06-02"
+            },
+            {
+              "id": "Advanced_Forecasting_w5_v6",
+              "name": "L46: Vectorized Logit Link Inversions and Maximum Likelihood Binary Logistic Regression Engines",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2027-06-03"
+            },
+            {
+              "id": "Advanced_Forecasting_da",
+              "name": "DA: Complete GLM Autoregressive Production Pipeline & Box-Cox Time-Series Forecasting System",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2027-06-06"
+            }
+          ]
+        }
+      ]
+    },
+    "DSA_LeetCode": {
+      "name": "Data Structures and Algorithms",
+      "code": "DSA_LeetCode",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Asymptotic Notation Proofs & Vectorized Sliding Window",
+          "start_date": "2027-06-07",
+          "end_date": "2027-06-12",
+          "items": [
+            {
+              "id": "DSA_LeetCode_w1_v1",
+              "name": "L01: Mathematical Proofs of Asymptotic Notations & Big-O Upper Bounds",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2027-06-07"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v2",
+              "name": "L02: Analytical Time Complexity Derivations for Deeply Nested Iterative Loops",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2027-06-07"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v3",
+              "name": "L03: Recurrence Relation Formulations for Recursive Functions via Divide-and-Conquer Trees",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2027-06-08"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v4",
+              "name": "L04: Master's Theorem Case Classifications & Asymptotic Tight-Bound Solvers",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2027-06-08"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v5",
+              "name": "L05: Array Memory Layouts & Vectorized Sliding Window Problems (LeetCode Slid-Window Subarrays)",
+              "type": "video",
+              "xp": 45,
+              "level": 1,
+              "date": "2027-06-09"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v6",
+              "name": "L06: Two-Pointer Subspace Memory Traversal Paradigms (LeetCode Fast-Slow Pointer Mechanics)",
+              "type": "video",
+              "xp": 50,
+              "level": 1,
+              "date": "2027-06-10"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v7",
+              "name": "L07: Fixed-Size Array Stack Storage Underflows & Functional Array Implementations",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-06-10"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v8",
+              "name": "L08: Dynamic Memory Allocation for Singly Linked List Stack Nodes",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2027-06-11"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v9",
+              "name": "L09: Infix-to-Postfix Arithmetic Expression Parsers via Monotonic Stack Operators",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2027-06-11"
+            },
+            {
+              "id": "DSA_LeetCode_w1_v10",
+              "name": "L10: Mathematical Optimization of Monotonic Stacks (LeetCode Next Greater Element)",
+              "type": "video",
+              "xp": 60,
+              "level": 2,
+              "date": "2027-06-12"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Dynamic Singly Linked memory blocks & Infix-to-Postfix Stacks",
+          "start_date": "2027-06-14",
+          "end_date": "2027-06-19",
+          "items": [
+            {
+              "id": "DSA_LeetCode_w2_v1",
+              "name": "L11: First-In-First-Out (FIFO) Array Circular Queue Ring-Buffer Implementations",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2027-06-14"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v2",
+              "name": "L12: Pointer-Based Queue Structures using Dynamic Singly Linked Memory Blocks",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2027-06-14"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v3",
+              "name": "L13: Double-Ended Queue (Deque) Implementations & Core Window Extrema Extractors",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2027-06-15"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v4",
+              "name": "L14: Monotonic Queue Design and Verification (LeetCode Sliding Window Maximum)",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2027-06-15"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v5",
+              "name": "L15: Singly Linked List Structural Inversions & Node-Pointer Swap Automations",
+              "type": "video",
+              "xp": 55,
+              "level": 4,
+              "date": "2027-06-16"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v6",
+              "name": "L16: Doubly Linked List Two-Way Traversals & Complex Node Extraction Frameworks",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2027-06-17"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v7",
+              "name": "L17: Memory-Efficient Circular Linked List Implementations & Ring Node Management",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2027-06-17"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v8",
+              "name": "L18: Least Recently Used (LRU) Cache Interlocking Engines (LeetCode Map + Doubly Linked List)",
+              "type": "video",
+              "xp": 75,
+              "level": 4,
+              "date": "2027-06-18"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v9",
+              "name": "L19: Shell Sort Interval Gaps & Diminishing Increment Insertion Sort Variations",
+              "type": "video",
+              "xp": 55,
+              "level": 5,
+              "date": "2027-06-18"
+            },
+            {
+              "id": "DSA_LeetCode_w2_v10",
+              "name": "L20: Quick Sort Partitioning: Hoare vs Lomuto Pivot Selection Mathematical Mechanics",
+              "type": "video",
+              "xp": 60,
+              "level": 5,
+              "date": "2027-06-19"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Double-Ended Queues & Linked List Structural Inversions",
+          "start_date": "2027-06-21",
+          "end_date": "2027-06-27",
+          "items": [
+            {
+              "id": "DSA_LeetCode_w3_v1",
+              "name": "L21: Randomized Quick Sort Expected Time Derivations & Worst-Case Defenses",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-06-21"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v2",
+              "name": "L22: Binary Heap Invariant Properties & Vectorized Sift-Up/Sift-Down Array Alignments",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2027-06-21"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v3",
+              "name": "L23: In-Place Heap Sort Extractors & Priority Queue Ingestion Pipelines",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-06-22"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v4",
+              "name": "L24: Merge Sort Divide-and-Conquer Inversions & Two-Way Array Merge Implementations",
+              "type": "video",
+              "xp": 70,
+              "level": 5,
+              "date": "2027-06-22"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v5",
+              "name": "L25: Non-Comparison Radix Sort Matrix Buckets & Bucket Sort Digit Distributers",
+              "type": "video",
+              "xp": 65,
+              "level": 5,
+              "date": "2027-06-23"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v6",
+              "name": "L26: Binary Search Space Reductions on Monotonically Monitored Target Arrays",
+              "type": "video",
+              "xp": 50,
+              "level": 6,
+              "date": "2027-06-24"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v7",
+              "name": "L27: Advanced Binary Search on Matrix Boundaries & Implicit Function Solution Spaces",
+              "type": "video",
+              "xp": 60,
+              "level": 6,
+              "date": "2027-06-24"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v8",
+              "name": "L28: Hash Map Collision Architectures: Open Addressing vs Chaining via Linked Lists",
+              "type": "video",
+              "xp": 55,
+              "level": 6,
+              "date": "2027-06-25"
+            },
+            {
+              "id": "DSA_LeetCode_w3_v9",
+              "name": "L29: Mathematical Universal Hashing Principles & Custom String Compression Computations",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2027-06-25"
+            },
+            {
+              "id": "DSA_LeetCode_midterm",
+              "name": "CAT: Mid-Term Algorithmic Complexity & Core Linear Data Structure Implementation Marathon",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-06-27"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Shell Sort interval gaps, Quick Sort Lomuto & Heap Arrays",
+          "start_date": "2027-06-28",
+          "end_date": "2027-07-03",
+          "items": [
+            {
+              "id": "DSA_LeetCode_w4_v1",
+              "name": "L30: Binary Tree Topological Array Map Models & Hierarchical Pointer Topologies",
+              "type": "video",
+              "xp": 65,
+              "level": 7,
+              "date": "2027-06-28"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v2",
+              "name": "L31: Recursive and Iterative Stack-Based Pre-Order, In-Order, and Post-Order Traversals",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-06-28"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v3",
+              "name": "L32: Queue-Based Breadth-First Search (BFS) Tree Level-Order Graph Extraction Engines",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-06-29"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v4",
+              "name": "L33: Unique Binary Tree Structural Reconstruction from Pre-Order & In-Order Telemetry",
+              "type": "video",
+              "xp": 80,
+              "level": 7,
+              "date": "2027-06-29"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v5",
+              "name": "L34: Binary Search Tree (BST) Target Insertion, Range Queries, and Predecessor Lookups",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2027-06-30"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v6",
+              "name": "L35: Binary Search Tree Structural Deletions via Hibbard Node Swapping Algorithms",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2027-07-01"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v7",
+              "name": "L36: Greedy Prefix-Free Prefix Encodings via Optimal Huffman Tree Array Building",
+              "type": "video",
+              "xp": 90,
+              "level": 7,
+              "date": "2027-07-01"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v8",
+              "name": "L37: Self-Balancing AVL Trees: Balanced Factor Calculation Matrices & Node Rotations",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-07-02"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v9",
+              "name": "L38: Double Rotations (LR/RL) inside AVL Spaces for Skewed Coordinate Inversions",
+              "type": "video",
+              "xp": 95,
+              "level": 8,
+              "date": "2027-07-02"
+            },
+            {
+              "id": "DSA_LeetCode_w4_v10",
+              "name": "L39: Disk-I/O Optimized Multi-Way Search B-Tree Ingestion Node Split Management",
+              "type": "video",
+              "xp": 110,
+              "level": 8,
+              "date": "2027-07-03"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Binary Search boundary spaces & AVL Tree rotations",
+          "start_date": "2027-07-05",
+          "end_date": "2027-07-10",
+          "items": [
+            {
+              "id": "DSA_LeetCode_w5_v1",
+              "name": "L40: Disjoint Set Union (DSU) Structures with Path Compression & Rank Optimizations",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2027-07-05"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v2",
+              "name": "L41: Trie String Search Engines with Complete Character Pointer Vector Matrix Routing",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-07-05"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v3",
+              "name": "L42: Graph Adjacency Matrix vs Dynamic Adjacency List Space Complexity Calculations",
+              "type": "video",
+              "xp": 65,
+              "level": 9,
+              "date": "2027-07-06"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v4",
+              "name": "L43: Depth-First Search (DFS) Component Mapping & Topological Sort Path Traversals",
+              "type": "video",
+              "xp": 75,
+              "level": 9,
+              "date": "2027-07-06"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v5",
+              "name": "L44: Breadth-First Search (BFS) Graph Exploration for Shortest Traversal Distance Measures",
+              "type": "video",
+              "xp": 75,
+              "level": 9,
+              "date": "2027-07-07"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v6",
+              "name": "L45: Kruskal’s Minimum Spanning Tree (MST) Algorithm using Disjoint Set Union Optimizations",
+              "type": "video",
+              "xp": 90,
+              "level": 10,
+              "date": "2027-07-08"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v7",
+              "name": "L46: Prim’s Dense Graph Minimum Spanning Tree via Priority Queue Binary Heaps",
+              "type": "video",
+              "xp": 90,
+              "level": 10,
+              "date": "2027-07-08"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v8",
+              "name": "L47: Dijkstra’s Single-Source Shortest Path Algorithm on Positive Weight Metrics",
+              "type": "video",
+              "xp": 100,
+              "level": 10,
+              "date": "2027-07-09"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v9",
+              "name": "L48: Bellman-Ford Negative Weight Cycle Inversion Identifiers & Edge Relaxation Arrays",
+              "type": "video",
+              "xp": 105,
+              "level": 10,
+              "date": "2027-07-09"
+            },
+            {
+              "id": "DSA_LeetCode_w5_v10",
+              "name": "L49: Floyd-Warshall All-Pairs Shortest Path Dynamic Programming Matrix Solutions",
+              "type": "video",
+              "xp": 110,
+              "level": 10,
+              "date": "2027-07-10"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "Graph Adjacency Matrix DFS/BFS, MST Kruskal Prim & Shortest Paths",
+          "start_date": "2027-07-12",
+          "end_date": "2027-07-18",
+          "items": [
+            {
+              "id": "DSA_LeetCode_w6_v1",
+              "name": "L50: Kosaraju’s Two-Pass DFS Algorithm for Strongly Connected Component Detection",
+              "type": "video",
+              "xp": 115,
+              "level": 10,
+              "date": "2027-07-12"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v2",
+              "name": "L51: Tarjan’s Low-Link Matrix Tracking for Graph Articulation Points & Bridges",
+              "type": "video",
+              "xp": 120,
+              "level": 10,
+              "date": "2027-07-12"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v3",
+              "name": "L52: Backtracking Enumeration Blueprints: State-Space Search Trees & Constraint Pruning",
+              "type": "video",
+              "xp": 95,
+              "level": 11,
+              "date": "2027-07-13"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v4",
+              "name": "L53: Combinatorial Backtracking Formulations (LeetCode N-Queens & Sudoku Solvers)",
+              "type": "video",
+              "xp": 110,
+              "level": 11,
+              "date": "2027-07-13"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v5",
+              "name": "L54: Dynamic Programming: Top-Down Memoization vs Bottom-Up Tabulation Matrix Principles",
+              "type": "video",
+              "xp": 110,
+              "level": 12,
+              "date": "2027-07-14"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v6",
+              "name": "L55: 0/1 Knapsack & Multidimensional Grid State Optimization Architectures",
+              "type": "video",
+              "xp": 125,
+              "level": 12,
+              "date": "2027-07-15"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v7",
+              "name": "L56: Longest Common Subsequence (LCS) & Edit Distance Sequence Alignment Solvers",
+              "type": "video",
+              "xp": 130,
+              "level": 12,
+              "date": "2027-07-15"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v8",
+              "name": "L57: Advanced Dynamic Programming Bitmasking Over High-Dimensional Subsets",
+              "type": "video",
+              "xp": 145,
+              "level": 12,
+              "date": "2027-07-16"
+            },
+            {
+              "id": "DSA_LeetCode_w6_v9",
+              "name": "L58: Streamed Data Processing Optimization Engines (LeetCode Online Algorithms)",
+              "type": "video",
+              "xp": 115,
+              "level": 12,
+              "date": "2027-07-16"
+            },
+            {
+              "id": "DSA_LeetCode_da",
+              "name": "DA: Complete Production Feature Engineering Graph Topology Construction & Shortest Path Pipeline",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2027-07-18"
+            }
+          ]
+        }
+      ]
+    },
+    "AI_Agents": {
+      "name": "Artificial Intelligence",
+      "code": "AI_Agents",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "State-Space modeling & PEAS Framework properties",
+          "start_date": "2027-07-19",
+          "end_date": "2027-07-24",
+          "items": [
+            {
+              "id": "AI_Agents_w1_v1",
+              "name": "L01: State-Space Modeling, Graph Formulations & Combinatorial Explosion Mathematical Tracking Scripts",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2027-07-19"
+            },
+            {
+              "id": "AI_Agents_w1_v2",
+              "name": "L02: Turing Machine Approximations & Functional Computability Bound Analysis in Python",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2027-07-19"
+            },
+            {
+              "id": "AI_Agents_w1_v3",
+              "name": "L03: PEAS Framework Matrix Definitions: Performance, Environment, Actuators, and Sensor Vector Mapping",
+              "type": "video",
+              "xp": 40,
+              "level": 2,
+              "date": "2027-07-20"
+            },
+            {
+              "id": "AI_Agents_w1_v4",
+              "name": "L04: Environmental Matrix Properties: Markovian Fully-Observable vs Partially-Observable State Traversals",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-07-20"
+            },
+            {
+              "id": "AI_Agents_w1_v5",
+              "name": "L05: Stochastic, Static vs Dynamic, and Continuous Environmental Simulation Environments",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-07-21"
+            },
+            {
+              "id": "AI_Agents_w1_v6",
+              "name": "L06: Production Architecture for Object-Oriented Simple Reflex Agents with Condition-Action Rules",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2027-07-22"
+            },
+            {
+              "id": "AI_Agents_w1_v7",
+              "name": "L07: Model-Based Reflex Agents utilizing Internal State Tracking and History Buffers",
+              "type": "video",
+              "xp": 50,
+              "level": 3,
+              "date": "2027-07-22"
+            },
+            {
+              "id": "AI_Agents_w1_v8",
+              "name": "L08: Goal-Based Autonomous Search Agents with Predictive Multi-Step Action Planning",
+              "type": "video",
+              "xp": 55,
+              "level": 3,
+              "date": "2027-07-23"
+            },
+            {
+              "id": "AI_Agents_w1_v9",
+              "name": "L09: Utility-Based Optimization Agents implementing Real-Valued Scalar Tradeoff Functions",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2027-07-23"
+            },
+            {
+              "id": "AI_Agents_w1_v10",
+              "name": "L10: Actor-Critic Style Learning Agents with Performance Standards and Exploration Generators",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2027-07-24"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Simple Reflex, Model-Based & Utility optimization agents",
+          "start_date": "2027-07-26",
+          "end_date": "2027-07-31",
+          "items": [
+            {
+              "id": "AI_Agents_w2_v1",
+              "name": "L11: Uninformed Tree Exploration: FIFO Queue Breadth-First Search (BFS) Memory-Bound Pipeline",
+              "type": "video",
+              "xp": 50,
+              "level": 4,
+              "date": "2027-07-26"
+            },
+            {
+              "id": "AI_Agents_w2_v2",
+              "name": "L12: Uninformed Graph Exploration: LIFO Stack Depth-First Search (DFS) Cycle-Proofing Engines",
+              "type": "video",
+              "xp": 55,
+              "level": 4,
+              "date": "2027-07-26"
+            },
+            {
+              "id": "AI_Agents_w2_v3",
+              "name": "L13: Depth-Limited Search (DLS) Implementation with Explicit Boundary Failure Exception Traps",
+              "type": "video",
+              "xp": 55,
+              "level": 4,
+              "date": "2027-07-27"
+            },
+            {
+              "id": "AI_Agents_w2_v4",
+              "name": "L14: Iterative Deepening Depth-First Search (IDS) Combining Space and Time Efficiencies",
+              "type": "video",
+              "xp": 60,
+              "level": 4,
+              "date": "2027-07-27"
+            },
+            {
+              "id": "AI_Agents_w2_v5",
+              "name": "L15: Uniform Cost Search (UCS) Priority Queue Algorithms for Optimal Edge-Weighted Shortest Paths",
+              "type": "video",
+              "xp": 65,
+              "level": 4,
+              "date": "2027-07-28"
+            },
+            {
+              "id": "AI_Agents_w2_v6",
+              "name": "L16: Simultaneous Front-and-Back Ingestion: Bidirectional Graph Traversal Optimization Frameworks",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2027-07-29"
+            },
+            {
+              "id": "AI_Agents_w2_v7",
+              "name": "L17: Best-First Search Mechanics utilizing Evaluative Domain Heuristic Arrays",
+              "type": "video",
+              "xp": 60,
+              "level": 5,
+              "date": "2027-07-29"
+            },
+            {
+              "id": "AI_Agents_w2_v8",
+              "name": "L18: A* Search Implementation evaluating f(n) = g(n) + h(n) Vector Coordinates",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-07-30"
+            },
+            {
+              "id": "AI_Agents_w2_v9",
+              "name": "L19: Mathematical Consistency and Admissibility Validation Proofs for Heuristic Functions",
+              "type": "video",
+              "xp": 80,
+              "level": 5,
+              "date": "2027-07-30"
+            },
+            {
+              "id": "AI_Agents_w2_v10",
+              "name": "L20: Iterative Deepening A* (IDA*) and Memory-Bounded Heuristic Search (SMA*) Implementations",
+              "type": "video",
+              "xp": 85,
+              "level": 5,
+              "date": "2027-07-31"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Uninformed tree exploration BFS/DFS & A* heuristic consistency",
+          "start_date": "2027-08-02",
+          "end_date": "2027-08-08",
+          "items": [
+            {
+              "id": "AI_Agents_w3_v1",
+              "name": "L21: Two-Player Zero-Sum Game Tree Formulations and Recursive Minimax Search Engines",
+              "type": "video",
+              "xp": 65,
+              "level": 6,
+              "date": "2027-08-02"
+            },
+            {
+              "id": "AI_Agents_w3_v2",
+              "name": "L22: Alpha-Beta Pruning Edge Truncations for Multi-Step Minimax State Spaces",
+              "type": "video",
+              "xp": 80,
+              "level": 6,
+              "date": "2027-08-02"
+            },
+            {
+              "id": "AI_Agents_w3_v3",
+              "name": "L23: Dynamic Evaluation Cutoff Approximations and Horizon Effect Mitigations in Game Trees",
+              "type": "video",
+              "xp": 75,
+              "level": 6,
+              "date": "2027-08-03"
+            },
+            {
+              "id": "AI_Agents_w3_v4",
+              "name": "L24: Constraint Satisfaction Problems (CSP): Backtracking Search with MRV and Degree Heuristics",
+              "type": "video",
+              "xp": 85,
+              "level": 6,
+              "date": "2027-08-03"
+            },
+            {
+              "id": "AI_Agents_w3_v5",
+              "name": "L25: Forward Checking and AC-3 Arc Consistency Network Pruning Optimization Algorithms",
+              "type": "video",
+              "xp": 90,
+              "level": 6,
+              "date": "2027-08-04"
+            },
+            {
+              "id": "AI_Agents_w3_v6",
+              "name": "L26: Cryptarithmetic Solver Construction via Graph-Based Constraint Dependency Injectors",
+              "type": "video",
+              "xp": 95,
+              "level": 6,
+              "date": "2027-08-05"
+            },
+            {
+              "id": "AI_Agents_midterm",
+              "name": "CAT: Mid-Term Adversarial Search, Logic Solvers & State Optimization Assessment",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-08-08"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Adversarial Search, Alpha-Beta Pruning & CSP Backtracking",
+          "start_date": "2027-08-09",
+          "end_date": "2027-08-14",
+          "items": [
+            {
+              "id": "AI_Agents_w4_v1",
+              "name": "L27: Propositional Logic Inferences: Automatic Truth Table Generators & SAT Solvers",
+              "type": "video",
+              "xp": 70,
+              "level": 7,
+              "date": "2027-08-09"
+            },
+            {
+              "id": "AI_Agents_w4_v2",
+              "name": "L28: Logical Forward and Backward Chaining Inference Engines for Production Rule Verification",
+              "type": "video",
+              "xp": 80,
+              "level": 7,
+              "date": "2027-08-09"
+            },
+            {
+              "id": "AI_Agents_w4_v3",
+              "name": "L29: Proof by Contradiction: Automated Propositional Resolution and Conjunctive Normal Form (CNF) Converters",
+              "type": "video",
+              "xp": 85,
+              "level": 7,
+              "date": "2027-08-10"
+            },
+            {
+              "id": "AI_Agents_w4_v4",
+              "name": "L30: Object-Oriented Semantic Networks and Frame Taxonomy Structures with Inheritance Resolution",
+              "type": "video",
+              "xp": 75,
+              "level": 7,
+              "date": "2027-08-10"
+            },
+            {
+              "id": "AI_Agents_w4_v5",
+              "name": "L31: First-Order Logic (FOL) Syntax Compilers with Universal and Existential Quantifier Handlers",
+              "type": "video",
+              "xp": 85,
+              "level": 8,
+              "date": "2027-08-11"
+            },
+            {
+              "id": "AI_Agents_w4_v6",
+              "name": "L32: Generalized Modus Ponens Inferences & Syntactic Substitution Mappings inside Knowledge Bases",
+              "type": "video",
+              "xp": 90,
+              "level": 8,
+              "date": "2027-08-12"
+            },
+            {
+              "id": "AI_Agents_w4_v7",
+              "name": "L33: First-Order Logic Robinson Unification Algorithm Development for Literal String Matrices",
+              "type": "video",
+              "xp": 105,
+              "level": 8,
+              "date": "2027-08-12"
+            },
+            {
+              "id": "AI_Agents_w4_v8",
+              "name": "L34: First-Order Resolution Pipelines via Lifted Skolemination and Horn Clause Reductions",
+              "type": "video",
+              "xp": 115,
+              "level": 8,
+              "date": "2027-08-13"
+            },
+            {
+              "id": "AI_Agents_w4_v9",
+              "name": "L35: Joint Probability Distribution Factorization via Directed Acyclic Graphs (Bayesian Networks)",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2027-08-13"
+            },
+            {
+              "id": "AI_Agents_w4_v10",
+              "name": "L36: Exact Inference in Bayesian Networks via Enumeration and Variable Elimination Calculations",
+              "type": "video",
+              "xp": 105,
+              "level": 9,
+              "date": "2027-08-14"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Propositional Logic CNF resolution & First-Order Logic",
+          "start_date": "2027-08-16",
+          "end_date": "2027-08-21",
+          "items": [
+            {
+              "id": "AI_Agents_w5_v1",
+              "name": "L37: Approximate Inference Loops in Complex Belief Spaces using Gibbs and Metropolis-Hastings MCMC Sampling",
+              "type": "video",
+              "xp": 120,
+              "level": 9,
+              "date": "2027-08-16"
+            },
+            {
+              "id": "AI_Agents_w5_v2",
+              "name": "L38: Vectorized Multinomial Naive Bayes Classifier from Scratch using Pure NumPy Log-Likelihood Arrays",
+              "type": "video",
+              "xp": 85,
+              "level": 9,
+              "date": "2027-08-16"
+            },
+            {
+              "id": "AI_Agents_w5_v3",
+              "name": "L39: Biological Neuron Abstractions and Mathematical Properties of Continuous Activation Gradients",
+              "type": "video",
+              "xp": 50,
+              "level": 10,
+              "date": "2027-08-17"
+            },
+            {
+              "id": "AI_Agents_w5_v4",
+              "name": "L40: Analytical Calculus Derivations of Sigmoid, Hyperbolic Tangent, ReLU, and Softmax Derivatives",
+              "type": "video",
+              "xp": 65,
+              "level": 10,
+              "date": "2027-08-17"
+            },
+            {
+              "id": "AI_Agents_w5_v5",
+              "name": "L41: Single-Layer Perceptron Binary Classification Learning Rule Convergence Vector Proofs",
+              "type": "video",
+              "xp": 75,
+              "level": 10,
+              "date": "2027-08-18"
+            },
+            {
+              "id": "AI_Agents_w5_v6",
+              "name": "L42: Multi-Layer Perceptron (MLP) Forward Propagation Matrix Multiplication Mechanics",
+              "type": "video",
+              "xp": 80,
+              "level": 11,
+              "date": "2027-08-19"
+            },
+            {
+              "id": "AI_Agents_w5_v7",
+              "name": "L43: Vectorized Backpropagation Calculus Engine: Chain Rule Kronecker Product Derivations from First Principles",
+              "type": "video",
+              "xp": 130,
+              "level": 11,
+              "date": "2027-08-19"
+            },
+            {
+              "id": "AI_Agents_w5_v8",
+              "name": "L44: Stochastic Gradient Descent (SGD) with Momentum and Adam Optimization Weight Updates",
+              "type": "video",
+              "xp": 95,
+              "level": 11,
+              "date": "2027-08-20"
+            },
+            {
+              "id": "AI_Agents_w5_v9",
+              "name": "L45: Deep Feed-Forward Layer Topologies: Vanishing/Exploding Gradient Diagnostics & Xavier/He Initializations",
+              "type": "video",
+              "xp": 100,
+              "level": 11,
+              "date": "2027-08-20"
+            },
+            {
+              "id": "AI_Agents_w5_v10",
+              "name": "L46: Energy-Based Probabilistic Architectures: Restricted Boltzmann Machine (RBM) Matrix Layers",
+              "type": "video",
+              "xp": 120,
+              "level": 12,
+              "date": "2027-08-21"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "Robinson Unification, Bayesian Belief Networks & Neural calculus",
+          "start_date": "2027-08-23",
+          "end_date": "2027-08-29",
+          "items": [
+            {
+              "id": "AI_Agents_w6_v1",
+              "name": "L47: Contrastive Divergence (CD-k) MCMC Sampling Implementations for RBM Feature Extraction",
+              "type": "video",
+              "xp": 135,
+              "level": 12,
+              "date": "2027-08-23"
+            },
+            {
+              "id": "AI_Agents_w6_v2",
+              "name": "L48: Rule-Based Expert System Shell Development with Conflicting Rule Resolution Matrices",
+              "type": "video",
+              "xp": 80,
+              "level": 12,
+              "date": "2027-08-23"
+            },
+            {
+              "id": "AI_Agents_da",
+              "name": "DA: Custom Vectorized Neural Network & Backpropagation Calculus Execution Production Pipeline",
+              "type": "quiz",
+              "xp": 800,
+              "level": 12,
+              "date": "2027-08-29"
+            }
+          ]
+        }
+      ]
+    },
+    "Machine_Learning": {
+      "name": "Machine Learning",
+      "code": "Machine_Learning",
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Train/Test partition mechanics & Standardizing Rescaling",
+          "start_date": "2027-08-30",
+          "end_date": "2027-09-04",
+          "items": [
+            {
+              "id": "Machine_Learning_w1_v1",
+              "name": "L01: Machine Learning Ecosystem Foundations & Bias-Variance Tradeoff Geometric Intuition",
+              "type": "video",
+              "xp": 30,
+              "level": 1,
+              "date": "2027-08-30"
+            },
+            {
+              "id": "Machine_Learning_w1_v2",
+              "name": "L02: Feature Matrix Construction, Target Variable Engineering & Train/Test Partition Mechanics",
+              "type": "video",
+              "xp": 35,
+              "level": 1,
+              "date": "2027-08-30"
+            },
+            {
+              "id": "Machine_Learning_w1_v3",
+              "name": "L03: Data Standardization, Normalization & Distribution Rescaling Transform Pipelines",
+              "type": "video",
+              "xp": 40,
+              "level": 1,
+              "date": "2027-08-31"
+            },
+            {
+              "id": "Machine_Learning_w1_v4",
+              "name": "L04: Missing Value Imputation Architectures: Mean, Median, KNN and Iterative Strategies",
+              "type": "video",
+              "xp": 45,
+              "level": 2,
+              "date": "2027-08-31"
+            },
+            {
+              "id": "Machine_Learning_w1_v5",
+              "name": "L05: Feature Engineering Operators: Polynomial Expansion, Interaction Terms & Log Transforms",
+              "type": "video",
+              "xp": 50,
+              "level": 2,
+              "date": "2027-09-01"
+            },
+            {
+              "id": "Machine_Learning_w1_v6",
+              "name": "L06: Cross-Validation Frameworks: Holdout, K-Fold and Stratified Sampling Mechanics",
+              "type": "video",
+              "xp": 55,
+              "level": 2,
+              "date": "2027-09-02"
+            },
+            {
+              "id": "Machine_Learning_w1_v7",
+              "name": "L07: Model Evaluation Metrics: Accuracy, Precision, Recall, F1 and ROC-AUC Formulations",
+              "type": "video",
+              "xp": 60,
+              "level": 2,
+              "date": "2027-09-02"
+            },
+            {
+              "id": "Machine_Learning_w1_v8",
+              "name": "L08: Loss Functions: MSE, MAE, Huber and Quantile Regression Optimization Landscapes",
+              "type": "video",
+              "xp": 60,
+              "level": 3,
+              "date": "2027-09-03"
+            },
+            {
+              "id": "Machine_Learning_w1_v9",
+              "name": "L09: Gradient Descent Optimization: Batch, Stochastic and Mini-Batch Update Rules",
+              "type": "video",
+              "xp": 65,
+              "level": 3,
+              "date": "2027-09-03"
+            },
+            {
+              "id": "Machine_Learning_w1_v10",
+              "name": "L10: Learning Rate Scheduling, Momentum and Nesterov Accelerated Gradient Dynamics",
+              "type": "video",
+              "xp": 70,
+              "level": 3,
+              "date": "2027-09-04"
+            }
+          ]
+        },
+        {
+          "week": 2,
+          "title": "Imputers KNN Iterative & Evaluation Metrics Loss landscapes",
+          "start_date": "2027-09-06",
+          "end_date": "2027-09-11",
+          "items": [
+            {
+              "id": "Machine_Learning_w2_v1",
+              "name": "L11: Ridge Regression Analytical Solutions & L2 Regularization Penalty Geometries",
+              "type": "video",
+              "xp": 70,
+              "level": 4,
+              "date": "2027-09-06"
+            },
+            {
+              "id": "Machine_Learning_w2_v2",
+              "name": "L12: Lasso Regression Coordinate Descent Sparsity-Inducing Optimization Systems",
+              "type": "video",
+              "xp": 75,
+              "level": 4,
+              "date": "2027-09-06"
+            },
+            {
+              "id": "Machine_Learning_w2_v3",
+              "name": "L13: Elastic Net Combined L1/L2 Constraint Optimization Matrix Frameworks",
+              "type": "video",
+              "xp": 80,
+              "level": 4,
+              "date": "2027-09-07"
+            },
+            {
+              "id": "Machine_Learning_w2_v4",
+              "name": "L14: Logistic Regression Probability Calibration & Decision Boundary Hyperplane Mechanics",
+              "type": "video",
+              "xp": 75,
+              "level": 5,
+              "date": "2027-09-07"
+            },
+            {
+              "id": "Machine_Learning_w2_v5",
+              "name": "L15: Multiclass Classification via One-vs-Rest and Softmax Regression Architectures",
+              "type": "video",
+              "xp": 80,
+              "level": 5,
+              "date": "2027-09-08"
+            },
+            {
+              "id": "Machine_Learning_w2_v6",
+              "name": "L16: Class Imbalance Handling: SMOTE, ADASYN and Cost-Sensitive Learning Pipelines",
+              "type": "video",
+              "xp": 85,
+              "level": 5,
+              "date": "2027-09-09"
+            },
+            {
+              "id": "Machine_Learning_w2_v7",
+              "name": "L17: Hyperparameter Optimization: Grid Search, Random Search and Bayesian Sampling Engines",
+              "type": "video",
+              "xp": 90,
+              "level": 5,
+              "date": "2027-09-09"
+            },
+            {
+              "id": "Machine_Learning_w2_v8",
+              "name": "L18: Decision Tree Split Optimization using Entropy, Gini and Gain Ratio Metrics",
+              "type": "video",
+              "xp": 70,
+              "level": 6,
+              "date": "2027-09-10"
+            },
+            {
+              "id": "Machine_Learning_w2_v9",
+              "name": "L19: Ensemble Learning Foundations: Bagging, Boosting and Stacking Meta-Architectures",
+              "type": "video",
+              "xp": 80,
+              "level": 6,
+              "date": "2027-09-10"
+            },
+            {
+              "id": "Machine_Learning_w2_v10",
+              "name": "L20: AdaBoost Weak Learner Weight Reallocation & Exponential Loss Minimization",
+              "type": "video",
+              "xp": 85,
+              "level": 6,
+              "date": "2027-09-11"
+            }
+          ]
+        },
+        {
+          "week": 3,
+          "title": "Gradient Descent Optimizations & regularized Ridge/Lasso",
+          "start_date": "2027-09-13",
+          "end_date": "2027-09-19",
+          "items": [
+            {
+              "id": "Machine_Learning_w3_v1",
+              "name": "L21: Gradient Boosting Functional Gradient Descent Residual Learning Frameworks",
+              "type": "video",
+              "xp": 90,
+              "level": 6,
+              "date": "2027-09-13"
+            },
+            {
+              "id": "Machine_Learning_midterm",
+              "name": "CAT: Mid-Term Predictive Modeling, Ensemble Learning & Hyperparameter Optimization Sprint",
+              "type": "quiz",
+              "xp": 500,
+              "level": 6,
+              "date": "2027-09-19"
+            }
+          ]
+        },
+        {
+          "week": 4,
+          "title": "Logit Hyperplane calibration, SMOTE & Ensemble Bagging",
+          "start_date": "2027-09-20",
+          "end_date": "2027-09-25",
+          "items": [
+            {
+              "id": "Machine_Learning_w4_v1",
+              "name": "L22: XGBoost Regularized Tree Boosting with Second-Order Taylor Approximation Updates",
+              "type": "video",
+              "xp": 95,
+              "level": 7,
+              "date": "2027-09-20"
+            },
+            {
+              "id": "Machine_Learning_w4_v2",
+              "name": "L23: LightGBM Histogram-Based Gradient Boosting & Leaf-Wise Growth Optimization",
+              "type": "video",
+              "xp": 100,
+              "level": 7,
+              "date": "2027-09-20"
+            },
+            {
+              "id": "Machine_Learning_w4_v3",
+              "name": "L24: CatBoost Ordered Target Encoding & Symmetric Tree Construction Engines",
+              "type": "video",
+              "xp": 105,
+              "level": 7,
+              "date": "2027-09-21"
+            },
+            {
+              "id": "Machine_Learning_w4_v4",
+              "name": "L25: Kernel Methods: Polynomial, RBF and Sigmoid Similarity Transform Spaces",
+              "type": "video",
+              "xp": 90,
+              "level": 7,
+              "date": "2027-09-21"
+            },
+            {
+              "id": "Machine_Learning_w4_v5",
+              "name": "L26: Support Vector Classification Margin Maximization and Hinge Loss Optimization",
+              "type": "video",
+              "xp": 95,
+              "level": 8,
+              "date": "2027-09-22"
+            },
+            {
+              "id": "Machine_Learning_w4_v6",
+              "name": "L27: Support Vector Regression Epsilon-Insensitive Loss Function Approximation Models",
+              "type": "video",
+              "xp": 100,
+              "level": 8,
+              "date": "2027-09-23"
+            },
+            {
+              "id": "Machine_Learning_w4_v7",
+              "name": "L28: Probabilistic Learning with Gaussian Processes Covariance Kernel Inference Systems",
+              "type": "video",
+              "xp": 110,
+              "level": 8,
+              "date": "2027-09-23"
+            },
+            {
+              "id": "Machine_Learning_w4_v8",
+              "name": "L29: Expectation-Maximization (EM) Algorithm Latent Variable Likelihood Maximization",
+              "type": "video",
+              "xp": 115,
+              "level": 8,
+              "date": "2027-09-24"
+            },
+            {
+              "id": "Machine_Learning_w4_v9",
+              "name": "L53: Survival Analysis & Time-to-Event Modeling: Cox Proportional Hazards & Random Survival Forests Math",
+              "type": "video",
+              "xp": 100,
+              "level": 8,
+              "date": "2027-09-24"
+            },
+            {
+              "id": "Machine_Learning_w4_v10",
+              "name": "L30: Gaussian Mixture Models Soft Clustering Posterior Probability Allocations",
+              "type": "video",
+              "xp": 90,
+              "level": 9,
+              "date": "2027-09-25"
+            }
+          ]
+        },
+        {
+          "week": 5,
+          "title": "Gradient Boosting XGBoost LightGBM & Support Vector",
+          "start_date": "2027-09-27",
+          "end_date": "2027-10-02",
+          "items": [
+            {
+              "id": "Machine_Learning_w5_v1",
+              "name": "L31: Dimensionality Reduction using PCA Eigenvalue Decomposition and SVD Transformations",
+              "type": "video",
+              "xp": 95,
+              "level": 9,
+              "date": "2027-09-27"
+            },
+            {
+              "id": "Machine_Learning_w5_v2",
+              "name": "L32: Kernel PCA Nonlinear Feature Space Projection Architectures",
+              "type": "video",
+              "xp": 100,
+              "level": 9,
+              "date": "2027-09-27"
+            },
+            {
+              "id": "Machine_Learning_w5_v3",
+              "name": "L33: Independent Component Analysis (ICA) Blind Source Separation Optimization Systems",
+              "type": "video",
+              "xp": 105,
+              "level": 9,
+              "date": "2027-09-28"
+            },
+            {
+              "id": "Machine_Learning_w5_v4",
+              "name": "L34: t-SNE Stochastic Neighbor Embedding Similarity Preservation Dynamics",
+              "type": "video",
+              "xp": 110,
+              "level": 10,
+              "date": "2027-09-28"
+            },
+            {
+              "id": "Machine_Learning_w5_v5",
+              "name": "L35: UMAP Uniform Manifold Approximation and Topological Graph Embedding Mechanics",
+              "type": "video",
+              "xp": 115,
+              "level": 10,
+              "date": "2027-09-29"
+            },
+            {
+              "id": "Machine_Learning_w5_v6",
+              "name": "L36: Feature Selection via Mutual Information, Recursive Elimination and Embedded Methods",
+              "type": "video",
+              "xp": 120,
+              "level": 10,
+              "date": "2027-09-30"
+            },
+            {
+              "id": "Machine_Learning_w5_v7",
+              "name": "L37: Model Explainability: Permutation Importance and Partial Dependence Visualization Engines",
+              "type": "video",
+              "xp": 125,
+              "level": 10,
+              "date": "2027-09-30"
+            },
+            {
+              "id": "Machine_Learning_w5_v8",
+              "name": "L38: SHAP Shapley Additive Explanations Cooperative Game-Theoretic Attribution Systems",
+              "type": "video",
+              "xp": 130,
+              "level": 10,
+              "date": "2027-10-01"
+            },
+            {
+              "id": "Machine_Learning_w5_v9",
+              "name": "L59: Algorithmic Fairness & Bias Mitigation: Demographic Parity, Equalized Odds & Counterfactual Fairness Optimization",
+              "type": "video",
+              "xp": 120,
+              "level": 10,
+              "date": "2027-10-01"
+            },
+            {
+              "id": "Machine_Learning_w5_v10",
+              "name": "L39: LIME Local Interpretable Model-Agnostic Explanation Surrogate Frameworks",
+              "type": "video",
+              "xp": 120,
+              "level": 11,
+              "date": "2027-10-02"
+            }
+          ]
+        },
+        {
+          "week": 6,
+          "title": "Gaussian Mixture Models EM, t-SNE UMAP & Explainers",
+          "start_date": "2027-10-04",
+          "end_date": "2027-10-09",
+          "items": [
+            {
+              "id": "Machine_Learning_w6_v1",
+              "name": "L40: Calibration Curves and Brier Score Reliability Assessment Architectures",
+              "type": "video",
+              "xp": 125,
+              "level": 11,
+              "date": "2027-10-04"
+            },
+            {
+              "id": "Machine_Learning_w6_v2",
+              "name": "L41: Online Learning Algorithms and Incremental Model Update Strategies",
+              "type": "video",
+              "xp": 130,
+              "level": 11,
+              "date": "2027-10-04"
+            },
+            {
+              "id": "Machine_Learning_w6_v3",
+              "name": "L42: Recommender Systems: Collaborative Filtering Matrix Factorization Pipelines",
+              "type": "video",
+              "xp": 135,
+              "level": 11,
+              "date": "2027-10-05"
+            },
+            {
+              "id": "Machine_Learning_w6_v4",
+              "name": "L60: Metamorphic Testing & Data Validation Rules for End-to-End Automated Production ML Pipelines",
+              "type": "video",
+              "xp": 130,
+              "level": 11,
+              "date": "2027-10-05"
+            },
+            {
+              "id": "Machine_Learning_w6_v5",
+              "name": "L43: Singular Value Decomposition Recommendation Engines and Latent Factor Models",
+              "type": "video",
+              "xp": 140,
+              "level": 12,
+              "date": "2027-10-06"
+            },
+            {
+              "id": "Machine_Learning_w6_v6",
+              "name": "L44: Association Rule-Based Recommendation Hybrid Personalization Architectures",
+              "type": "video",
+              "xp": 145,
+              "level": 12,
+              "date": "2027-10-07"
+            },
+            {
+              "id": "Machine_Learning_w6_v7",
+              "name": "L45: Anomaly Detection using Isolation Forest and One-Class SVM Boundary Estimators",
+              "type": "video",
+              "xp": 150,
+              "level": 12,
+              "date": "2027-10-07"
+            },
+            {
+              "id": "Machine_Learning_w6_v8",
+              "name": "L46: AutoML Search Spaces, Pipeline Optimization and Meta-Learning Frameworks",
+              "type": "video",
+              "xp": 155,
+              "level": 12,
+              "date": "2027-10-08"
+            },
+            {
+              "id": "Machine_Learning_w6_v9",
+              "name": "L47: Neural Network Foundations: Perceptrons, Activation Functions and Backpropagation Gradients",
+              "type": "video",
+              "xp": 160,
+              "level": 12,
+              "date": "2027-10-08"
+            },
+            {
+              "id": "Machine_Learning_w6_v10",
+              "name": "L48: Deep Feedforward Networks Weight Initialization and Vanishing Gradient Countermeasures",
+              "type": "video",
+              "xp": 165,
+              "level": 12,
+              "date": "2027-10-09"
+            }
+          ]
+        },
+        {
+          "week": 7,
+          "title": "Online learning, Collaborative Filtering & Perceptrons",
+          "start_date": "2027-10-11",
+          "end_date": "2027-10-16",
+          "items": [
+            {
+              "id": "Machine_Learning_w7_v1",
+              "name": "L49: Convolutional Neural Network Feature Extraction Hierarchies and Receptive Field Analysis",
+              "type": "video",
+              "xp": 175,
+              "level": 12,
+              "date": "2027-10-11"
+            },
+            {
+              "id": "Machine_Learning_w7_v2",
+              "name": "L50: Recurrent Neural Networks, LSTM and GRU Sequential Memory State Architectures",
+              "type": "video",
+              "xp": 180,
+              "level": 12,
+              "date": "2027-10-11"
+            },
+            {
+              "id": "Machine_Learning_w7_v3",
+              "name": "L51: Transformer Self-Attention Mechanisms and Positional Encoding Matrix Operations",
+              "type": "video",
+              "xp": 190,
+              "level": 12,
+              "date": "2027-10-12"
+            },
+            {
+              "id": "Machine_Learning_w7_v4",
+              "name": "L52: End-to-End Machine Learning Pipeline Deployment, Monitoring and MLOps Lifecycle Systems",
+              "type": "video",
+              "xp": 200,
+              "level": 12,
+              "date": "2027-10-12"
+            },
+            {
+              "id": "Machine_Learning_w7_v5",
+              "name": "L54: Graph Neural Networks (GNN): Graph Convolutional Networks (GCN) & Graph Attention Networks (GAT) Message passing",
+              "type": "video",
+              "xp": 180,
+              "level": 12,
+              "date": "2027-10-13"
+            },
+            {
+              "id": "Machine_Learning_w7_v6",
+              "name": "L55: Model Compression Architectures: Weight Pruning, Quantization Vector Calculus & Knowledge Distillation Loss Fields",
+              "type": "video",
+              "xp": 175,
+              "level": 12,
+              "date": "2027-10-14"
+            },
+            {
+              "id": "Machine_Learning_w7_v7",
+              "name": "L56: Self-Supervised & Contrastive Learning Frameworks: InfoNCE Loss, Siamese Networks & Triplet Loss Space Optimizers",
+              "type": "video",
+              "xp": 170,
+              "level": 12,
+              "date": "2027-10-14"
+            },
+            {
+              "id": "Machine_Learning_w7_v8",
+              "name": "L57: Deep Learning Normalization & Optimization Dynamics: LayerNorm, BatchNorm, WeightNorm & Cosine Annealing Math",
+              "type": "video",
+              "xp": 165,
+              "level": 12,
+              "date": "2027-10-15"
+            },
+            {
+              "id": "Machine_Learning_w7_v9",
+              "name": "L58: Bayesian Neural Networks & Variational Inference Loops: Monte Carlo Dropout & Evidence Lower Bound (ELBO) Derivations",
+              "type": "video",
+              "xp": 185,
+              "level": 12,
+              "date": "2027-10-15"
+            },
+            {
+              "id": "Machine_Learning_w7_v10",
+              "name": "L61: Vector Database Indexing Mechanics: Hierarchical Navigable Small World (HNSW) & Inverted File Index (IVF) Proximity Subspaces",
+              "type": "video",
+              "xp": 150,
+              "level": 12,
+              "date": "2027-10-16"
+            }
+          ]
+        },
+        {
+          "week": 8,
+          "title": "CNN, LSTM, Transformers Self-Attention & Final System",
+          "start_date": "2027-10-18",
+          "end_date": "2027-10-18",
+          "items": [
+            {
+              "id": "Machine_Learning_w8_v1",
+              "name": "L62: Federated Learning Topologies: Secure Multi-Party Aggregation, FedAvg Mathematics & Differential Privacy Bounds",
+              "type": "video",
+              "xp": 160,
+              "level": 12,
+              "date": "2027-10-18"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
