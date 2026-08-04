@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Rage Fuel Wall</title>
+<meta name="description" content="Log every insult, failure, and humiliation. Turn pain into willpower. Every entry earns +1 WIL +1 XP.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ── Rage Fuel Wall specific ── */
+:root {
+  --rage-red:    #ef4444;
+  --rage-orange: #f97316;
+  --rage-amber:  #f59e0b;
+  --rage-dark:   rgba(239,68,68,0.06);
+  --rage-border: rgba(239,68,68,0.25);
+}
+
+.badlog-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px; align-items: start; }
+
+/* Intensity selector */
+.intensity-row { display: flex; gap: 6px; margin: 10px 0; }
+.int-btn {
+  flex: 1; padding: 10px 0; border-radius: 8px; font-size: 20px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+  cursor: pointer; transition: all .18s; text-align: center;
+}
+.int-btn:hover { border-color: var(--rage-red); transform: scale(1.06); }
+.int-btn.active { background: rgba(239,68,68,0.15); border-color: var(--rage-red); box-shadow: 0 0 12px rgba(239,68,68,0.25); }
+
+/* Entry cards */
+.rage-card {
+  background: var(--rage-dark);
+  border: 1px solid var(--rage-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+  transition: border-color .18s, box-shadow .18s;
+  overflow: hidden;
+}
+.rage-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--rage-red);
+  border-radius: 3px 0 0 3px;
+}
+.rage-card:hover { border-color: rgba(239,68,68,0.5); box-shadow: 0 4px 20px rgba(239,68,68,0.12); }
+
+.rage-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 10px; }
+.rage-title { font-size: 14px; font-weight: 700; color: var(--text1); flex: 1; }
+.rage-time { font-size: 10px; color: var(--text3); font-family: var(--ff-mono); white-space: nowrap; }
+
+.rage-body { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.rage-body p { margin: 0 0 6px; }
+.rage-body span { font-size: 10px; color: var(--text3); font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px; }
+.rage-body strong { color: var(--text1); }
+
+.rage-lesson {
+  margin-top: 8px;
+  background: rgba(16,185,129,0.06);
+  border: 1px solid rgba(16,185,129,0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #6ee7b7;
+}
+.rage-lesson::before { content: '💡 Lesson: '; font-weight: 700; color: var(--green); }
+
+.rage-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+.rage-tag {
+  font-size: 10px; font-family: var(--ff-mono);
+  padding: 2px 8px; border-radius: 4px;
+}
+.tag-who  { background: rgba(249,115,22,0.12); color: #fdba74; }
+.tag-int  { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.tag-date { background: rgba(99,102,241,0.1); color: #c7d2fe; }
+
+/* Intensity flame display */
+.flames { letter-spacing: -2px; font-size: 13px; }
+
+/* Header stats row */
+.rage-stats {
+  display: flex; gap: 12px; align-items: center;
+}
+.rage-stat {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text2); font-family: var(--ff-mono);
+}
+.rage-stat i { color: var(--rage-red); font-size: 11px; }
+
+/* Total count badge */
+.count-pill {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5;
+  font-size: 11px; font-family: var(--ff-mono);
+  padding: 3px 10px; border-radius: 20px;
+}
+
+/* Empty state */
+.empty-rage {
+  text-align: center; padding: 48px 20px; color: var(--text3);
+}
+.empty-rage i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+/* Quote banner */
+.quote-banner {
+  background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(249,115,22,0.06));
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text2);
+  font-style: italic;
+  line-height: 1.6;
+}
+.quote-banner strong { color: var(--rage-orange); font-style: normal; font-size: 11px; display: block; margin-top: 6px; font-family: var(--ff-mono); }
+
+/* Pill tooltip on card hover */
+.wil-reward {
+  position: absolute; top: 10px; right: 12px;
+  font-size: 9px; color: var(--text3); font-family: var(--ff-mono);
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 4px; padding: 2px 7px;
+}
+
+/* Filter row */
+.filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.filter-row label { font-size: 11px; color: var(--text3); font-family: var(--ff-mono); white-space: nowrap; }
+
+/* Scroll area for entries */
+#rage-entries { max-height: 75vh; overflow-y: auto; padding-right: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog" class="active"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title"><i class="fa-solid fa-fire-flame-curved" style="color:var(--rage-red)"></i> Rage Fuel Wall</div>
+        <div class="page-sub">Every scolding, failure &amp; insult logged here — your permanent motivation arsenal</div>
+      </div>
+      <div class="rage-stats">
+        <div class="rage-stat"><i class="fa-solid fa-skull"></i><span id="total-count">0 entries</span></div>
+        <span class="count-pill">+1 WIL +1 XP per entry</span>
+      </div>
+    </div>
+
+    <div class="quote-banner" id="daily-quote">
+      <i class="fa-solid fa-quote-left" style="color:var(--rage-red);margin-right:6px;opacity:0.6"></i>
+      "Remember every moment they doubted you. Every door that was closed. Every scold. Every insult. Let it build you, not break you."
+      <strong>— YOUR WAR ROOM · USE ANGER AS JET FUEL</strong>
+    </div>
+
+    <div class="badlog-grid">
+      <!-- LOG FORM -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-skull-crossbones" style="color:var(--rage-red)"></i> Log a Bad Experience</div>
+
+        <div class="field">
+          <label>Short title / event name <span style="color:var(--red)">*</span></label>
+          <input type="text" id="b-title" placeholder='e.g. "Boss insulted my work in meeting"' autofocus>
+        </div>
+
+        <div class="field">
+          <label>Who did this? <span style="color:var(--text3);font-size:10px">(optional)</span></label>
+          <input type="text" id="b-who" placeholder='e.g. "Manager at ABC Company" or "Classmate in college"'>
+        </div>
+
+        <div class="field">
+          <label>What exactly happened? <span style="color:var(--red)">*</span></label>
+          <textarea id="b-what" rows="4" placeholder="Write every painful detail. What they said. How you felt. Don't hold back — this is your private war room." style="resize:vertical;min-height:90px"></textarea>
+        </div>
+
+        <div class="field">
+          <label>What lesson will you take from this?</label>
+          <textarea id="b-lesson" rows="2" placeholder='e.g. "I will prove them wrong by passing GATE 2028 in the top 1%"' style="resize:vertical;min-height:60px"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Intensity — how badly did it hurt?</label>
+          <div class="intensity-row" id="intensity-row">
+            <button class="int-btn" id="int-1" onclick="selectIntensity(1)" title="Minor">😐</button>
+            <button class="int-btn" id="int-2" onclick="selectIntensity(2)" title="Annoying">😤</button>
+            <button class="int-btn active" id="int-3" onclick="selectIntensity(3)" title="Painful">😠</button>
+            <button class="int-btn" id="int-4" onclick="selectIntensity(4)" title="Humiliating">😡</button>
+            <button class="int-btn" id="int-5" onclick="selectIntensity(5)" title="Devastating">🤬</button>
+          </div>
+          <p class="field-hint" style="margin-top:5px;font-size:11px;color:var(--text3)">
+            <i class="fa-solid fa-info-circle"></i> 1 = Minor annoyance → 5 = Deeply humiliating / devastating
+          </p>
+        </div>
+
+        <button class="btn btn-full" id="save-btn" onclick="saveEntry()"
+          style="background:linear-gradient(135deg,var(--rage-red),var(--rage-orange));color:#fff;border:none;font-weight:700;letter-spacing:0.03em;">
+          <i class="fa-solid fa-fire-flame-curved"></i> Log It — Turn Pain Into Power (+1 WIL +1 XP)
+        </button>
+      </div>
+
+      <!-- ENTRIES LIST -->
+      <div>
+        <div class="filter-row">
+          <label>FILTER DATE:</label>
+          <input type="date" id="filter-date" style="flex:1;" onchange="loadEntries()">
+          <button class="btn btn-ghost btn-sm" onclick="clearFilter()">All</button>
+        </div>
+        <div id="rage-entries">
+          <div class="empty-rage">
+            <i class="fa-solid fa-fire-flame-curved"></i>
+            No rage fuel logged yet.<br>Log your first painful memory and turn it into power.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Settings Modal (shared) -->
+<div id="settings-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fa-solid fa-gear"></i> Settings</div>
+    <div class="field">
+      <label>Gemini API Key</label>
+      <input type="password" id="api-key-input" placeholder="Paste your Gemini API key here">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('settings-modal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+let selectedIntensity = 3;
+
+const INTENSITY_LABEL = ['', 'Minor', 'Annoying', 'Painful', 'Humiliating', 'Devastating'];
+const INTENSITY_COLOR = ['', '#94a3b8', '#fdba74', '#fca5a5', '#f87171', '#ef4444'];
+const INTENSITY_FLAME = ['', '🔹', '🔸', '🔥', '🔥🔥', '🔥🔥🔥'];
+
+function selectIntensity(n) {
+  selectedIntensity = n;
+  document.querySelectorAll('.int-btn').forEach((b, i) => {
+    b.classList.toggle('active', i + 1 === n);
+  });
+}
+
+async function saveEntry() {
+  const title = document.getElementById('b-title').value.trim();
+  const who = document.getElementById('b-who').value.trim();
+  const what = document.getElementById('b-what').value.trim();
+  const lesson = document.getElementById('b-lesson').value.trim();
+
+  if (!title) { toast('Give this experience a title!', 'err'); document.getElementById('b-title').focus(); return; }
+  if (!what) { toast('Write what happened!', 'err'); document.getElementById('b-what').focus(); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging...';
+
+  try {
+    const r = await fetch('/api/badlog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        who,
+        what_happened: what,
+        my_lesson: lesson,
+        intensity: selectedIntensity
+      })
+    });
+
+    if (!r.ok) {
+      const e = await r.json();
+      toast(`Error: ${e.detail}`, 'err');
+      return;
+    }
+
+    const data = await r.json();
+    toast(`🔥 ${data.message}`, 'ok');
+
+    // Reset form
+    document.getElementById('b-title').value = '';
+    document.getElementById('b-who').value = '';
+    document.getElementById('b-what').value = '';
+    document.getElementById('b-lesson').value = '';
+    selectIntensity(3);
+
+    loadEntries();
+    loadMiniStats();
+  } catch(e) {
+    toast(`Connection error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-fire-flame-curved"></i> Log It — Turn Pain Into Power (+1 WIL +1 XP)';
+  }
+}
+
+function clearFilter() {
+  document.getElementById('filter-date').value = '';
+  loadEntries();
+}
+
+function escH(t) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(t));
+  return d.innerHTML;
+}
+
+async function loadEntries() {
+  const dateVal = document.getElementById('filter-date').value;
+  let url = '/api/badlog?limit=200';
+  if (dateVal) url = `/api/badlog?date=${dateVal}`;
+
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return;
+    const data = await r.json();
+    const entries = data.entries || [];
+
+    document.getElementById('total-count').textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
+
+    const container = document.getElementById('rage-entries');
+    if (entries.length === 0) {
+      container.innerHTML = `<div class="empty-rage">
+        <i class="fa-solid fa-fire-flame-curved"></i>
+        ${dateVal ? `No entries for ${dateVal}.` : 'No rage fuel logged yet.<br>Log your first painful memory and turn it into power.'}
+      </div>`;
+      return;
+    }
+
+    // Group by date
+    const byDate = {};
+    entries.forEach(e => {
+      const d = e.date || e.timestamp?.split(' ')[0] || 'Unknown';
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(e);
+    });
+
+    container.innerHTML = '';
+    const today = new Date().toISOString().split('T')[0];
+
+    Object.entries(byDate).sort((a, b) => b[0].localeCompare(a[0])).forEach(([date, dayEntries]) => {
+      // Date badge
+      const badge = document.createElement('div');
+      badge.style.cssText = 'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;font-size:10px;font-family:var(--ff-mono);padding:3px 10px;border-radius:6px;margin-bottom:8px;display:inline-block;';
+      badge.textContent = date === today ? `🔥 Today — ${date}` : `📅 ${date}`;
+      container.appendChild(badge);
+      container.appendChild(document.createElement('br'));
+
+      dayEntries.forEach(entry => {
+        const flames = INTENSITY_FLAME[entry.intensity] || '🔥';
+        const intLabel = INTENSITY_LABEL[entry.intensity] || 'Painful';
+        const intColor = INTENSITY_COLOR[entry.intensity] || '#fca5a5';
+        const timeStr = entry.timestamp?.split(' ')[1]?.slice(0, 5) || '';
+
+        const card = document.createElement('div');
+        card.className = 'rage-card';
+        card.innerHTML = `
+          <div class="wil-reward">+1 WIL</div>
+          <div class="rage-header">
+            <div class="rage-title">${escH(entry.title)}</div>
+            <div class="rage-time">${timeStr}</div>
+          </div>
+          <div class="rage-body">
+            ${entry.who ? `<p><span>WHO</span><strong>${escH(entry.who)}</strong></p>` : ''}
+            <p><span>WHAT HAPPENED</span>${escH(entry.what_happened)}</p>
+          </div>
+          ${entry.my_lesson ? `<div class="rage-lesson">${escH(entry.my_lesson)}</div>` : ''}
+          <div class="rage-tags">
+            <span class="rage-tag tag-int" style="color:${intColor}">${flames} ${intLabel}</span>
+            ${entry.who ? `<span class="rage-tag tag-who"><i class="fa-solid fa-user" style="font-size:8px"></i> ${escH(entry.who)}</span>` : ''}
+          </div>`;
+        container.appendChild(card);
+      });
+
+      // Spacer
+      const spacer = document.createElement('div');
+      spacer.style.height = '8px';
+      container.appendChild(spacer);
+    });
+  } catch(e) {
+    console.error('Rage entries load error:', e);
+  }
+}
+
+function openSettings() {
+  const stored = localStorage.getItem('gemini_api_key') || '';
+  document.getElementById('api-key-input').value = stored;
+  document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (key) localStorage.setItem('gemini_api_key', key);
+  document.getElementById('settings-modal').style.display = 'none';
+  toast('API key saved!', 'ok');
+}
+
+// Rotating motivational quotes
+const QUOTES = [
+  ["Remember every moment they doubted you. Every door that was closed. Every scold. Every insult. Let it build you, not break you.", "YOUR WAR ROOM · USE ANGER AS JET FUEL"],
+  ["Pain is data. Document it. Analyze it. Weaponize it. The people who hurt you are funding your rise.", "BOOPATHI'S ORIGIN STORY"],
+  ["Every scolding is a debt they owe you. Collect it by becoming someone they can't ignore.", "RAGE FUEL PHILOSOPHY"],
+  ["Successful people don't forget their pain. They convert it into a relentless, unstoppable drive.", "ANTIGRAVITY CORE SYSTEM"],
+  ["They said you were nothing. Log it. Remember it. Then go build something that proves them absolutely wrong.", "GATE 2028 · TOP 1% OR NOTHING"]
+];
+
+(function setRandomQuote() {
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  document.getElementById('daily-quote').innerHTML = `
+    <i class="fa-solid fa-quote-left" style="color:var(--rage-red);margin-right:6px;opacity:0.6"></i>
+    "${q[0]}"
+    <strong>— ${q[1]}</strong>`;
+})();
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.shiftKey && e.key === 'F') {
+    document.getElementById('b-title')?.focus();
+  }
+});
+
+loadMiniStats();
+loadEntries();
+</script>
+</body>
+</html>

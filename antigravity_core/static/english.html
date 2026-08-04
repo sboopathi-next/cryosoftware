@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antigravity — English Booster &amp; Translator</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ── LOCAL STYLES ────────────────────────────────────────── */
+/* Lock main container scroll to prevent double-scrollbars */
+.main {
+  overflow: hidden !important;
+}
+
+.english-container {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+.pane {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.pane-hd {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(6, 8, 24, 0.4);
+}
+
+.pane-title {
+  font-family: var(--ff-brand);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pane-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pane-body::-webkit-scrollbar {
+  width: 6px;
+}
+.pane-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+.pane-body::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: 3px;
+  border: 1px solid #060818;
+}
+.pane-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.6);
+}
+
+/* Dictionary & Translation */
+.translator-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.trans-input {
+  width: 100%;
+  background: #060818;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text1);
+  padding: 12px;
+  font-size: 13.5px;
+  outline: none;
+  resize: none;
+  font-family: var(--ff-body);
+  transition: border-color 0.15s;
+}
+.trans-input:focus {
+  border-color: var(--cyan);
+}
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.btn-trans {
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s;
+}
+.btn-trans:hover {
+  opacity: 0.9;
+}
+
+/* Translation Results */
+.result-card {
+  background: #060818;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.result-badge {
+  align-self: flex-start;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: var(--cyan);
+  font-weight: 700;
+  font-family: var(--ff-mono);
+}
+.tamil-translation {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text1);
+  line-height: 1.4;
+}
+.english-definition {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+  border-left: 2px solid var(--border-hi);
+  padding-left: 10px;
+}
+.example-item {
+  font-size: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 8px 10px;
+  border-radius: 4px;
+  border-left: 2px solid var(--indigo);
+  margin-top: 6px;
+}
+.example-en {
+  color: var(--text1);
+  font-weight: 500;
+}
+.example-ta {
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* History List */
+.history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.history-hdr {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.history-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.history-item {
+  background: #060818;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.15s;
+}
+.history-item:hover {
+  border-color: var(--border-hi);
+  background: var(--bg-hover);
+}
+.history-word {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text1);
+}
+.history-trans {
+  font-size: 12px;
+  color: var(--text3);
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* AI Surveillance Panel */
+.surveillance-panel {
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-sm);
+  background: #040612;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  max-height: 160px;
+  width: 100%;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.surveillance-panel.minimized {
+  aspect-ratio: auto !important;
+  height: 28px !important;
+  max-height: 28px !important;
+  border-color: rgba(6, 182, 212, 0.15) !important;
+}
+.surveillance-panel.minimized .surveillance-feed,
+.surveillance-panel.minimized .surveillance-sim,
+.surveillance-panel.minimized #scanner-box,
+.surveillance-panel.minimized .hud-scanner {
+  display: none !important;
+}
+.surveillance-panel.minimized .surveillance-overlay {
+  padding: 4px 10px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+.surveillance-panel.minimized .surveillance-overlay > div:nth-child(3) {
+  display: none !important;
+}
+.surveillance-panel.minimized .surveillance-overlay > div:first-child {
+  width: 100% !important;
+}
+.log-box.minimized {
+  display: none !important;
+}
+.surveillance-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+}
+.hud-red { color: var(--red); text-shadow: 0 0 4px var(--red); }
+.hud-green { color: var(--green); text-shadow: 0 0 4px var(--green); }
+.hud-cyan { color: var(--cyan); text-shadow: 0 0 4px var(--cyan); }
+.hud-scanner {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 10px var(--cyan);
+  animation: scan 3s linear infinite;
+  z-index: 5;
+}
+@keyframes scan {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+.surveillance-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(18, 24, 58, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 24, 58, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+.surveillance-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror */
+  display: block;
+}
+.surveillance-sim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #03050c;
+}
+
+/* Surveillance logs */
+.log-box {
+  background: #03050c;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  color: var(--text3);
+  height: 60px;
+  overflow-y: auto;
+}
+.log-entry {
+  line-height: 1.4;
+}
+
+/* Countdown & Timer */
+.timer-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+.timer-digits {
+  font-family: var(--ff-mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--indigo);
+  text-shadow: 0 0 10px rgba(99,102,241,0.3);
+}
+.btn-timer {
+  background: var(--indigo);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.btn-timer:hover {
+  background: #4f46e5;
+  transform: scale(1.02);
+}
+
+/* Daily content cards */
+.lesson-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.01);
+  overflow: hidden;
+}
+.lesson-card-hd {
+  background: rgba(6, 8, 24, 0.3);
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lesson-card-body {
+  padding: 12px 14px;
+}
+
+/* Grammar quiz options */
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.quiz-opt {
+  background: #060818;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: var(--text1);
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.quiz-opt:hover:not(.checked) {
+  border-color: var(--border-hi);
+  background: var(--bg-hover);
+}
+.quiz-opt.correct {
+  border-color: var(--green) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  font-weight: 600;
+}
+.quiz-opt.incorrect {
+  border-color: var(--red) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  text-decoration: line-through;
+}
+
+/* Sub-tabs for daily study modules */
+.sub-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.sub-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--ff-body);
+}
+.sub-tab-btn:hover {
+  color: var(--text1);
+}
+.sub-tab-btn.active {
+  background: var(--border-hi);
+  color: var(--text1);
+}
+.daily-tab-content.hidden {
+  display: none !important;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239, 68, 68,0.2);color:#fca5a5;border-color:rgba(239, 68, 68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english" class="active"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="english-container">
+      
+      <!-- LEFT PANE: Translator & History -->
+      <div class="pane">
+        <div class="pane-hd">
+          <span class="pane-title"><i class="fa-solid fa-language" style="color:var(--cyan)"></i> English-Tamil Dictionary &amp; Translator</span>
+          <button class="btn btn-ghost btn-sm" onclick="clearTranslation()"><i class="fa-solid fa-eraser"></i> Clear</button>
+        </div>
+        <div class="pane-body">
+          
+          <!-- USER STATS BAR -->
+          <div class="user-stats-bar" style="background:#060818; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-weight:700; color:#f59e0b; font-size:12.5px;"><i class="fa-solid fa-fire"></i> <span id="stat-streak">1</span>-Day Streak</span>
+              <span style="color:var(--text2); font-size:12px;"><i class="fa-solid fa-microphone" style="color:var(--cyan)"></i> <span id="stat-speaking-mins">0</span> Mins Spoke</span>
+              <span style="color:var(--text2); font-size:12px;"><i class="fa-solid fa-star" style="color:#eab308"></i> <span id="stat-xp">50</span> XP</span>
+            </div>
+            <div>
+              <span class="result-badge" id="stat-badge" style="background:rgba(16,185,129,0.15); color:#10b981; border-color:rgba(16,185,129,0.3); font-size:10px;"><i class="fa-solid fa-award"></i> Stage Ready</span>
+            </div>
+          </div>
+
+          <div class="translator-box">
+            <textarea id="translate-input" class="trans-input" rows="2" placeholder="Type English word or sentence to translate..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();translateText();}"></textarea>
+            <div class="action-row">
+              <span style="font-size:11px;color:var(--text3)"><kbd>Enter</kbd> to translate</span>
+              <button class="btn-trans" onclick="translateText()"><i class="fa-solid fa-arrow-right-arrow-left"></i> Translate</button>
+            </div>
+          </div>
+          
+          <!-- TRANSLATION RESULT CARD -->
+          <div id="translate-result" class="result-card hidden">
+            <div class="flex-between">
+              <span id="res-pos" class="result-badge">NOUN</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span id="res-query" style="font-size:12px;font-family:var(--ff-mono);color:var(--text2)"></span>
+                <button class="btn btn-ghost" onclick="speakText(document.getElementById('res-query').textContent)" style="padding:2px 6px; font-size:10px; color:var(--cyan); border:1px solid rgba(6,182,212,0.3); border-radius:4px;" title="Listen English Pronunciation"><i class="fa-solid fa-volume-high"></i> Listen</button>
+              </div>
+            </div>
+            <div id="res-tamil" class="tamil-translation"></div>
+            <div id="res-definition" class="english-definition"></div>
+            <div id="res-synonyms-div" style="font-size:12px;color:var(--text2)">
+              <strong>Synonyms:</strong> <span id="res-synonyms" style="color:var(--cyan)"></span>
+            </div>
+            <div id="res-examples-container" style="display:flex;flex-direction:column;gap:6px;">
+              <strong>Examples:</strong>
+              <!-- dynamic example cards -->
+            </div>
+          </div>
+          
+          <!-- QUERY HISTORY -->
+          <div class="history-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span class="history-hdr"><i class="fa-solid fa-clock-rotate-left"></i> Translation History</span>
+              <button class="btn btn-ghost btn-sm" onclick="clearAllHistory()" style="font-size:10px; color:#ef4444; padding:2px 6px;"><i class="fa-solid fa-trash"></i> Clear All</button>
+            </div>
+            <div id="history-list" class="history-list">
+              <!-- dynamic history entries -->
+              <div class="empty-state" style="padding:15px 0;">No translation history yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- RIGHT PANE: Public Speaking Studio & Daily Content -->
+      <div class="pane">
+        <div class="pane-hd">
+          <span class="pane-title"><i class="fa-solid fa-microphone-lines" style="color:var(--cyan)"></i> 5-Min Public Speaking Studio &amp; AI Coach</span>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="btn btn-ghost btn-sm" id="toggle-cam-btn" onclick="toggleCamView()" style="padding: 4px 8px; font-size: 11px; border: 1px dashed rgba(6,182,212,0.3); color: var(--cyan); background: transparent; cursor: pointer; border-radius: 4px;">
+              <i class="fa-solid fa-video-slash"></i> Minimize Cam
+            </button>
+            <span id="session-status" class="hud-red"><i class="fa-solid fa-circle-dot"></i> STUDIO READY</span>
+          </div>
+        </div>
+        <div class="pane-body">
+
+          <!-- PUBLIC SPEAKING VOICE STUDIO -->
+          <div style="background:linear-gradient(135deg, rgba(6,182,212,0.06), rgba(99,102,241,0.06)); border:1px solid rgba(6,182,212,0.3); border-radius:var(--radius-sm); padding:14px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:12px; color:var(--text2);">
+              <strong>Today's Public Speaking Topic:</strong> 
+              <select id="speech-topic-select" style="background:#060818; color:var(--text1); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; width:100%; margin-top:6px; outline:none;">
+                <option value="Describe your goal and why you work hard for it.">Describe your goal and why you work hard for it.</option>
+                <option value="Why discipline is the key to mastering public speaking and skills.">Why discipline is the key to mastering public speaking and skills.</option>
+                <option value="How to overcome stage fear when speaking in front of an audience.">How to overcome stage fear when speaking in front of an audience.</option>
+                <option value="Introduce yourself confidently to 100 listeners on stage.">Introduce yourself confidently to 100 listeners on stage.</option>
+              </select>
+            </div>
+            
+            <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
+              <button id="btn-start-speech" onclick="toggleSpeechRecording()" class="btn-trans" style="background:linear-gradient(135deg, #10b981, #06b6d4); font-size:12px; padding:8px 16px; border:none; cursor:pointer;">
+                <i class="fa-solid fa-microphone"></i> Start 5-Min Speech
+              </button>
+              <span id="speech-timer" style="font-family:var(--ff-mono); font-size:16px; font-weight:700; color:var(--cyan);">05:00</span>
+            </div>
+            
+            <div id="speech-transcript-box" style="background:#060818; border:1px solid var(--border); border-radius:6px; padding:10px; min-height:55px; max-height:90px; overflow-y:auto; font-size:12px; color:var(--text2); line-height:1.4;">
+              <em>Click "Start 5-Min Speech" and talk out loud into your mic... Your speech transcript and live feedback will generate here!</em>
+            </div>
+
+            <div id="speech-feedback-card" class="hidden" style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:10px; font-size:12px;">
+              <div style="font-weight:700; color:#10b981; margin-bottom:4px;" id="feedback-score-title">Fluency Score: 85/100</div>
+              <div id="feedback-text" style="color:var(--text1);"></div>
+            </div>
+          </div>
+
+          
+          <!-- TIMER CONTAINER -->
+          <div class="timer-container">
+            <div class="timer-digits" id="timer-label">05:00</div>
+            <button class="btn-timer" id="timer-btn" onclick="toggleSession()"><i class="fa-solid fa-play"></i> Start Session</button>
+          </div>
+          
+          <!-- AI SURVEILLANCE CAMERA -->
+          <div class="surveillance-panel">
+            <div class="hud-scanner"></div>
+            <div class="surveillance-grid"></div>
+            <div class="surveillance-overlay">
+              <div class="flex-between w-full">
+                <span class="hud-cyan"><i class="fa-solid fa-video"></i> ANTIGRAVITY AI CAM v2.0</span>
+                <span id="camera-fps" class="hud-cyan">FPS: 30</span>
+              </div>
+              <div id="scanner-box" style="border: 1px dashed var(--cyan); width: 140px; height: 140px; position: absolute; top: calc(50% - 70px); left: calc(50% - 70px); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                <span id="scanner-label" class="hud-cyan" style="font-size:8px; background:rgba(0,0,0,0.5); padding:2px 4px; border-radius:3px;">CALIBRATING</span>
+              </div>
+              <div class="flex-between w-full">
+                <span id="presence-val" class="hud-green">PRESENCE: MOCK ACTIVE</span>
+                <span id="distract-val" class="hud-green">FOCUS STATUS: 100%</span>
+              </div>
+            </div>
+            <video id="webcam-video" class="surveillance-feed hidden" autoplay muted playsinline></video>
+            <canvas id="wireframe-canvas" class="surveillance-sim"></canvas>
+          </div>
+          
+          <!-- LOG BOX -->
+          <div id="log-box" class="log-box">
+            <div class="log-entry">[00:00:00] AI Surveillance ready. Hit "Start Session" to initiate monitoring.</div>
+          </div>
+          
+          <!-- DAILY STUDY TABS -->
+          <div class="lesson-card" style="margin-top:12px;">
+            <div class="lesson-card-hd" style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-weight:700; font-size:12px;"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i> Daily Modules</span>
+                <button class="btn btn-ghost" onclick="loadDailyContent(true)" title="Force regenerate daily grammar & vocabulary" style="padding: 2px 6px; font-size: 10px; border: 1px dashed rgba(6,182,212,0.3); color: var(--cyan); background: transparent; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                  <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                </button>
+              </div>
+              <div class="sub-tabs">
+                <button class="sub-tab-btn active" id="tab-btn-vocab" onclick="switchDailyTab('vocab')">Vocab</button>
+                <button class="sub-tab-btn" id="tab-btn-spoken" onclick="switchDailyTab('spoken')">Spoken</button>
+                <button class="sub-tab-btn" id="tab-btn-mistakes" onclick="switchDailyTab('mistakes')">Common Mistakes</button>
+                <button class="sub-tab-btn" id="tab-btn-grammar" onclick="switchDailyTab('grammar')">Grammar Quiz</button>
+              </div>
+            </div>
+            <div class="lesson-card-body" style="padding:12px 14px;">
+              
+              <!-- VOCABULARY TAB CONTENT -->
+              <div id="daily-tab-vocab" class="daily-tab-content">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <strong id="daily-word" style="font-size:15px; color:var(--text1)">Loading...</strong>
+                    <button class="btn btn-ghost" onclick="speakText(document.getElementById('daily-word').textContent)" style="padding:2px 6px; font-size:10px; color:var(--cyan); border:1px solid rgba(6,182,212,0.3); border-radius:4px;"><i class="fa-solid fa-volume-high"></i> Listen</button>
+                  </div>
+                  <span id="daily-word-tamil" style="font-size:14px; font-weight:700; color:var(--cyan)">...</span>
+                </div>
+                <div id="daily-word-def" style="font-size:12.5px; color:var(--text2); margin-top:6px;">...</div>
+                <div id="daily-word-ex" class="example-item">
+                  <div id="daily-word-ex-en" class="example-en">...</div>
+                  <div id="daily-word-ex-ta" class="example-ta">...</div>
+                </div>
+              </div>
+              
+              <!-- SPOKEN TAB CONTENT -->
+              <div id="daily-tab-spoken" class="daily-tab-content hidden">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <strong id="spoken-phrase" style="font-size:14px; color:var(--text1)">Loading...</strong>
+                  <button class="btn btn-ghost" onclick="speakText(document.getElementById('spoken-phrase').textContent)" style="padding:2px 6px; font-size:10px; color:var(--green); border:1px solid rgba(16,185,129,0.3); border-radius:4px;"><i class="fa-solid fa-volume-high"></i> Listen</button>
+                </div>
+                <div id="spoken-tamil" style="font-size:13px; font-weight:700; color:var(--green); margin-top:2px;">...</div>
+                <div id="spoken-exp" style="font-size:12.5px; color:var(--text2); margin-top:6px;">...</div>
+                <div id="spoken-ex" class="example-item" style="border-left-color: var(--green);">
+                  <div id="spoken-ex-content" style="white-space: pre-line; font-size:12px; color:var(--text1);">...</div>
+                </div>
+              </div>
+
+              <!-- COMMON MISTAKES TAB CONTENT -->
+              <div id="daily-tab-mistakes" class="daily-tab-content hidden">
+                <div style="font-size:11px; font-weight:700; color:var(--amber); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> Common English Mistake</div>
+                <div id="mistake-wrong" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; padding:8px 10px; border-radius:6px; font-size:12.5px; font-weight:600; margin-bottom:6px;">
+                  ❌ I discussed about the topic yesterday.
+                </div>
+                <div id="mistake-right" style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#6ee7b7; padding:8px 10px; border-radius:6px; font-size:12.5px; font-weight:600; margin-bottom:8px;">
+                  ✅ I discussed the topic yesterday.
+                </div>
+                <div id="mistake-exp" style="font-size:12px; color:var(--text2); line-height:1.4; background:rgba(0,0,0,0.2); padding:8px 10px; border-radius:6px;">
+                  'Discuss' already means 'talk about'. Avoid using 'about' after discuss.
+                </div>
+              </div>
+              
+              <!-- GRAMMAR TAB CONTENT -->
+              <div id="daily-tab-grammar" class="daily-tab-content hidden">
+                <strong id="grammar-rule" style="font-size:14px; color:var(--text1)">Loading...</strong>
+                <div id="grammar-exp" style="font-size:12.5px; color:var(--text2); margin-top:4px;">...</div>
+                
+                <!-- Quiz Box -->
+                <div style="margin-top:12px; padding-top:10px; border-top: 1px solid var(--border);">
+                  <div id="quiz-question" style="font-size:13px; font-weight:600; color:var(--text1);">...</div>
+                  <div id="quiz-options-div" class="quiz-options">
+                    <!-- options -->
+                  </div>
+                  <div id="quiz-explanation" style="font-size:12px; color:var(--text2); margin-top:10px; display:none; padding:8px; border-radius:4px; background:rgba(255,255,255,0.02)">
+                    <!-- correct answer explanation -->
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
+    </div>
+  </main>
+</div>
+
+<!-- PREMIUM SUCCESS MODAL -->
+<div id="success-modal" class="modal-mask hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(3, 5, 12, 0.85); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.3s ease;">
+  <div class="modal" style="max-width: 420px; width: 90%; background: linear-gradient(135deg, #090e25, #050716); border: 2px solid var(--cyan); box-shadow: 0 0 35px rgba(6, 182, 212, 0.4); border-radius: 16px; padding: 24px; text-align: center; position: relative; overflow: hidden; transform: scale(0.9); transition: transform 0.3s ease;">
+    <!-- Neon glow effect -->
+    <div style="position: absolute; top: -50px; left: calc(50% - 50px); width: 100px; height: 100px; background: var(--cyan); filter: blur(50px); opacity: 0.3; pointer-events: none;"></div>
+    
+    <div style="font-size: 56px; color: var(--green); margin-bottom: 16px; filter: drop-shadow(0 0 10px rgba(16,185,129,0.5)); animation: bounce 1.5s infinite;">
+      <i class="fa-solid fa-award"></i>
+    </div>
+    <h3 style="font-family: var(--ff-brand); font-size: 20px; font-weight: 800; color: var(--text1); margin-bottom: 8px; letter-spacing: 0.05em;">DAILY BOOSTER COMPLETE!</h3>
+    <p style="color: var(--text2); font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
+      Excellent discipline, Boopathi. You completed today's focused English and surveillance block.
+    </p>
+    
+    <!-- Rewards List -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 12px; border-radius: 10px; margin-bottom: 24px;">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <span style="color: var(--cyan); font-size: 18px; font-weight: 800; text-shadow: 0 0 5px rgba(6,182,212,0.3);">+15</span>
+        <span style="font-size: 9px; font-family: var(--ff-mono); color: var(--text3); margin-top: 2px;">XP</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <span style="color: var(--purple); font-size: 18px; font-weight: 800; text-shadow: 0 0 5px rgba(139,92,246,0.3);">+1</span>
+        <span style="font-size: 9px; font-family: var(--ff-mono); color: var(--text3); margin-top: 2px;">WIL</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <span style="color: var(--blue); font-size: 18px; font-weight: 800; text-shadow: 0 0 5px rgba(59,130,246,0.3);">+1</span>
+        <span style="font-size: 9px; font-family: var(--ff-mono); color: var(--text3); margin-top: 2px;">INT</span>
+      </div>
+    </div>
+    
+    <!-- Confirm Button -->
+    <button class="btn btn-primary" onclick="closeSuccessModal()" style="width: 100%; font-family: var(--ff-mono); font-size: 12px; padding: 10px; border-radius: 8px; background: var(--cyan); border-color: var(--cyan); color: #03050c; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+      ACKNOWLEDGE &amp; CONTINUE
+    </button>
+  </div>
+</div>
+
+<div id="settings-modal" class="modal-mask hidden"></div>
+<script src="/static/shared.js?v=teach3"></script>
+<script>
+// State
+let countdownVal = 300; // 5 mins
+let countdownInterval = null;
+let sessionActive = false;
+let currentLessonData = null;
+let quizAnswered = false;
+
+// Simulated camera canvas variables
+let canvas = document.getElementById('wireframe-canvas');
+let ctx = canvas.getContext('2d');
+let wireframeInterval = null;
+let animAngle = 0;
+let webcamStream = null;
+
+// Initialize
+window.addEventListener('DOMContentLoaded', () => {
+  loadDailyContent();
+  loadHistory();
+  loadProgress();
+  initWireframeSim();
+  checkCompletionOnLoad();
+});
+
+// Logs helper
+function addLog(msg) {
+  const box = document.getElementById('log-box');
+  const now = new Date();
+  const timeStr = now.toTimeString().split(' ')[0];
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.textContent = `[${timeStr}] ${msg}`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// Fetch Daily Content
+async function loadDailyContent(force = false) {
+  try {
+    if (force) {
+      addLog('Regenerating a fresh daily English booster module via Gemini LLM...');
+    }
+    const key = localStorage.getItem('groq_key') || localStorage.getItem('gemini_key') || '';
+    const groqModel = window.getSanitizedGroqModel ? getSanitizedGroqModel() : (localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile');
+
+    const url = `/api/english/content?force=${force}&provider=groq&api_key=${encodeURIComponent(key)}&studio_model=${groqModel}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('API failure');
+    const data = await r.json();
+    currentLessonData = data;
+    
+    // Bind Vocabulary
+    document.getElementById('daily-word').textContent = data.word;
+    document.getElementById('daily-word-tamil').textContent = data.word_tamil;
+    document.getElementById('daily-word-def').textContent = data.word_definition;
+    
+    const wEx = data.word_example.split('/');
+    document.getElementById('daily-word-ex-en').textContent = wEx[0] ? wEx[0].trim() : '';
+    document.getElementById('daily-word-ex-ta').textContent = wEx[1] ? wEx[1].trim() : '';
+
+    // Bind Spoken English
+    document.getElementById('spoken-phrase').textContent = data.spoken_phrase;
+    document.getElementById('spoken-tamil').textContent = data.spoken_phrase_tamil || data.spoken_tamil || '';
+    document.getElementById('spoken-exp').textContent = data.spoken_explanation;
+    document.getElementById('spoken-ex-content').textContent = data.spoken_example;
+
+    // Bind Common Mistakes
+    if (data.common_mistake_wrong && data.common_mistake_right) {
+      document.getElementById('mistake-wrong').textContent = `❌ ${data.common_mistake_wrong}`;
+      document.getElementById('mistake-right').textContent = `✅ ${data.common_mistake_right}`;
+      document.getElementById('mistake-exp').textContent = data.common_mistake_exp || '';
+    } else {
+      document.getElementById('mistake-wrong').textContent = '❌ I discussed about the topic yesterday.';
+      document.getElementById('mistake-right').textContent = '✅ I discussed the topic yesterday.';
+      document.getElementById('mistake-exp').textContent = "'Discuss' already means 'talk about'. Avoid using 'about' after discuss.";
+    }
+
+    // Bind Grammar quiz
+    document.getElementById('grammar-rule').textContent = data.grammar_rule;
+    document.getElementById('grammar-exp').textContent = data.grammar_explanation;
+    
+    const quiz = data.grammar_quiz;
+    document.getElementById('quiz-question').textContent = quiz.question;
+    
+    const optDiv = document.getElementById('quiz-options-div');
+    optDiv.innerHTML = '';
+    quizAnswered = false;
+    
+    quiz.options.forEach((opt, idx) => {
+      const btn = document.createElement('div');
+      btn.className = 'quiz-opt';
+      btn.innerHTML = `<span>${opt}</span><i class="fa-regular fa-circle" style="font-size:12px;opacity:0.4;"></i>`;
+      btn.onclick = () => selectQuizOption(btn, idx, quiz.correct_index, quiz.explanation);
+      optDiv.appendChild(btn);
+    });
+
+    document.getElementById('quiz-explanation').style.display = 'none';
+
+    addLog('Daily study modules synced successfully.');
+  } catch (err) {
+    console.error(err);
+    addLog('Error fetching daily modules. Check settings.');
+  }
+}
+
+// Handle Grammar quiz choice
+function selectQuizOption(element, index, correctIndex, explanation) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  
+  const options = document.querySelectorAll('.quiz-opt');
+  options.forEach(opt => opt.classList.add('checked'));
+
+  const icon = element.querySelector('i');
+
+  if (index === correctIndex) {
+    element.classList.add('correct');
+    icon.className = 'fa-solid fa-circle-check';
+    addLog('Grammar Quiz: Correct answer chosen! +INT XP');
+  } else {
+    element.classList.add('incorrect');
+    icon.className = 'fa-solid fa-circle-xmark';
+    
+    // Highlight correct option
+    options[correctIndex].classList.add('correct');
+    options[correctIndex].querySelector('i').className = 'fa-solid fa-circle-check';
+    addLog('Grammar Quiz: Incorrect option chosen.');
+  }
+  
+  const expDiv = document.getElementById('quiz-explanation');
+  expDiv.innerHTML = `<strong>Explanation:</strong> ${explanation}`;
+  expDiv.style.display = 'block';
+}
+
+// Audio Text-To-Speech (Shadowing & Pronunciation)
+function speakText(text) {
+  if (!text || !text.trim()) return;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.trim());
+    u.rate = 0.92;
+    u.pitch = 1.0;
+    u.lang = 'en-US';
+    window.speechSynthesis.speak(u);
+    addLog(`Playing audio pronunciation for: "${text.substring(0, 20)}..."`);
+  } else {
+    alert("Speech synthesis is not supported in this browser.");
+  }
+}
+
+// Fetch Progress Stats
+async function loadProgress() {
+  try {
+    const r = await fetch('/api/english/progress');
+    if (!r.ok) return;
+    const prog = await r.json();
+    document.getElementById('stat-streak').textContent = prog.streak_days || 1;
+    document.getElementById('stat-speaking-mins').textContent = Math.round((prog.total_speaking_seconds || 0) / 60);
+    document.getElementById('stat-xp').textContent = prog.xp_points || 50;
+    
+    const badges = JSON.parse(prog.unlocked_badges || '[]');
+    const badgeText = badges.length > 0 ? badges[badges.length - 1] : 'Stage Ready';
+    document.getElementById('stat-badge').innerHTML = `<i class="fa-solid fa-award"></i> ${escHTML(badgeText)}`;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Fetch Query History
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/english/history');
+    if (!r.ok) return;
+    const data = await r.json();
+    const list = document.getElementById('history-list');
+    
+    if (!data.history || data.history.length === 0) {
+      list.innerHTML = `<div class="empty-state" style="padding:15px 0;">No translation history yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = '';
+    data.history.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.style.display = 'flex';
+      div.style.justifyContent = 'space-between';
+      div.style.alignItems = 'center';
+      
+      div.innerHTML = `
+        <div style="cursor:pointer; flex:1;" onclick="document.getElementById('translate-input').value='${escHTML(item.query)}'; translateText();">
+          <span class="history-word" style="font-weight:700;">${escHTML(item.query)}</span>
+          <span class="history-trans" style="color:var(--text2); font-size:12px; margin-left:8px;">${escHTML(item.translation)}</span>
+        </div>
+        <button onclick="deleteHistoryItem(${item.id}, event)" style="background:none; border:none; color:var(--text3); cursor:pointer; padding:4px;" title="Delete Entry">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      `;
+      list.appendChild(div);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function deleteHistoryItem(id, event) {
+  if (event) event.stopPropagation();
+  try {
+    await fetch(`/api/english/history/${id}`, { method: 'DELETE' });
+    loadHistory();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function clearAllHistory() {
+  if (!confirm("Clear all translation history?")) return;
+  try {
+    await fetch('/api/english/history', { method: 'DELETE' });
+    loadHistory();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// 🎤 5-MIN PUBLIC SPEAKING STUDIO VOICE RECORDING
+let isSpeechRecording = false;
+let speechRecognition = null;
+let speechTranscript = "";
+let speechTimerInterval = null;
+let speechSecondsLeft = 300;
+
+function toggleSpeechRecording() {
+  if (isSpeechRecording) {
+    stopSpeechRecording();
+  } else {
+    startSpeechRecording();
+  }
+}
+
+function startSpeechRecording() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert("Speech Recognition API is not supported in your browser. Please use Chrome/Edge.");
+    return;
+  }
+
+  isSpeechRecording = true;
+  speechTranscript = "";
+  speechSecondsLeft = 300;
+  
+  const btn = document.getElementById('btn-start-speech');
+  btn.innerHTML = `<i class="fa-solid fa-square" style="color:#ef4444;"></i> Stop &amp; Evaluate`;
+  btn.style.background = 'linear-gradient(135deg, #ef4444, #f59e0b)';
+  
+  document.getElementById('speech-rec-status').innerHTML = `<i class="fa-solid fa-circle" style="color:#ef4444; font-size:8px;"></i> Recording Live`;
+  document.getElementById('speech-transcript-box').innerHTML = `<em>Listening to your speech... Speak out loud into your microphone!</em>`;
+  document.getElementById('speech-feedback-card').classList.add('hidden');
+
+  speechRecognition = new SpeechRec();
+  speechRecognition.continuous = true;
+  speechRecognition.interimResults = true;
+  speechRecognition.lang = 'en-US';
+
+  speechRecognition.onresult = (event) => {
+    let current = "";
+    for (let i = 0; i < event.results.length; i++) {
+      current += event.results[i][0].transcript + " ";
+    }
+    speechTranscript = current;
+    document.getElementById('speech-transcript-box').textContent = speechTranscript;
+  };
+
+  speechRecognition.onerror = (e) => {
+    console.warn("Speech Rec Note:", e.error);
+  };
+
+  speechRecognition.start();
+
+  // Start 5-min Countdown
+  clearInterval(speechTimerInterval);
+  speechTimerInterval = setInterval(() => {
+    speechSecondsLeft--;
+    const mins = String(Math.floor(speechSecondsLeft / 60)).padStart(2, '0');
+    const secs = String(speechSecondsLeft % 60).padStart(2, '0');
+    document.getElementById('speech-timer').textContent = `${mins}:${secs}`;
+
+    if (speechSecondsLeft <= 0) {
+      stopSpeechRecording();
+    }
+  }, 1000);
+
+  addLog("5-Minute Public Speaking session initiated.");
+}
+
+async function stopSpeechRecording() {
+  isSpeechRecording = false;
+  clearInterval(speechTimerInterval);
+  
+  if (speechRecognition) {
+    try { speechRecognition.stop(); } catch(e){}
+  }
+
+  const btn = document.getElementById('btn-start-speech');
+  btn.innerHTML = `<i class="fa-solid fa-microphone"></i> Start 5-Min Speech`;
+  btn.style.background = 'linear-gradient(135deg, #10b981, #06b6d4)';
+  
+  document.getElementById('speech-rec-status').innerHTML = `<i class="fa-solid fa-circle" style="color:#10b981; font-size:8px;"></i> Ready`;
+
+  if (!speechTranscript || !speechTranscript.trim()) {
+    speechTranscript = document.getElementById('speech-transcript-box').textContent || "I am practicing public speaking and working hard to build my confidence every day.";
+  }
+
+  // Submit for Evaluation
+  const topic = document.getElementById('speech-topic-select').value;
+  const elapsedSecs = 300 - speechSecondsLeft;
+
+  try {
+    const res = await fetch('/api/english/speech/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: topic,
+        transcript: speechTranscript,
+        duration_seconds: elapsedSecs > 10 ? elapsedSecs : 60
+      })
+    });
+    const evalData = await res.json();
+
+    const fbCard = document.getElementById('speech-feedback-card');
+    fbCard.classList.remove('hidden');
+    document.getElementById('feedback-score-title').textContent = `Fluency Score: ${evalData.fluency_score}/100 | WPM: ${evalData.wpm} | Fillers: ${evalData.filler_count}`;
+    document.getElementById('feedback-text').textContent = evalData.feedback;
+
+    addLog(`Speech Session completed! Earned +${evalData.earned_xp} XP.`);
+    loadProgress();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+// Escaping
+function escHTML(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Clear input
+function clearTranslation() {
+  document.getElementById('translate-input').value = '';
+  document.getElementById('translate-result').classList.add('hidden');
+}
+
+// Translate logic
+async function translateText() {
+  const query = document.getElementById('translate-input').value.trim();
+  if (!query) return;
+
+  addLog(`Initiating translation lookup: "${query}"...`);
+  
+  try {
+    const key = localStorage.getItem('groq_key') || localStorage.getItem('gemini_key') || '';
+    const groqModel = window.getSanitizedGroqModel ? getSanitizedGroqModel() : (localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile');
+
+    const payload = {
+      query: query,
+      provider: 'groq',
+      api_key: key,
+      groq_model: groqModel
+    };
+
+    const resCard = document.getElementById('translate-result');
+    resCard.classList.remove('hidden');
+    document.getElementById('res-query').textContent = 'Translating...';
+    document.getElementById('res-pos').textContent = '...';
+    document.getElementById('res-tamil').textContent = '';
+    document.getElementById('res-definition').textContent = 'Awaiting AI translation engine...';
+    document.getElementById('res-synonyms-div').style.display = 'none';
+    document.getElementById('res-examples-container').innerHTML = '';
+
+    const r = await fetch('/api/english/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Failed to translate');
+    }
+
+    const data = await r.json();
+    
+    // Bind result values
+    document.getElementById('res-query').textContent = data.query;
+    document.getElementById('res-pos').textContent = (data.part_of_speech || 'Result').toUpperCase();
+    document.getElementById('res-tamil').textContent = data.tamil_translation;
+    document.getElementById('res-definition').textContent = data.definition;
+    
+    if (data.synonyms && data.synonyms.length > 0) {
+      document.getElementById('res-synonyms').textContent = data.synonyms.join(', ');
+      document.getElementById('res-synonyms-div').style.display = 'block';
+    } else {
+      document.getElementById('res-synonyms-div').style.display = 'none';
+    }
+
+    const examplesDiv = document.getElementById('res-examples-container');
+    examplesDiv.innerHTML = '<strong>Examples:</strong>';
+    if (data.examples && data.examples.length > 0) {
+      data.examples.forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'example-item';
+        item.innerHTML = `
+          <div class="example-en">${ex.english}</div>
+          <div class="example-ta">${ex.tamil}</div>
+        `;
+        examplesDiv.appendChild(item);
+      });
+    } else {
+      examplesDiv.innerHTML += '<div style="font-size:11px;color:var(--text3)">No usage examples found.</div>';
+    }
+
+    addLog('Translation query completed and saved to history.');
+    loadHistory(); // reload logs history
+  } catch (err) {
+    console.error(err);
+    addLog(`Translation lookup failed: ${err.message}`);
+    document.getElementById('res-query').textContent = 'Lookup failed';
+    document.getElementById('res-definition').textContent = `Error: ${err.message}`;
+  }
+}
+
+// Session Timer and Camera control
+async function toggleSession() {
+  if (sessionActive) {
+    pauseSession();
+  } else {
+    startSession();
+  }
+}
+
+async function startSession() {
+  sessionActive = true;
+  document.getElementById('timer-btn').innerHTML = '<i class="fa-solid fa-pause"></i> Pause Session';
+  document.getElementById('session-status').className = 'hud-green';
+  document.getElementById('session-status').innerHTML = '<i class="fa-solid fa-camera"></i> SURVEILLANCE ACTIVE';
+  document.getElementById('presence-val').className = 'hud-green';
+  document.getElementById('presence-val').innerHTML = 'PRESENCE: ACTIVE';
+  document.getElementById('scanner-label').textContent = 'TRACKING GAZE';
+  document.getElementById('scanner-label').className = 'hud-green';
+  
+  addLog('Focus Session Started. surveillance stream active.');
+
+  // Access Webcam
+  try {
+    const video = document.getElementById('webcam-video');
+    webcamStream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
+    video.srcObject = webcamStream;
+    video.classList.remove('hidden');
+    document.getElementById('wireframe-canvas').classList.add('hidden');
+    addLog('Webcam feed linked to surveillance panel.');
+  } catch (err) {
+    addLog('Webcam access blocked or unavailable. Falling back to wireframe scan grid.');
+    document.getElementById('wireframe-canvas').classList.remove('hidden');
+    document.getElementById('webcam-video').classList.add('hidden');
+    startWireframeSim();
+  }
+
+  // Set Interval
+  countdownInterval = setInterval(() => {
+    if (countdownVal > 0) {
+      countdownVal--;
+      updateTimerUI();
+    } else {
+      completeSession();
+    }
+  }, 1000);
+}
+
+function pauseSession() {
+  sessionActive = false;
+  document.getElementById('timer-btn').innerHTML = '<i class="fa-solid fa-play"></i> Resume Session';
+  document.getElementById('session-status').className = 'hud-red';
+  document.getElementById('session-status').innerHTML = '<i class="fa-solid fa-circle-dot"></i> SESSION PAUSED';
+  document.getElementById('presence-val').className = 'hud-red';
+  document.getElementById('presence-val').innerHTML = 'PRESENCE: SUSPENDED';
+  document.getElementById('scanner-label').textContent = 'CALIBRATING';
+  document.getElementById('scanner-label').className = 'hud-cyan';
+  
+  addLog('Focus Session Paused.');
+
+  // Stop Webcam
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(track => track.stop());
+    webcamStream = null;
+  }
+  document.getElementById('webcam-video').classList.add('hidden');
+  document.getElementById('wireframe-canvas').classList.remove('hidden');
+  stopWireframeSim();
+
+  clearInterval(countdownInterval);
+}
+
+function updateTimerUI() {
+  const m = Math.floor(countdownVal / 60);
+  const s = countdownVal % 60;
+  document.getElementById('timer-label').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+async function completeSession() {
+  pauseSession();
+  addLog('Focus session completed. Reporting verification to server...');
+  
+  try {
+    const r = await fetch('/api/english/complete', { method: 'POST' });
+    if (!r.ok) throw new Error('Failed to record completion');
+    const data = await r.json();
+    
+    // UI feedback
+    addLog(`Success! ${data.message}`);
+    
+    // Update Timer UI to completed state
+    document.getElementById('timer-label').textContent = 'COMPLETED';
+    document.getElementById('timer-label').style.color = 'var(--green)';
+    
+    const timerBtn = document.getElementById('timer-btn');
+    timerBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Session Complete';
+    timerBtn.disabled = true;
+    timerBtn.style.background = 'rgba(16,185,129,0.15)';
+    timerBtn.style.color = 'var(--green)';
+    timerBtn.style.borderColor = 'rgba(16,185,129,0.3)';
+    timerBtn.style.cursor = 'default';
+    
+    // Show premium modal
+    showSuccessModal();
+    
+    // Reload Stats in floating bar
+    if (typeof loadMiniStats === 'function') {
+      loadMiniStats();
+    }
+  } catch (err) {
+    addLog(`Completion report failed: ${err.message}`);
+    alert(`Could not log completion: ${err.message}`);
+  }
+}
+
+// Check completion state on load
+async function checkCompletionOnLoad() {
+  try {
+    const r = await fetch('/stats');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.english_completed) {
+      document.getElementById('timer-label').textContent = 'COMPLETED';
+      document.getElementById('timer-label').style.color = 'var(--green)';
+      
+      const timerBtn = document.getElementById('timer-btn');
+      timerBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Session Complete';
+      timerBtn.disabled = true;
+      timerBtn.style.background = 'rgba(16,185,129,0.15)';
+      timerBtn.style.color = 'var(--green)';
+      timerBtn.style.borderColor = 'rgba(16,185,129,0.3)';
+      timerBtn.style.cursor = 'default';
+      
+      addLog('Daily English Session already completed today.');
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Modal control functions
+function showSuccessModal() {
+  const modal = document.getElementById('success-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => {
+      modal.style.opacity = '1';
+      modal.querySelector('.modal').style.transform = 'scale(1)';
+    }, 10);
+    
+    // Play celebratory sound
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Success chord
+      const playTone = (freq, delay, duration) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + delay);
+        osc.stop(audioCtx.currentTime + delay + duration);
+      };
+      
+      playTone(523.25, 0, 0.4);      // C5
+      playTone(659.25, 0.1, 0.4);    // E5
+      playTone(783.99, 0.2, 0.4);    // G5
+      playTone(1046.50, 0.35, 0.6);  // C6
+    } catch(e){}
+  }
+}
+
+function closeSuccessModal() {
+  const modal = document.getElementById('success-modal');
+  if (modal) {
+    modal.style.opacity = '0';
+    modal.querySelector('.modal').style.transform = 'scale(0.9)';
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 300);
+  }
+}
+
+// Watch visibility to pause timer if they switch tabs
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && sessionActive) {
+    addLog('⚠️ AI Surveillance: Tab hidden! Distraction detected. Pausing timer.');
+    
+    // Play warning sound
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, audioCtx.currentTime); // Low buzz
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.4);
+    } catch(e){}
+
+    pauseSession();
+  }
+});
+
+// Wireframe Simulation
+function initWireframeSim() {
+  canvas.width = 320;
+  canvas.height = 240;
+  drawStaticWireframe();
+}
+
+function drawStaticWireframe() {
+  ctx.fillStyle = '#03050c';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  
+  // Outer circle
+  ctx.arc(160, 120, 70, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Radial lines
+  for (let i = 0; i < 8; i++) {
+    let angle = (i * Math.PI) / 4;
+    ctx.moveTo(160, 120);
+    ctx.lineTo(160 + 70 * Math.cos(angle), 120 + 70 * Math.sin(angle));
+  }
+  ctx.stroke();
+}
+
+function startWireframeSim() {
+  stopWireframeSim();
+  wireframeInterval = setInterval(() => {
+    animAngle += 0.02;
+    
+    ctx.fillStyle = '#03050c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw scanner circular rings
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+    ctx.lineWidth = 1;
+    
+    ctx.beginPath();
+    ctx.arc(160, 120, 80 + Math.sin(animAngle * 3) * 5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(160, 120, 50, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 3D wireframe head projection rotation
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    
+    // Ellipse center
+    let cx = 160;
+    let cy = 120;
+    let rx = 35 + Math.cos(animAngle) * 5;
+    let ry = 48;
+    
+    // Face outline
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Hair / crown line
+    ctx.beginPath();
+    ctx.moveTo(cx - rx, cy - 20);
+    ctx.bezierCurveTo(cx - rx + 10, cy - 60, cx + rx - 10, cy - 60, cx + rx, cy - 20);
+    ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
+    ctx.beginPath();
+    ctx.arc(cx - 12, cy - 8, 3, 0, Math.PI*2);
+    ctx.arc(cx + 12, cy - 8, 3, 0, Math.PI*2);
+    ctx.fill();
+
+    // Nose
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 4);
+    ctx.lineTo(cx - 4, cy + 10);
+    ctx.lineTo(cx, cy + 10);
+    ctx.stroke();
+    
+    // Mouth
+    ctx.beginPath();
+    ctx.arc(cx, cy + 22, 10, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+    
+    // Connecting scanner grid lines to corners
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.1)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(cx - rx, cy - ry);
+    ctx.moveTo(320, 0); ctx.lineTo(cx + rx, cy - ry);
+    ctx.moveTo(0, 240); ctx.lineTo(cx - rx, cy + ry);
+    ctx.moveTo(320, 240); ctx.lineTo(cx + rx, cy + ry);
+    ctx.stroke();
+    
+  }, 33);
+}
+
+function stopWireframeSim() {
+  if (wireframeInterval) {
+    clearInterval(wireframeInterval);
+    wireframeInterval = null;
+  }
+  drawStaticWireframe();
+}
+
+// Native Web Speech API Audio Pronunciation (TTS)
+function speakText(text) {
+  if (!text || !text.strip ? !text.trim() : !text) return;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // cancel any active speech
+    const utterance = new SpeechSynthesisUtterance(text.trim());
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9; // natural speaking rate
+    window.speechSynthesis.speak(utterance);
+    addLog(`Playing audio pronunciation for: "${text.trim()}"`);
+  } else {
+    alert('Browser audio speech synthesis is not supported on this browser.');
+  }
+}
+
+// Daily study tabs control
+function switchDailyTab(tabId) {
+  // Remove active from all tab buttons
+  const tabs = ['vocab', 'spoken', 'mistakes', 'grammar'];
+  tabs.forEach(t => {
+    const btn = document.getElementById('tab-btn-' + t);
+    const content = document.getElementById('daily-tab-' + t);
+    if (btn) btn.classList.remove('active');
+    if (content) content.classList.add('hidden');
+  });
+
+  // Add active to selected tab button & show content
+  const activeBtn = document.getElementById('tab-btn-' + tabId);
+  const activeContent = document.getElementById('daily-tab-' + tabId);
+  if (activeBtn) activeBtn.classList.add('active');
+  if (activeContent) activeContent.classList.remove('hidden');
+
+  addLog('Switched daily module view to: ' + tabId);
+}
+
+// Camera and log box panel minimization control
+function toggleCamView() {
+  const panel = document.querySelector('.surveillance-panel');
+  const logBox = document.getElementById('log-box');
+  const btn = document.getElementById('toggle-cam-btn');
+
+  if (panel && logBox && btn) {
+    const isMinimized = panel.classList.toggle('minimized');
+    logBox.classList.toggle('minimized', isMinimized);
+
+    if (isMinimized) {
+      btn.innerHTML = '<i class="fa-solid fa-video"></i> Maximize Cam';
+      addLog('Surveillance HUD minimized.');
+    } else {
+      btn.innerHTML = '<i class="fa-solid fa-video-slash"></i> Minimize Cam';
+      addLog('Surveillance HUD restored.');
+    }
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d" />
+      <stop offset="100%" stop-color="#05070f" />
+    </linearGradient>
+    
+    <!-- Neon Accent Gradient -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5a0" />
+      <stop offset="100%" stop-color="#00d2ff" />
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+
+  <!-- Outer Glow Ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#neonGrad)" stroke-width="8" opacity="0.3" filter="url(#neonGlow)" />
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#neonGrad)" stroke-width="4" />
+
+  <!-- Inner Lightning Bolt (Agility & Energy) -->
+  <g transform="translate(146, 116) scale(1.4)" filter="url(#neonGlow)">
+    <path d="M90 20 L20 110 L70 110 L40 180 L140 80 L80 80 Z" fill="url(#neonGrad)" />
+  </g>
+</svg>

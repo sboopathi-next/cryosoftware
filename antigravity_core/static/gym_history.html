@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Gym Report</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.chart-card {
+  background: #0a0d1e;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+.table-container {
+  margin-top: 16px;
+  background: #0a0d1e;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th, .data-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table th {
+  background: rgba(255,255,255,0.02);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.filter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.filter-row select {
+  background: #0a0d1e;
+  border: 1px solid var(--border);
+  color: var(--text1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.stat-card {
+  background: linear-gradient(145deg, #11152a, #0a0d1e);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+}
+.stat-card-indigo::before { background: var(--indigo); }
+.stat-card-green::before { background: var(--green); }
+.stat-card-orange::before { background: var(--amber); }
+.stat-card-cyan::before { background: var(--cyan); }
+
+.stat-label {
+  font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.stat-val {
+  font-size: 28px; font-weight: 800; color: var(--text1); font-family: var(--ff-mono);
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Gym Analytics Dashboard</div>
+        <div class="page-sub">Visualize progression, maximum weight, and volume metrics</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="/gym" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Tracker</a>
+      </div>
+    </div>
+
+    <div class="filter-row" style="justify-content: flex-start; gap: 12px;">
+      <div>
+        <select id="category-filter" onchange="updateDashboard()">
+          <option value="ALL">All Categories</option>
+        </select>
+      </div>
+      <div>
+        <select id="workout-filter" onchange="updateDashboard()">
+          <option value="ALL">All Workouts</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stat-grid">
+      <div class="stat-card stat-card-indigo">
+        <div class="stat-label"><i class="fa-solid fa-dumbbell"></i> Total Workouts</div>
+        <div class="stat-val" id="stat-count">0</div>
+      </div>
+      <div class="stat-card stat-card-green">
+        <div class="stat-label"><i class="fa-solid fa-weight-hanging"></i> Total Volume</div>
+        <div class="stat-val" id="stat-volume">0 <span style="font-size:12px;color:var(--text3)">kg</span></div>
+      </div>
+      <div class="stat-card stat-card-orange">
+        <div class="stat-label"><i class="fa-solid fa-stopwatch"></i> Avg Duration</div>
+        <div class="stat-val" id="stat-duration">0 <span style="font-size:12px;color:var(--text3)">m</span></div>
+      </div>
+      <div class="stat-card stat-card-cyan">
+        <div class="stat-label"><i class="fa-solid fa-fire"></i> Est. Energy Burn</div>
+        <div class="stat-val" id="stat-cals">0 <span style="font-size:12px;color:var(--text3)">kcal</span></div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="chart-card">
+        <div style="font-weight:700;margin-bottom:12px;font-size:14px" id="line-chart-title">Progression Over Time</div>
+        <div class="chart-container">
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div style="font-weight:700;margin-bottom:12px;font-size:14px">Category Distribution</div>
+        <div class="chart-container">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW FULL WIDTH CHART -->
+    <div class="chart-card" style="margin-top: 16px;">
+      <div style="font-weight:700;margin-bottom:12px;font-size:14px">Cumulative Calorie Burn (All Time)</div>
+      <div class="chart-container" style="height: 250px;">
+        <canvas id="calsChart"></canvas>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Workout</th>
+            <th>Sets Summary</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+let allData = [];
+let lineChartInst = null;
+let pieChartInst = null;
+
+let calsChartInst = null;
+
+// Initialize Chart.js defaults for dark theme
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/workouts/history?limit=all');
+    if (!res.ok) return;
+    allData = await res.json();
+    
+    // Sort oldest to newest for charts
+    allData.sort((a,b) => new Date(a.Timestamp) - new Date(b.Timestamp));
+    
+    populateFilter();
+    updateDashboard();
+  } catch(e) {
+    console.error("Failed to load history", e);
+  }
+}
+
+function populateFilter() {
+  const catSelect = document.getElementById('category-filter');
+  const wkSelect = document.getElementById('workout-filter');
+  
+  const categories = new Set();
+  const workouts = new Set();
+  
+  allData.forEach(d => {
+    if (d.Category) categories.add(d.Category);
+    if (d.Workout) workouts.add(d.Workout);
+  });
+  
+  Array.from(categories).sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    catSelect.appendChild(opt);
+  });
+  
+  Array.from(workouts).sort().forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w;
+    opt.textContent = w;
+    wkSelect.appendChild(opt);
+  });
+}
+
+function updateDashboard() {
+  const catFilter = document.getElementById('category-filter').value;
+  const wkFilter = document.getElementById('workout-filter').value;
+  
+  let filtered = allData;
+  
+  if (catFilter !== "ALL") {
+    filtered = filtered.filter(d => d.Category === catFilter);
+  }
+  
+  if (wkFilter !== "ALL") {
+    filtered = filtered.filter(d => d.Workout === wkFilter);
+    document.getElementById('line-chart-title').textContent = `Max Weight Progression: ${wkFilter}`;
+  } else {
+    document.getElementById('line-chart-title').textContent = `Workout Frequency Over Time`;
+  }
+  
+  updateStats(filtered);
+  updateLineChart(filtered, wkFilter);
+  updatePieChart(filtered);
+  updateCalsChart(filtered);
+  updateTable(filtered);
+}
+
+function updateStats(data) {
+  let count = data.length;
+  let totalDur = 0;
+  let totalVol = 0;
+  
+  data.forEach(d => {
+    totalDur += (parseInt(d.Duration_Minutes) || 0);
+    // Parse sets to calculate volume (weight * reps)
+    const setsStr = d.Sets || "";
+    if (setsStr && setsStr !== "No sets recorded") {
+      const parts = setsStr.split(',');
+      parts.forEach(p => {
+        const matches = p.match(/([\\d\\.]+)\\s*kg\\s*x\\s*([\\d]+)/i);
+        if (matches && matches.length >= 3) {
+          totalVol += (parseFloat(matches[1]) * parseInt(matches[2]));
+        }
+      });
+    }
+  });
+
+  const avgDur = count > 0 ? Math.round(totalDur / count) : 0;
+  // Estimate cals as roughly 5 kcal per min
+  const cals = totalDur * 5;
+
+  document.getElementById('stat-count').textContent = count;
+  document.getElementById('stat-volume').innerHTML = `${totalVol.toLocaleString()} <span style="font-size:12px;color:var(--text3)">kg</span>`;
+  document.getElementById('stat-duration').innerHTML = `${avgDur} <span style="font-size:12px;color:var(--text3)">m</span>`;
+  document.getElementById('stat-cals').innerHTML = `${cals.toLocaleString()} <span style="font-size:12px;color:var(--text3)">kcal</span>`;
+}
+
+function extractMaxWeight(setsStr) {
+  // Example setsStr: "Set 1: 20kg x 30 reps, Set 2: 25kg x 10 reps"
+  if (!setsStr || setsStr === "No sets recorded") return 0;
+  
+  const matches = [...setsStr.matchAll(/([\\d\\.]+)\\s*kg/gi)];
+  if (matches.length === 0) {
+      // try without kg
+      const rawMatches = [...setsStr.matchAll(/:\\s*([\\d\\.]+)\\s*x/gi)];
+      if(rawMatches.length > 0) {
+          const weights = rawMatches.map(m => parseFloat(m[1]));
+          return Math.max(...weights);
+      }
+      return 0;
+  }
+  
+  const weights = matches.map(m => parseFloat(m[1]));
+  return Math.max(...weights);
+}
+
+function updateLineChart(data, filter) {
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  
+  if (lineChartInst) lineChartInst.destroy();
+  
+  let labels = [];
+  let dataset = [];
+  let labelName = "";
+  
+  if (filter === "ALL") {
+    // Group by date to show frequency
+    const freq = {};
+    data.forEach(d => {
+      if(!d.Timestamp) return;
+      const date = d.Timestamp.split(' ')[0];
+      freq[date] = (freq[date] || 0) + 1;
+    });
+    labels = Object.keys(freq).sort();
+    dataset = labels.map(l => freq[l]);
+    labelName = "Workouts per Day";
+  } else {
+    // Show max weight for specific workout
+    data.forEach(d => {
+      if(!d.Timestamp) return;
+      labels.push(d.Timestamp.split(' ')[0]);
+      dataset.push(extractMaxWeight(d.Sets));
+    });
+    labelName = "Max Weight (kg)";
+  }
+  
+  lineChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: labelName,
+        data: dataset,
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99,102,241,0.1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#818cf8'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+function updatePieChart(data) {
+  const ctx = document.getElementById('pieChart').getContext('2d');
+  if (pieChartInst) pieChartInst.destroy();
+  
+  const catCounts = {};
+  data.forEach(d => {
+    const c = d.Category || "Unknown";
+    catCounts[c] = (catCounts[c] || 0) + 1;
+  });
+  
+  const colors = [
+    '#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+  ];
+  
+  pieChartInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catCounts),
+      datasets: [{
+        data: Object.values(catCounts),
+        backgroundColor: colors.slice(0, Object.keys(catCounts).length),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12 } }
+      }
+    }
+  });
+}
+
+function updateCalsChart(data) {
+  const ctx = document.getElementById('calsChart').getContext('2d');
+  if (calsChartInst) calsChartInst.destroy();
+  
+  // Group by date
+  const calsByDate = {};
+  data.forEach(d => {
+    if(!d.Timestamp) return;
+    const date = d.Timestamp.split(' ')[0];
+    const dur = parseInt(d.Duration_Minutes) || 0;
+    calsByDate[date] = (calsByDate[date] || 0) + (dur * 5); // 5 kcal per min
+  });
+  
+  const sortedDates = Object.keys(calsByDate).sort();
+  
+  // Calculate cumulative sum
+  let cumulative = 0;
+  const cumulativeData = sortedDates.map(date => {
+    cumulative += calsByDate[date];
+    return cumulative;
+  });
+  
+  calsChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [{
+        label: 'Cumulative Calories Burned',
+        data: cumulativeData,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245,158,11,0.1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#fbbf24'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+function updateTable(data) {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  
+  // Sort descending for table (newest first)
+  const sorted = [...data].sort((a,b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+  
+  sorted.forEach(d => {
+    const tr = document.createElement('tr');
+    const date = d.Timestamp ? d.Timestamp.split(' ')[0] : '-';
+    tr.innerHTML = `
+      <td style="color:var(--text3);font-family:var(--ff-mono)">${date}</td>
+      <td><span style="background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:4px;font-size:11px">${d.Category}</span></td>
+      <td style="font-weight:600">${d.Workout}</td>
+      <td style="color:var(--text2)">${d.Sets}</td>
+      <td>${d.Duration_Minutes}m</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+</body>
+</html>

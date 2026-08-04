@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Gym Tracker</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+.gym-layout { display: grid; grid-template-columns: 1fr 380px; gap: 16px; align-items: start; }
+
+/* Sets table */
+.sets-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.sets-head {
+  display: grid; grid-template-columns: 36px 1fr 1fr 1.5fr 30px;
+  gap: 8px; padding: 7px 10px;
+  background: #0a0d1e;
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700;
+  color: var(--text3); letter-spacing: .1em; text-transform: uppercase;
+}
+.set-row {
+  display: grid; grid-template-columns: 36px 1fr 1fr 1.5fr 30px;
+  gap: 8px; padding: 5px 10px;
+  border-top: 1px solid var(--border);
+  align-items: center;
+}
+.set-no { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); text-align: center; }
+.set-inp {
+  background: #0a0d1e; border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text1); padding: 4px 8px;
+  font-size: 12px; font-family: var(--ff-body);
+  width: 100%; outline: none; transition: border-color .2s;
+}
+.set-inp:focus { border-color: var(--indigo); }
+.set-del { background: none; border: none; color: var(--text3); font-size: 12px; transition: color .18s; }
+.set-del:hover { color: var(--red); }
+.sets-empty { padding: 12px; text-align: center; color: var(--text3); font-size: 12px; }
+
+/* Custom form */
+.custom-form-wrap {
+  background: #0a0d1e; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px;
+  margin-top: 10px;
+}
+
+/* History */
+.history-list { display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; }
+.history-item {
+  background: #0a0d1e; border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px;
+  border-left: 3px solid var(--indigo);
+  transition: border-color .18s;
+}
+.history-item:hover { border-color: var(--border-hi); }
+.hi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.hi-name { font-weight: 700; font-size: 13px; }
+.hi-meta { font-family: var(--ff-mono); font-size: 10px; color: var(--text3); }
+.hi-sets { font-size: 11px; color: var(--text2); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 900px) { .gym-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Gym Tracker</div>
+        <div class="page-sub">Log workouts · Track sets · Earn XP · Build STR &amp; AGI</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="/gym-history" class="btn btn-ghost btn-sm"><i class="fa-solid fa-chart-line"></i> All History</a>
+      </div>
+    </div>
+
+    <div class="gym-layout">
+      <!-- LOG FORM -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-plus-circle"></i> Log a Workout Session</div>
+
+        <div class="row-2 gap-md">
+          <div class="field">
+            <label style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Category</span>
+              <button class="btn btn-ghost btn-sm" onclick="resetCategory()" style="padding:2px 7px;font-size:10px;opacity:0.7" title="Reset to pick a new category">↺ Reset</button>
+            </label>
+            <select id="wk-cat" onchange="loadExercises()">
+              <option value="">— Pick Category —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Exercise</label>
+            <select id="wk-ex"><option value="">— Pick Exercise —</option></select>
+          </div>
+        </div>
+        <div class="mt-2 field">
+          <label>Variations / Notes <span style="color:var(--text3)">(optional)</span></label>
+          <input type="text" id="wk-var" placeholder="e.g. Supinated grip, paused reps, close grip...">
+        </div>
+
+        <div class="row-2 gap-md mt-2">
+          <div class="field">
+            <label>Duration (minutes)</label>
+            <input type="number" id="wk-dur" placeholder="10" min="1" max="300" value="10">
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <label>&nbsp;</label>
+            <button class="btn btn-ghost btn-sm" onclick="toggleCustomForm()">
+              <i class="fa-solid fa-plus"></i> Custom Workout
+            </button>
+          </div>
+        </div>
+
+        <div id="custom-form" class="custom-form-wrap hidden">
+          <div class="row-2 gap-md">
+            <div class="field"><label>New Category</label><input type="text" id="c-cat" placeholder="e.g. Yoga"></div>
+            <div class="field"><label>New Exercise</label><input type="text" id="c-ex" placeholder="e.g. Sun Salutation"></div>
+          </div>
+          <button class="btn btn-secondary btn-sm mt-1" onclick="saveCustomWorkout()">
+            <i class="fa-solid fa-floppy-disk"></i> Save &amp; Add to List
+          </button>
+        </div>
+
+        <!-- SETS -->
+        <div class="mt-2">
+          <div class="flex-between" style="margin-bottom:8px">
+            <div class="card-title" style="margin:0"><i class="fa-solid fa-table-list"></i> Sets</div>
+            <button class="btn btn-ghost btn-sm" onclick="addSet()"><i class="fa-solid fa-plus"></i> Add Set</button>
+          </div>
+          <div class="sets-wrap">
+            <div class="sets-head"><span>#</span><span>Weight (kg)</span><span>Reps</span><span>Notes</span><span></span></div>
+            <div id="sets-body"><div class="sets-empty">Click "Add Set" to start logging</div></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full mt-2" onclick="submitLog()">
+          <i class="fa-solid fa-fire"></i> Log Workout &amp; Earn XP
+        </button>
+        <div id="log-feedback" class="hidden"></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Sessions</div>
+        <div id="history-list" class="history-list">
+          <div class="empty-state"><i class="fa-solid fa-dumbbell"></i>No sessions yet.<br>Log your first workout!</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settings-modal" class="modal-mask hidden">
+  <div class="modal">
+    <div class="modal-hd"><span>Groq API Key</span><button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>API Key</label><input type="password" id="api-key-inp" placeholder="gsk_..."></div>
+      <button class="btn btn-primary btn-full" onclick="saveApiKey()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+let options = {};  // {Category: [exercises]}
+let setIdx = 0;
+
+// ── Load gym options ──────────────────────────────────────────
+async function loadOptions() {
+  try {
+    const r = await fetch('/api/workouts/options');
+    const d = await r.json();
+    options = d.categories || {};
+    const sel = document.getElementById('wk-cat');
+    sel.innerHTML = '<option value="">— Pick Category —</option>';
+    Object.keys(options).sort().forEach(cat => {
+      const o = document.createElement('option');
+      o.value = cat; o.textContent = cat;
+      sel.appendChild(o);
+    });
+  } catch(e) { console.error(e); }
+}
+
+function loadExercises() {
+  const cat = document.getElementById('wk-cat').value;
+  const sel = document.getElementById('wk-ex');
+  sel.innerHTML = '<option value="">— Pick Exercise —</option>';
+  if (!cat || !options[cat]) return;
+  options[cat].forEach(ex => {
+    const o = document.createElement('option');
+    o.value = ex; o.textContent = ex;
+    sel.appendChild(o);
+  });
+}
+
+// ── Reset category (use when switching to a different muscle group) ──
+function resetCategory() {
+  document.getElementById('wk-cat').value = '';
+  document.getElementById('wk-ex').innerHTML = '<option value="">— Pick Exercise —</option>';
+  document.getElementById('wk-var').value = '';
+  document.getElementById('wk-dur').value = '10';
+  document.getElementById('sets-body').innerHTML = '<div class="sets-empty">Click "Add Set" to start logging</div>';
+  setIdx = 0;
+}
+
+// ── Custom workout ────────────────────────────────────────────
+function toggleCustomForm() {
+  document.getElementById('custom-form').classList.toggle('hidden');
+}
+
+async function saveCustomWorkout() {
+  const cat = document.getElementById('c-cat').value.trim();
+  const ex  = document.getElementById('c-ex').value.trim();
+  if (!cat || !ex) { toast('Fill both fields', 'err'); return; }
+  try {
+    const r = await fetch('/api/workouts/custom', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({category: cat, workout: ex})
+    });
+    const d = await r.json();
+    toast(d.message, d.status === 'success' ? 'ok' : 'info');
+    document.getElementById('c-cat').value = '';
+    document.getElementById('c-ex').value = '';
+    document.getElementById('custom-form').classList.add('hidden');
+    await loadOptions();
+    document.getElementById('wk-cat').value = cat;
+    loadExercises();
+    document.getElementById('wk-ex').value = ex;
+  } catch(e) { toast('Error saving', 'err'); }
+}
+
+// ── Sets management ───────────────────────────────────────────
+function addSet() {
+  setIdx++;
+  const body = document.getElementById('sets-body');
+  // Remove empty message
+  const empty = body.querySelector('.sets-empty');
+  if (empty) empty.remove();
+  const row = document.createElement('div');
+  row.className = 'set-row';
+  row.id = `sr-${setIdx}`;
+  row.innerHTML = `
+    <span class="set-no">${setIdx}</span>
+    <input class="set-inp" type="text" id="sw-${setIdx}" placeholder="0">
+    <input class="set-inp" type="text" id="sr2-${setIdx}" placeholder="0">
+    <input class="set-inp" type="text" id="sn-${setIdx}" placeholder="optional">
+    <button class="set-del" onclick="removeSet(${setIdx})"><i class="fa-solid fa-xmark"></i></button>`;
+  body.appendChild(row);
+}
+
+function removeSet(id) {
+  const r = document.getElementById(`sr-${id}`);
+  if (r) r.remove();
+  if (!document.querySelectorAll('.set-row').length) {
+    document.getElementById('sets-body').innerHTML = '<div class="sets-empty">Click "Add Set" to start logging</div>';
+  }
+}
+
+function collectSets() {
+  return Array.from(document.querySelectorAll('.set-row')).map(row => {
+    const id = row.id.replace('sr-','');
+    return {
+      weight: document.getElementById(`sw-${id}`)?.value || '',
+      reps:   document.getElementById(`sr2-${id}`)?.value || '',
+      notes:  document.getElementById(`sn-${id}`)?.value || ''
+    };
+  });
+}
+
+// ── Submit log ────────────────────────────────────────────────
+async function submitLog() {
+  const cat = document.getElementById('wk-cat').value;
+  const ex  = document.getElementById('wk-ex').value;
+  if (!cat || !ex) { toast('Select category and exercise', 'err'); return; }
+
+  const dur = parseInt(document.getElementById('wk-dur').value) || 0;
+  if (dur <= 0) { toast('Please enter a valid duration greater than 0', 'err'); return; }
+
+  const payload = {
+    category: cat, workout: ex,
+    variations: document.getElementById('wk-var').value,
+    sets: collectSets(),
+    duration_minutes: dur,
+    is_custom: false
+  };
+
+  try {
+    const r = await fetch('/api/workouts/log', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) { const e = await r.json(); toast(e.detail, 'err'); return; }
+    const d = await r.json();
+    toast(d.message, 'ok');
+    if (typeof speakVoice === 'function') {
+      speakVoice("Workout logged, Boopathi! Physical strength built. Keep pushing.", true);
+    }
+
+    const fb = document.getElementById('log-feedback');
+    fb.className = 'feedback feedback-ok';
+    fb.innerHTML = `<i class="fa-solid fa-star"></i> ${d.message}`;
+    fb.classList.remove('hidden');
+    setTimeout(() => fb.classList.add('hidden'), 5000);
+
+    // ── Keep category selected; only reset exercise + sets ──────────
+    // This lets the user log 5 different exercises (e.g. all Biceps)
+    // without re-selecting the category each time.
+    loadExercises();                         // repopulate exercise dropdown for the same category
+    document.getElementById('wk-ex').value = '';  // clear exercise choice
+    document.getElementById('wk-var').value = '';
+    document.getElementById('wk-dur').value = '10';
+    document.getElementById('sets-body').innerHTML = '<div class="sets-empty">Click "Add Set" to start logging</div>';
+    setIdx = 0;
+    loadHistory();
+  } catch(e) { toast('Error logging workout', 'err'); }
+}
+
+// ── History ───────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/workouts/history');
+    if (!r.ok) return;
+    const logs = await r.json();
+    const container = document.getElementById('history-list');
+    if (!logs.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-dumbbell"></i>No sessions yet.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    logs.forEach(log => {
+      const dt = new Date(log.Timestamp).toLocaleString('en-IN', {dateStyle:'short',timeStyle:'short'});
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `
+        <div class="hi-head">
+          <span class="hi-name">${log.Workout || ''}</span>
+          <span class="badge badge-indigo">${log.Category || ''}</span>
+        </div>
+        <div class="hi-meta">${dt} · ${log.Duration_Minutes || 0} min</div>
+        <div class="hi-sets">${log.Sets || ''}</div>`;
+      container.appendChild(item);
+    });
+  } catch(e) { console.error(e); }
+}
+
+loadOptions();
+loadHistory();
+</script>
+</body>
+</html>

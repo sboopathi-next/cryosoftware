@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Human Journal (+1 HRT)</title>
+<meta name="description" content="Log daily human encounters, stranger interactions, emotional reflections, and earn +1 HRT.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ── Human page layout ── */
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+
+/* ── Tab bar ── */
+.human-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  background: #060818; flex-shrink: 0;
+  padding: 16px 28px 0;
+}
+.human-tab {
+  padding: 10px 22px; font-size: 13px; font-weight: 600;
+  border: 1px solid transparent; border-bottom: none;
+  border-radius: 8px 8px 0 0; cursor: pointer;
+  font-family: var(--ff-body); color: var(--text3);
+  background: transparent; transition: all .18s; position: relative; bottom: -1px;
+  display: flex; align-items: center; gap: 8px;
+}
+.human-tab:hover { color: var(--text1); background: var(--bg-hover); }
+.human-tab.active {
+  color: var(--text1); background: var(--bg-card);
+  border-color: var(--border); border-bottom-color: var(--bg-card);
+}
+.badge-hrt { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.3); font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+
+/* ── Tab panes ── */
+.human-pane { display: none; flex: 1; overflow-y: auto; padding: 24px 28px; }
+.human-pane.active { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Log form ── */
+.log-form {
+  background: var(--bg-card); border: 1px solid rgba(244,63,94,0.25);
+  border-radius: var(--radius); padding: 24px; max-width: 620px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid .full { grid-column: 1 / -1; }
+
+/* ── Timeline & Analytics ── */
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 840px; }
+.stat-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px; text-align: center;
+}
+.stat-box-val { font-family: var(--ff-brand); font-size: 24px; font-weight: 800; color: var(--rose); }
+.stat-box-lbl { font-size: 10px; font-family: var(--ff-mono); color: var(--text3); margin-top: 4px; letter-spacing: .08em; }
+
+.timeline-container {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 4px; max-width: 840px;
+}
+.entry-card {
+  background: rgba(244,63,94,0.03); border: 1px solid rgba(244,63,94,0.15);
+  border-radius: 8px; padding: 14px 16px; margin: 8px;
+  transition: border-color .18s;
+}
+.entry-card:hover { border-color: rgba(244,63,94,0.35); }
+.entry-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.entry-person { font-size: 14px; font-weight: 700; color: var(--rose); }
+.entry-time { font-size: 10px; color: var(--text3); font-family: var(--ff-mono); }
+.entry-context { font-size: 11px; color: var(--cyan); margin-bottom: 6px; font-family: var(--ff-mono); }
+.entry-story { font-size: 12px; color: var(--text1); line-height: 1.4; margin-bottom: 6px; }
+.entry-felt { font-size: 12px; color: var(--amber); line-height: 1.4; font-style: italic; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px; border-left: 2px solid var(--amber); }
+
+/* ── Page header ── */
+.human-header {
+  padding: 20px 28px 0; flex-shrink: 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human" class="active"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="human-header">
+      <div>
+        <div class="page-title"><i class="fa-solid fa-heart" style="color:var(--rose)"></i> Human Journal</div>
+        <div class="page-sub">Log connections, warm interactions, strangers met &middot; Earns <strong style="color:var(--rose)">+1 HRT</strong></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="human-count" class="badge badge-blue">0 encounters</span>
+      </div>
+    </div>
+    <div class="human-tabs">
+      <button class="human-tab active" id="tab-log" onclick="switchTab('log')">
+        <i class="fa-solid fa-heart-circle-plus"></i> Log Encounter
+        <span class="badge-hrt">+1 HRT</span>
+      </button>
+      <button class="human-tab" id="tab-report" onclick="switchTab('report')">
+        <i class="fa-solid fa-chart-line"></i> Report &amp; Timeline
+      </button>
+    </div>
+    <div class="human-pane active" id="pane-log">
+      <div class="log-form">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Person / Stranger Name <span style="color:var(--red)">*</span></label>
+            <select id="person-sel" onchange="togglePersonInput()" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+              <option value="">— Select Person or Add New —</option>
+              <option value="__new__">➕ Add New Person / Stranger...</option>
+            </select>
+            <input type="text" id="person-name-inp" placeholder="Type new person / stranger name..." style="display:none; margin-top:6px; background:#0a0d1e; border:1px solid var(--indigo); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+          </div>
+          <div class="field">
+            <label>Context / Where You Met</label>
+            <select id="context-sel" onchange="toggleContextInput()" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+              <option value="">— Select Location or Add Custom —</option>
+              <option value="__new__">➕ Add Custom Location...</option>
+            </select>
+            <input type="text" id="context-inp" placeholder="Type new location (e.g. Airport Lounge)..." style="display:none; margin-top:6px; background:#0a0d1e; border:1px solid var(--cyan); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+          </div>
+          <div class="field">
+            <label>Emotional Mood Emoji</label>
+            <select id="emoji-sel" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+              <option value="🤝">🤝 Connection / Friendly Interaction</option>
+              <option value="😊">😊 Warmth &amp; Kindness</option>
+              <option value="💡">💡 Inspiration / Learning</option>
+              <option value="🥺">🥺 Empathy &amp; Compassion</option>
+              <option value="🧘‍♂️">🧘‍♂️ Calm &amp; Stoic Conversation</option>
+              <option value="💬">💬 Deep Meaningful Discussion</option>
+              <option value="⚡">⚡ High Energy Motivation</option>
+              <option value="🌟">🌟 Joy &amp; Laughter</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>What Happened (Interaction Story) <span style="color:var(--red)">*</span></label>
+            <textarea id="happened-inp" rows="3" placeholder="Describe the conversation, what you discussed, or what happened..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+          </div>
+          <div class="field full">
+            <label>What I Felt (Personal Emotional Reflection)</label>
+            <textarea id="felt-inp" rows="3" placeholder="Reflect on your emotions, how it made you feel, and what you learned..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full mt-2" onclick="submitHumanEncounter()" style="background:linear-gradient(135deg,var(--rose),#db2777); font-size:14px; padding:11px;">
+          <i class="fa-solid fa-heart"></i> Log Encounter &amp; Earn +1 HRT
+        </button>
+      </div>
+    </div>
+    <div class="human-pane" id="pane-report">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-box-val" id="stat-top-loc">—</div><div class="stat-box-lbl">TOP LOCATION</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="stat-top-emo">—</div><div class="stat-box-lbl">TOP EMOTION</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="stat-hrt-earned">+0 HRT</div><div class="stat-box-lbl">TOTAL HRT EARNED</div></div>
+      </div>
+      <div class="timeline-container">
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-family:var(--ff-mono); font-size:11px; font-weight:700; color:var(--text3); letter-spacing:.07em;">JOURNAL TIMELINE</div>
+          <input type="text" id="search-inp" placeholder="Search person or story..." oninput="loadHumanTimeline()" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:5px 10px; outline:none; font-size:12px; font-family:var(--ff-body); width:220px;">
+        </div>
+        <div id="timeline-list" style="overflow-y:auto; max-height:calc(100vh - 350px);">
+          <div style="color:var(--text3); font-size:12px; text-align:center; padding:30px;">Loading timeline...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="settings-modal" class="modal-mask hidden"></div>
+<script src="/static/shared.js?v=voice4"></script>
+<script>
+function escHTML(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function switchTab(tab) {
+  document.querySelectorAll('.human-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.human-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('pane-' + tab).classList.add('active');
+  if (tab === 'report') loadHumanTimeline();
+}
+function togglePersonInput() {
+  const sel = document.getElementById('person-sel');
+  const inp = document.getElementById('person-name-inp');
+  if (sel.value === '__new__') {
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    if (sel.value) inp.value = sel.value;
+  }
+}
+function toggleContextInput() {
+  const sel = document.getElementById('context-sel');
+  const inp = document.getElementById('context-inp');
+  if (sel.value === '__new__') {
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    if (sel.value) inp.value = sel.value;
+  }
+}
+async function loadMetadata() {
+  try {
+    const r = await fetch('/api/human-connection/meta');
+    const d = await r.json();
+    if (d.status === 'success') {
+      const pSel = document.getElementById('person-sel');
+      const curP = pSel.value;
+      pSel.innerHTML = '<option value="">— Select Person or Add New —</option>' +
+        d.people.map(p => `<option value="${escHTML(p)}">${escHTML(p)}</option>`).join('') +
+        '<option value="__new__">➕ Add New Person / Stranger...</option>';
+      if (curP && Array.from(pSel.options).some(o => o.value === curP)) pSel.value = curP;
+
+      const cSel = document.getElementById('context-sel');
+      const curC = cSel.value;
+      cSel.innerHTML = '<option value="">— Select Location or Add Custom —</option>' +
+        d.contexts.map(c => `<option value="${escHTML(c)}">${escHTML(c)}</option>`).join('') +
+        '<option value="__new__">➕ Add Custom Location...</option>';
+      if (curC && Array.from(cSel.options).some(o => o.value === curC)) cSel.value = curC;
+    }
+  } catch(_) {}
+}
+async function submitHumanEncounter() {
+  const personSel = document.getElementById('person-sel');
+  let person = personSel.value;
+  if (person === '__new__') {
+    person = document.getElementById('person-name-inp').value.trim();
+  }
+  const contextSel = document.getElementById('context-sel');
+  let context = contextSel.value;
+  if (context === '__new__') {
+    context = document.getElementById('context-inp').value.trim();
+  }
+  const emoji = document.getElementById('emoji-sel').value;
+  const story = document.getElementById('happened-inp').value.trim();
+  const reflection = document.getElementById('felt-inp').value.trim();
+
+  if (!person) { toast('Please specify a person or stranger name', 'err'); return; }
+  if (!story) { toast('Please write what happened in the interaction story', 'err'); return; }
+
+  // Save new context/location if custom
+  if (contextSel.value === '__new__' && context) {
+    try {
+      await fetch('/api/human-connection/context', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ name: context })
+      });
+    } catch(_) {}
+  }
+
+  try {
+    const r = await fetch('/api/human-connection', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        person_name: person,
+        context_meeting: context,
+        emoji: emoji,
+        what_happened: story,
+        what_i_felt: reflection
+      })
+    });
+    const res = await r.json();
+    if (res.status === 'success') {
+      toast('❤️ Human encounter logged! +1 HRT earned', 'ok');
+      document.getElementById('person-sel').value = '';
+      document.getElementById('person-name-inp').value = '';
+      document.getElementById('person-name-inp').style.display = 'none';
+      document.getElementById('context-sel').value = '';
+      document.getElementById('context-inp').value = '';
+      document.getElementById('context-inp').style.display = 'none';
+      document.getElementById('happened-inp').value = '';
+      document.getElementById('felt-inp').value = '';
+      loadMetadata();
+      loadHumanTimeline();
+    } else {
+      toast(res.detail || 'Failed to log encounter', 'err');
+    }
+  } catch(e) {
+    toast('Error connecting to server', 'err');
+  }
+}
+async function loadHumanTimeline() {
+  const list = document.getElementById('timeline-list');
+  try {
+    const r = await fetch('/api/human-connection');
+    const d = await r.json();
+    if (!d.connections || d.connections.length === 0) {
+      document.getElementById('human-count').textContent = '0 logged';
+      document.getElementById('stat-top-loc').textContent = '—';
+      document.getElementById('stat-top-emo').textContent = '—';
+      document.getElementById('stat-hrt-earned').textContent = '+0 HRT';
+      list.innerHTML = '<div style="color:var(--text3); font-size:12px; text-align:center; padding:30px;">No entries logged yet.</div>';
+      return;
+    }
+
+    const count = d.connections.length;
+    document.getElementById('human-count').textContent = `${count} logged`;
+    document.getElementById('stat-hrt-earned').textContent = `+${count} HRT`;
+
+    // Extract unique people & contexts directly from entries for 100% instant dropdown population
+    const uniquePeople = Array.from(new Set(d.connections.map(c => c.person_name).filter(Boolean))).sort();
+    const pSel = document.getElementById('person-sel');
+    if (pSel && uniquePeople.length > 0) {
+      const curP = pSel.value;
+      pSel.innerHTML = '<option value="">— Select Person or Add New —</option>' +
+        uniquePeople.map(p => `<option value="${escHTML(p)}">${escHTML(p)}</option>`).join('') +
+        '<option value="__new__">➕ Add New Person / Stranger...</option>';
+      if (curP && Array.from(pSel.options).some(o => o.value === curP)) pSel.value = curP;
+    }
+
+    const defaultContexts = [
+      "☕ Coffee Shop / Cafe", "🏋️ Gym / Fitness Center", "🏢 Office / Workplace",
+      "🚌 Public Transport / Commute", "🎓 University / Campus", "🚶 Park / Outdoor Walk",
+      "🏠 Neighborhood", "🛒 Store / Supermarket", "🌐 Online / Tech Community"
+    ];
+    const timelineLocs = d.connections.map(c => c.context_meeting).filter(Boolean);
+    const allContexts = Array.from(new Set([...defaultContexts, ...timelineLocs]));
+    const cSel = document.getElementById('context-sel');
+    if (cSel) {
+      const curC = cSel.value;
+      cSel.innerHTML = '<option value="">— Select Location or Add Custom —</option>' +
+        allContexts.map(c => `<option value="${escHTML(c)}">${escHTML(c)}</option>`).join('') +
+        '<option value="__new__">➕ Add Custom Location...</option>';
+      if (curC && Array.from(cSel.options).some(o => o.value === curC)) cSel.value = curC;
+    }
+
+    // Analytics computation
+    const locCounts = {}, emoCounts = {};
+    d.connections.forEach(c => {
+      if (c.context_meeting) locCounts[c.context_meeting] = (locCounts[c.context_meeting] || 0) + 1;
+      if (c.emoji) emoCounts[c.emoji] = (emoCounts[c.emoji] || 0) + 1;
+    });
+    const topLoc = Object.keys(locCounts).sort((a,b)=>locCounts[b]-locCounts[a])[0] || '—';
+    const topEmo = Object.keys(emoCounts).sort((a,b)=>emoCounts[b]-emoCounts[a])[0] || '—';
+
+    document.getElementById('stat-top-loc').textContent = topLoc.length > 18 ? topLoc.slice(0,18)+'...' : topLoc;
+    document.getElementById('stat-top-emo').textContent = topEmo;
+
+    list.innerHTML = d.connections.map(c => `
+      <div class="entry-card">
+        <div class="entry-header">
+          <div class="entry-person"><span class="emoji-badge">${c.emoji}</span>${escHTML(c.person_name)}</div>
+          <div class="entry-time">${c.date} ${c.timestamp ? c.timestamp.split(' ')[1] : ''}</div>
+        </div>
+        <div class="entry-context">📍 ${escHTML(c.context_meeting || 'Encounter')}</div>
+        <div class="entry-story"><strong>What Happened:</strong> ${escHTML(c.what_happened)}</div>
+        <div class="entry-felt"><strong>Emotional Reflection:</strong> "${escHTML(c.what_i_felt || 'Warm human connection.')}"</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--red); font-size:12px; text-align:center; padding:20px;">Error loading timeline.</div>';
+  }
+}
+
+loadMetadata();
+loadHumanTimeline();
+
+// ── Teaching Log (localStorage) ─────────────────────────────
+function loadTeachingHistory() {
+  const hist = document.getElementById('teach-history');
+  if (!hist) return;
+  const sessions = JSON.parse(localStorage.getItem('teach_sessions') || '[]');
+  if (!sessions.length) {
+    hist.innerHTML = '<div style="color:var(--text3); font-size:12px;">No sessions logged yet.</div>';
+    return;
+  }
+  hist.innerHTML = sessions.slice().reverse().slice(0, 20).map(s => `
+    <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:10px 12px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+        <div>
+          <span style="font-weight:700; color:var(--text1); font-size:13px;">${escHTML(s.person)}</span>
+          <span style="color:var(--text3); font-size:11px;"> · ${escHTML(s.duration)}</span>
+        </div>
+        <span style="font-size:10px; color:var(--text3); font-family:var(--ff-mono); white-space:nowrap;">${s.date}</span>
+      </div>
+      <div style="color:var(--indigo); font-size:12px; margin-top:4px;"><i class="fa-solid fa-book-open" style="font-size:10px;"></i> ${escHTML(s.topic)}</div>
+      <div style="color:var(--green); font-size:11px; margin-top:3px;">${escHTML(s.outcome)}</div>
+      ${s.notes ? `<div style="color:var(--text2); font-size:11px; margin-top:4px; font-style:italic;">${escHTML(s.notes)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function submitTeachingLog() {
+  const person = document.getElementById('teach-person').value.trim();
+  const topic = document.getElementById('teach-topic').value.trim();
+  const duration = document.getElementById('teach-duration').value;
+  const outcome = document.getElementById('teach-outcome').value;
+  const notes = document.getElementById('teach-notes').value.trim();
+
+  if (!person) { toast('Enter student / friend name', 'err'); return; }
+  if (!topic) { toast('Enter topic taught', 'err'); return; }
+
+  const sessions = JSON.parse(localStorage.getItem('teach_sessions') || '[]');
+  sessions.push({
+    person, topic, duration, outcome, notes,
+    date: new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+  });
+  localStorage.setItem('teach_sessions', JSON.stringify(sessions));
+
+  // Clear form
+  document.getElementById('teach-person').value = '';
+  document.getElementById('teach-topic').value = '';
+  document.getElementById('teach-notes').value = '';
+
+  loadTeachingHistory();
+  toast(`✅ Teaching session logged! +1 INT earned`, 'ok');
+}
+
+loadTeachingHistory();
+</script>
+</body>
+</html>

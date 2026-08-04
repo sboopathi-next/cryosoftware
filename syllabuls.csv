@@ -1,0 +1,570 @@
+Course_Module,Level_Required,XP_Points_Earned,Course
+"L01: NumPy Array Memory Architecture & Vectorization Mechanics",Level 1,30,EDA
+"L02: Pandas DataFrame Indexing Alignments & Memory Optimization",Level 1,35,EDA
+"L03: Vectorized Broadcasting Operations & Custom Element-Wise Ufuncs",Level 1,40,EDA
+"L04: Resampling & Moving-Window Algebra for Non-Stationary Time-Series",Level 2,45,EDA
+"L05: ACID Transactional Data Aggregation & Analytical Window Functions",Level 2,45,EDA
+"L06: Spatial Clustering & Geometric Data Analysis via GeoPandas",Level 2,50,EDA
+"L07: NetworkX Graph Topology Construction & Node Centrality Layouts",Level 2,55,EDA
+"L08: Biological Sequence String Alignment & Matrix Representations",Level 2,50,EDA
+"L09: Deduplication Algorithms & High-Performance Row-Wise Locality Cleansing",Level 3,50,EDA
+"L10: Relational Data Integration, Concurrency Handling & Structural Merge Logic",Level 3,55,EDA
+"L11: Numerosity Data Reduction & Stratified Sampling Implementations",Level 3,60,EDA
+"L12: Min-Max, Z-Score Scaling & Box-Cox Mathematical Power Transformations",Level 3,65,EDA
+"L13: MCAR, MAR, and MNAR Missing Data Structural Mechanism Diagnoses",Level 4,60,EDA
+"L14: Non-Parametric KNN & Distance-Weighted Missing Value Estimations",Level 4,65,EDA
+"L15: Bayesian Estimation Frameworks for Incomplete Covariance Matrices",Level 4,80,EDA
+"L16: Multivariate Imputation by Chained Equations (MICE) via IterativeImputer",Level 4,90,EDA
+"L17: Describing Shapes: Analytical Covariance, Skewness & Kurtosis Derivations",Level 5,55,EDA
+"L18: Parametric Hypothesis Tests: Z-test, Two-Sample T-test & ANOVA Frameworks",Level 5,65,EDA
+"L19: N-Dimensional Covariance Matrices & Mahalanobis Distance Metrics",Level 5,75,EDA
+"L20: Empirical Cumulative Distribution Functions (ECDF) Performance Mapping",Level 6,45,EDA
+"L21: Optimization of Histogram Bin Widths via Scott’s & Freedman-Diaconis Rules",Level 6,50,EDA
+"L22: Dispersion Geometry Analysis via Violin Plots & Interquartile Ranges",Level 6,55,EDA
+"L23: Textual Stem-and-Leaf Density Distribution Plot Automations",Level 6,45,EDA
+"L24: Multidimensional Scaling (MDS) Coordinate Projection Engine",Level 7,70,EDA
+"L25: Andrews Plots Evaluation (High-Dimensional Fourier Transformations)",Level 7,85,EDA
+"L26: Hierarchical Clustering Visualizations via Heatmap Dendrogram Layouts",Level 7,70,EDA
+"L27: Spatial Voronoi Tessellation & Delaunay Triangulation Formulations",Level 7,90,EDA
+"L28: Parametric Extreme Value Distribution fitting for Univariate Streams",Level 8,75,EDA
+"L29: Modified Z-Score & Absolute Median Deviation (MAD) Thresholding Engine",Level 8,75,EDA
+"L30: Automated IQR Inner/Outer Fence Outlier Masking Pipelines",Level 8,70,EDA
+"L31: Generalized Extreme Studentized Deviate (ESD) Recursive Outlier Testing",Level 8,85,EDA
+"L32: Vector Angle-Based Outlier Detection (ABOD) Math Models",Level 9,95,EDA
+"L33: Non-Parametric Subspace Partitioning via Isolation Forest Ensembles",Level 9,90,EDA
+"L34: Local Outlier Factor (LOF) Density-Based Neighborhood Calculations",Level 9,85,EDA
+"L35: PyOD High-Dimensional Proximity Subspace Pipeline Integration",Level 9,100,EDA
+"L36: Information Gain & Mutual Information Rank Filtering Systems",Level 10,80,EDA
+"L37: Recursive Feature Elimination (RFE) Greedy Wrapper Architectures",Level 10,90,EDA
+"L38: L1 Regularization (Lasso) Sparsity Coefficients for Feature Selection",Level 10,85,EDA
+"L39: Cost-Function Optimization for Embedded Tree-Based Feature Rankers",Level 10,80,EDA
+"L40: K-Means Distortion Mechanics, WCSS, and Elbow Convergence Math",Level 11,90,EDA
+"L41: Silhouette Coefficient Geometry for Optimal Partitioning Evaluation",Level 11,95,EDA
+"L42: Combinatorial Feature Space Searches via Genetic Selection Algorithms",Level 11,120,EDA
+"L43: Singular Value Decomposition (SVD) Matrix Factorization Logic",Level 12,110,EDA
+"L44: Principal Component Analysis (PCA) Covariance Eigen-Asset Derivations",Level 12,130,EDA
+"L45: Latent Variable Parameter Estimations via Structural Factor Analysis",Level 12,110,EDA
+"L46: Canonical Correlation Analysis (CCA) Cross-Covariance Maximization",Level 12,125,EDA
+"L47: Target Leakage Diagnostic Engines via Temporal Splits & Cross-Validation Counterfactuals",Level 4,75,EDA
+"L48: Variance Inflation Factor (VIF) Calculations & Multicollinearity Matrix Determinants",Level 5,70,EDA
+"L49: Weight of Evidence (WoE) & Information Value (IV) Mathematical Banning Engines",Level 5,80,EDA
+"L50: High-Cardinality Categorical Shannon Entropy Diagnostics & Rare Label Consolidation",Level 3,55,EDA
+"L51: Non-Linear Coordinate Manifold Projections via t-SNE Kullback-Leibler Minimization",Level 7,95,EDA
+"L52: Uniform Manifold Approximation and Projection (UMAP) Fuzzy Simplicial Set Layouts",Level 8,110,EDA
+"L53: Population Stability Index (PSI) & Characteristic Stability Matrix Drift Computations",Level 9,105,EDA
+"L54: Two-Sample Kolmogorov-Smirnov (KS) Non-Parametric Testing for Distribution Shifts",Level 9,90,EDA
+"L55: Maximal Information Coefficient (MIC) for Universal Non-Linear Association Grid Searches",Level 10,100,EDA
+"L56: Vector Embedding Space EDA via Inter-Cluster Cosine Similarity Matrix Heatmaps",Level 11,115,EDA
+"CAT: Mid-Term Comprehensive Analytical Assessment Pipeline Deployment",Level 6,500,EDA
+"DA: High-Dimensional Industrial Feature Engineering Production Pipeline",Level 12,800,EDA
+"L01: Axiomatic Probability Theory & Set-Theoretic Sample Space Formulations",Level 1,30,Probability_Stats
+"L02: Discrete, Continuous, and Mixed Random Variable Mathematical Classifications",Level 1,35,Probability_Stats
+"L03: Empirical Limiting Probability Simulation Engines via Vectorized NumPy Loops",Level 1,40,Probability_Stats
+"L04: Joint, Total Probability Axioms & Vectorized Addition/Multiplication Laws",Level 2,45,Probability_Stats
+"L05: Stochastic Simulations of Dependent & Independent Sample Space Combinations",Level 2,45,Probability_Stats
+"L06: High-Performance Data Stream Ingestion Pipelines for Stochastic Inferences",Level 2,50,Probability_Stats
+"L07: Conditional Probability Bounds & Pairwise vs Mutual Independence Proofs",Level 3,50,Probability_Stats
+"L08: Bayes’ Theorem Mathematical Derivations & Direct Odds-Ratio Updating",Level 3,60,Probability_Stats
+"L09: Production Naive Bayes Classifier Engine from First Principles in Python",Level 3,65,Probability_Stats
+"L10: Probability Mass Functions & Probability Density Functions Integration Calculus",Level 4,60,Probability_Stats
+"L11: Unidimensional Cumulative Distribution Function Inversion Frameworks",Level 4,65,Probability_Stats
+"L12: Bivariate Two-Dimensional Random Variable Transformation Mechanics",Level 4,75,Probability_Stats
+"L13: Joint Probability Distributions & Marginal Function Derivations via Continuous Integration",Level 5,55,Probability_Stats
+"L14: Conditional Distribution Density Formulations for Continuous Bivariate Surfaces",Level 5,65,Probability_Stats
+"L15: Statistical Independence Proofs for Product-Moment Probability Fields",Level 5,70,Probability_Stats
+"L16: First-Moment Derivations: Mathematical Expectation Operator & Linear Properties",Level 6,45,Probability_Stats
+"L17: Expected Value Computations for Complex Piecewise Continuous Probability Functions",Level 6,50,Probability_Stats
+"L18: Conditional Expectation Operators & Law of Total Expectation Proofs",Level 6,60,Probability_Stats
+"L19: Covariance Matrices & Variance-Covariance Linear Transformation Frameworks",Level 6,65,Probability_Stats
+"L20: Bernoulli & Binomial Distribution Probability Mass Derivations & SciPy Implementations",Level 7,70,Probability_Stats
+"L21: Poisson Process Modeling & Limiting Law of Rare Events Derivations",Level 7,75,Probability_Stats
+"L22: Geometric & Negative Binomial Waiting-Time Probability Formulations",Level 8,75,Probability_Stats
+"L23: Hypergeometric Sampling Without Replacement Probability Math Profiles",Level 8,80,Probability_Stats
+"L24: Maximum Likelihood Estimation for Fitting Empirical Discrete Distributions",Level 8,90,Probability_Stats
+"L25: Continuous Gaussian Normal Distribution Geometry & Analytical Integration Derivations",Level 9,85,Probability_Stats
+"L26: Standard Normal Variate Transformation Engines & Error Function Interpolation",Level 9,90,Probability_Stats
+"L27: Exponential Distribution Memoryless Property Proofs & Reliability Engineering",Level 9,95,Probability_Stats
+"L28: Gamma Distribution Factorial Extensions & Continuous Waiting-Time Modeling",Level 10,100,Probability_Stats
+"L29: Weibull Distribution Hazard Function Profiles & Failure Rate Vectorization",Level 10,105,Probability_Stats
+"L30: De Moivre-Laplace Theorem: Normal Approximation of Binomial Systems with Continuity Corrections",Level 10,110,Probability_Stats
+"L31: Central Limit Theorem Asymptotics & Convergence in Distribution Simulations",Level 11,115,Probability_Stats
+"L32: Chi-Square Distribution Derivations from Sums of Squared Standard Normals",Level 11,120,Probability_Stats
+"L33: Student’s T-Distribution Heavy-Tailed Sampling Models & Degrees of Freedom Math",Level 11,120,Probability_Stats
+"L34: Snedecor’s F-Distribution Variance Ratio Probability Density Formulations",Level 11,125,Probability_Stats
+"L35: Standard & Generalized Logistic Distribution CDF/PDF Geometric Proportions",Level 12,130,Probability_Stats
+"L36: Frequentist Hypothesis Testing Frameworks: Null/Alternative Setups & Type I/II Error Tradeoffs",Level 12,135,Probability_Stats
+"L37: Parametric Z-Tests & T-Tests for Single and Two-Sample Population Mean Discrepancies",Level 12,140,Probability_Stats
+"L38: Chi-Square Goodness-of-Fit & Contingency Table Independence Testing Engines",Level 12,145,Probability_Stats
+"L39: Likelihood Ratio Tests & Neyman-Pearson Lemma Optimizations for Target Boundaries",Level 12,150,Probability_Stats
+"CAT: Mid-Term Probability Foundations & Bivariate Distribution Math Simulation",Level 6,500,Probability_Stats
+"DA: End-to-End Frequentist Inference & Parametric Distribution Fitting Production Engine",Level 12,800,Probability_Stats
+"L01: NumPy Matrix Memory Architecture, C-Contiguous vs Fortran-Contiguous Layouts",Level 1,30,Linear_Algebra
+"L02: Matrix Addition, Scalar Multiplication, and Hadamard Product Vectorization Optimization",Level 1,35,Linear_Algebra
+"L03: Vectorized Dot Products and Block Matrix Multiplication via BLAS/LAPACK Backends",Level 1,40,Linear_Algebra
+"L04: Laplace Expansion Determinant Computations and Matrix Inversion Singularity Boundaries",Level 1,45,Linear_Algebra
+"L05: Matrix Rank Determination using Singular Values and Epsilon Numerical Thresholding",Level 1,45,Linear_Algebra
+"L06: Characteristic Equation Polynomial Solvers for Analytical Eigenvalue Evaluation",Level 2,50,Linear_Algebra
+"L07: Power Iteration and Rayleigh Quotient Algorithms for Dominant Eigenpair Extraction",Level 2,55,Linear_Algebra
+"L08: Spectral Expansion and Eigen-Decomposition Arrays for Symmetric Matrices",Level 2,50,Linear_Algebra
+"L09: Orthogonal Transformations, Reflection Matrices, and Subspace Rotations",Level 2,55,Linear_Algebra
+"L10: Idempotent Projection Matrix Verification and Compressed Sparse Row (CSR) Optimizations",Level 2,60,Linear_Algebra
+"L11: Augmented Matrix Formulations for Systems of Non-Homogeneous Linear Equations",Level 3,50,Linear_Algebra
+"L12: Forward Elimination Algorithms for Row Echelon Form (REF) Conversions",Level 3,55,Linear_Algebra
+"L13: Gauss-Jordan Back Substitution Transformations for Reduced Row Echelon Form (RREF)",Level 3,60,Linear_Algebra
+"L14: Complete Gaussian Elimination Solver Development with Partial Pivoting Mechanics",Level 3,65,Linear_Algebra
+"L15: Cramer’s Rule Determinant Ratio Solvers for Small-Scale Non-Singular Frameworks",Level 4,60,Linear_Algebra
+"L16: Vector Space Condition Number Calculations and Ill-Conditioned System Diagnoses",Level 4,70,Linear_Algebra
+"L17: LU Decomposition via Doolittle’s Algorithm and Triangular System Solvers",Level 5,65,Linear_Algebra
+"L18: Cholesky Factorization for Symmetric Positive-Definite Machine Learning Kernel Matrices",Level 5,75,Linear_Algebra
+"L19: QR Decomposition Pipelines via Householder Reflections and Givens Rotations",Level 5,80,Linear_Algebra
+"L20: Singular Value Decomposition (SVD) Factorization and Low-Rank Matrix Approximations",Level 5,90,Linear_Algebra
+"L21: Spectral Decomposition and Orthogonal Diagonalization of Symmetric Operators",Level 5,85,Linear_Algebra
+"L22: Axiomatic Vector Space Vector Fields and Linear Closure Property Audits",Level 6,50,Linear_Algebra
+"L23: Subspace Spanning Sets and Nullspace Basis Dimension Counting Operations",Level 6,55,Linear_Algebra
+"L24: Linear Dependence Analysis via Wronskian Matrices and Row Pivot Counting",Level 6,60,Linear_Algebra
+"L25: Minimal Generating Sets, Coordinate Vector Mappings, and Vector Space Dimensions",Level 6,65,Linear_Algebra
+"L26: Linear Transformation Kernel (Null Space) and Range (Column Space) Structural Builders",Level 7,70,Linear_Algebra
+"L27: Explicit Matrix Representation Mapping of High-Dimensional Geometric Transforms",Level 7,75,Linear_Algebra
+"L28: Rank-Nullity Theorem Dimensional Constancy Verifications for Linear Mappings",Level 8,80,Linear_Algebra
+"L29: Transition Matrix Generation and Change-of-Basis Vector Conversions",Level 8,85,Linear_Algebra
+"L30: Matrix Similarity Transformations and Invariant Field Coordinate Inferences",Level 8,90,Linear_Algebra
+"L31: Invertible Linear Transformation Operators and Vector Space Isomorphisms",Level 8,85,Linear_Algebra
+"L32: Custom Inner Product Space Definitions and Cauchy-Schwarz Geometric Bound Validations",Level 9,90,Linear_Algebra
+"L33: Induced Vector Norm Calculations and Multi-Dimensional Orthogonality Confirmations",Level 9,95,Linear_Algebra
+"L34: Gram-Schmidt Orthogonalization Vector Pipelines with Modified Numerical Stability",Level 9,105,Linear_Algebra
+"L35: Orthogonal Projection Error Minimization for Subspace Optimization Coordinates",Level 9,100,Linear_Algebra
+"L36: Moore-Penrose Pseudo-Inverse Construction using Singular Value Decompositions",Level 10,110,Linear_Algebra
+"L37: Generalized Inverse (G-Inverse) Formulations for Underdetermined Matrix Approximations",Level 10,115,Linear_Algebra
+"L38: Canonical Correlation Analysis (CCA) Shared Subspace Projections and Maxima Search",Level 10,120,Linear_Algebra
+"L39: Quadratic Form Simplification and Symmetric Matrix Congruence Transform Transformations",Level 11,110,Linear_Algebra
+"L40: Sylvester's Criterion Evaluations for Definiteness Shapes of Multivariate Surfaces",Level 11,115,Linear_Algebra
+"L41: Fisher's Linear Discriminant Analysis (LDA) Between-Class Scattering Vector Maximizers",Level 11,130,Linear_Algebra
+"L42: Rayleigh-Ritz Ratio Minimization for Discriminant Subspace Machine Learning Projections",Level 11,125,Linear_Algebra
+"L43: Empirical Covariance Matrix Inversion and Mahalanobis Distance Meshgrid Generations",Level 12,120,Linear_Algebra
+"L44: Ordinary Least Squares (OLS) Linear Regression Matrix Normal Equation Solvers",Level 12,135,Linear_Algebra
+"L45: Tikhonov Regularization (Ridge Regression) L2 Matrix Penalization Pipelines",Level 12,140,Linear_Algebra
+"L46: Projection Matrix (Hat Matrix) Leverage Vector Inferences and Outlier Diagnostic Checks",Level 12,130,Linear_Algebra
+"L47: Multivariate Linear Model Redundancies and Matrix Rank Deficiency Diagnostics",Level 12,135,Linear_Algebra
+"L48: High-Dimensional Multivariate Coordinate Field Rotations and Principal Component Alignments",Level 12,145,Linear_Algebra
+"CAT: Mid-Term Linear Algebraic Foundation & Geometric Vector Transformation Assessment",Level 6,500,Linear_Algebra
+"DA: High-Dimensional Singular Value Decomposition & Latent Matrix Projection Production Pipeline",Level 12,800,Linear_Algebra
+"L01: Mathematical Proofs of Asymptotic Notations & Big-O Upper Bounds",Level 1,30,DSA_LeetCode
+"L02: Analytical Time Complexity Derivations for Deeply Nested Iterative Loops",Level 1,35,DSA_LeetCode
+"L03: Recurrence Relation Formulations for Recursive Functions via Divide-and-Conquer Trees",Level 1,40,DSA_LeetCode
+"L04: Master's Theorem Case Classifications & Asymptotic Tight-Bound Solvers",Level 1,45,DSA_LeetCode
+"L05: Array Memory Layouts & Vectorized Sliding Window Problems (LeetCode Slid-Window Subarrays)",Level 1,45,DSA_LeetCode
+"L06: Two-Pointer Subspace Memory Traversal Paradigms (LeetCode Fast-Slow Pointer Mechanics)",Level 1,50,DSA_LeetCode
+"L07: Fixed-Size Array Stack Storage Underflows & Functional Array Implementations",Level 2,45,DSA_LeetCode
+"L08: Dynamic Memory Allocation for Singly Linked List Stack Nodes",Level 2,50,DSA_LeetCode
+"L09: Infix-to-Postfix Arithmetic Expression Parsers via Monotonic Stack Operators",Level 2,55,DSA_LeetCode
+"L10: Mathematical Optimization of Monotonic Stacks (LeetCode Next Greater Element)",Level 2,60,DSA_LeetCode
+"L11: First-In-First-Out (FIFO) Array Circular Queue Ring-Buffer Implementations",Level 3,50,DSA_LeetCode
+"L12: Pointer-Based Queue Structures using Dynamic Singly Linked Memory Blocks",Level 3,55,DSA_LeetCode
+"L13: Double-Ended Queue (Deque) Implementations & Core Window Extrema Extractors",Level 3,60,DSA_LeetCode
+"L14: Monotonic Queue Design and Verification (LeetCode Sliding Window Maximum)",Level 3,65,DSA_LeetCode
+"L15: Singly Linked List Structural Inversions & Node-Pointer Swap Automations",Level 4,55,DSA_LeetCode
+"L16: Doubly Linked List Two-Way Traversals & Complex Node Extraction Frameworks",Level 4,60,DSA_LeetCode
+"L17: Memory-Efficient Circular Linked List Implementations & Ring Node Management",Level 4,60,DSA_LeetCode
+"L18: Least Recently Used (LRU) Cache Interlocking Engines (LeetCode Map + Doubly Linked List)",Level 4,75,DSA_LeetCode
+"L19: Shell Sort Interval Gaps & Diminishing Increment Insertion Sort Variations",Level 5,55,DSA_LeetCode
+"L20: Quick Sort Partitioning: Hoare vs Lomuto Pivot Selection Mathematical Mechanics",Level 5,60,DSA_LeetCode
+"L21: Randomized Quick Sort Expected Time Derivations & Worst-Case Defenses",Level 5,65,DSA_LeetCode
+"L22: Binary Heap Invariant Properties & Vectorized Sift-Up/Sift-Down Array Alignments",Level 5,70,DSA_LeetCode
+"L23: In-Place Heap Sort Extractors & Priority Queue Ingestion Pipelines",Level 5,75,DSA_LeetCode
+"L24: Merge Sort Divide-and-Conquer Inversions & Two-Way Array Merge Implementations",Level 5,70,DSA_LeetCode
+"L25: Non-Comparison Radix Sort Matrix Buckets & Bucket Sort Digit Distributers",Level 5,65,DSA_LeetCode
+"L26: Binary Search Space Reductions on Monotonically Monitored Target Arrays",Level 6,50,DSA_LeetCode
+"L27: Advanced Binary Search on Matrix Boundaries & Implicit Function Solution Spaces",Level 6,60,DSA_LeetCode
+"L28: Hash Map Collision Architectures: Open Addressing vs Chaining via Linked Lists",Level 6,55,DSA_LeetCode
+"L29: Mathematical Universal Hashing Principles & Custom String Compression Computations",Level 6,65,DSA_LeetCode
+"L30: Binary Tree Topological Array Map Models & Hierarchical Pointer Topologies",Level 7,65,DSA_LeetCode
+"L31: Recursive and Iterative Stack-Based Pre-Order, In-Order, and Post-Order Traversals",Level 7,70,DSA_LeetCode
+"L32: Queue-Based Breadth-First Search (BFS) Tree Level-Order Graph Extraction Engines",Level 7,70,DSA_LeetCode
+"L33: Unique Binary Tree Structural Reconstruction from Pre-Order & In-Order Telemetry",Level 7,80,DSA_LeetCode
+"L34: Binary Search Tree (BST) Target Insertion, Range Queries, and Predecessor Lookups",Level 7,75,DSA_LeetCode
+"L35: Binary Search Tree Structural Deletions via Hibbard Node Swapping Algorithms",Level 7,85,DSA_LeetCode
+"L36: Greedy Prefix-Free Prefix Encodings via Optimal Huffman Tree Array Building",Level 7,90,DSA_LeetCode
+"L37: Self-Balancing AVL Trees: Balanced Factor Calculation Matrices & Node Rotations",Level 8,85,DSA_LeetCode
+"L38: Double Rotations (LR/RL) inside AVL Spaces for Skewed Coordinate Inversions",Level 8,95,DSA_LeetCode
+"L39: Disk-I/O Optimized Multi-Way Search B-Tree Ingestion Node Split Management",Level 8,110,DSA_LeetCode
+"L40: Disjoint Set Union (DSU) Structures with Path Compression & Rank Optimizations",Level 8,90,DSA_LeetCode
+"L41: Trie String Search Engines with Complete Character Pointer Vector Matrix Routing",Level 8,85,DSA_LeetCode
+"L42: Graph Adjacency Matrix vs Dynamic Adjacency List Space Complexity Calculations",Level 9,65,DSA_LeetCode
+"L43: Depth-First Search (DFS) Component Mapping & Topological Sort Path Traversals",Level 9,75,DSA_LeetCode
+"L44: Breadth-First Search (BFS) Graph Exploration for Shortest Traversal Distance Measures",Level 9,75,DSA_LeetCode
+"L45: Kruskal’s Minimum Spanning Tree (MST) Algorithm using Disjoint Set Union Optimizations",Level 10,90,DSA_LeetCode
+"L46: Prim’s Dense Graph Minimum Spanning Tree via Priority Queue Binary Heaps",Level 10,90,DSA_LeetCode
+"L47: Dijkstra’s Single-Source Shortest Path Algorithm on Positive Weight Metrics",Level 10,100,DSA_LeetCode
+"L48: Bellman-Ford Negative Weight Cycle Inversion Identifiers & Edge Relaxation Arrays",Level 10,105,DSA_LeetCode
+"L49: Floyd-Warshall All-Pairs Shortest Path Dynamic Programming Matrix Solutions",Level 10,110,DSA_LeetCode
+"L50: Kosaraju’s Two-Pass DFS Algorithm for Strongly Connected Component Detection",Level 10,115,DSA_LeetCode
+"L51: Tarjan’s Low-Link Matrix Tracking for Graph Articulation Points & Bridges",Level 10,120,DSA_LeetCode
+"L52: Backtracking Enumeration Blueprints: State-Space Search Trees & Constraint Pruning",Level 11,95,DSA_LeetCode
+"L53: Combinatorial Backtracking Formulations (LeetCode N-Queens & Sudoku Solvers)",Level 11,110,DSA_LeetCode
+"L54: Dynamic Programming: Top-Down Memoization vs Bottom-Up Tabulation Matrix Principles",Level 12,110,DSA_LeetCode
+"L55: 0/1 Knapsack & Multidimensional Grid State Optimization Architectures",Level 12,125,DSA_LeetCode
+"L56: Longest Common Subsequence (LCS) & Edit Distance Sequence Alignment Solvers",Level 12,130,DSA_LeetCode
+"L57: Advanced Dynamic Programming Bitmasking Over High-Dimensional Subsets",Level 12,145,DSA_LeetCode
+"L58: Streamed Data Processing Optimization Engines (LeetCode Online Algorithms)",Level 12,115,DSA_LeetCode
+"CAT: Mid-Term Algorithmic Complexity & Core Linear Data Structure Implementation Marathon",Level 6,500,DSA_LeetCode
+"DA: Complete Production Feature Engineering Graph Topology Construction & Shortest Path Pipeline",Level 12,800,DSA_LeetCode
+"L01: State-Space Modeling, Graph Formulations & Combinatorial Explosion Mathematical Tracking Scripts",Level 1,30,AI_Agents
+"L02: Turing Machine Approximations & Functional Computability Bound Analysis in Python",Level 1,35,AI_Agents
+"L03: PEAS Framework Matrix Definitions: Performance, Environment, Actuators, and Sensor Vector Mapping",Level 2,40,AI_Agents
+"L04: Environmental Matrix Properties: Markovian Fully-Observable vs Partially-Observable State Traversals",Level 2,45,AI_Agents
+"L05: Stochastic, Static vs Dynamic, and Continuous Environmental Simulation Environments",Level 2,45,AI_Agents
+"L06: Production Architecture for Object-Oriented Simple Reflex Agents with Condition-Action Rules",Level 2,50,AI_Agents
+"L07: Model-Based Reflex Agents utilizing Internal State Tracking and History Buffers",Level 3,50,AI_Agents
+"L08: Goal-Based Autonomous Search Agents with Predictive Multi-Step Action Planning",Level 3,55,AI_Agents
+"L09: Utility-Based Optimization Agents implementing Real-Valued Scalar Tradeoff Functions",Level 3,60,AI_Agents
+"L10: Actor-Critic Style Learning Agents with Performance Standards and Exploration Generators",Level 3,65,AI_Agents
+"L11: Uninformed Tree Exploration: FIFO Queue Breadth-First Search (BFS) Memory-Bound Pipeline",Level 4,50,AI_Agents
+"L12: Uninformed Graph Exploration: LIFO Stack Depth-First Search (DFS) Cycle-Proofing Engines",Level 4,55,AI_Agents
+"L13: Depth-Limited Search (DLS) Implementation with Explicit Boundary Failure Exception Traps",Level 4,55,AI_Agents
+"L14: Iterative Deepening Depth-First Search (IDS) Combining Space and Time Efficiencies",Level 4,60,AI_Agents
+"L15: Uniform Cost Search (UCS) Priority Queue Algorithms for Optimal Edge-Weighted Shortest Paths",Level 4,65,AI_Agents
+"L16: Simultaneous Front-and-Back Ingestion: Bidirectional Graph Traversal Optimization Frameworks",Level 4,70,AI_Agents
+"L17: Best-First Search Mechanics utilizing Evaluative Domain Heuristic Arrays",Level 5,60,AI_Agents
+"L18: A* Search Implementation evaluating f(n) = g(n) + h(n) Vector Coordinates",Level 5,75,AI_Agents
+"L19: Mathematical Consistency and Admissibility Validation Proofs for Heuristic Functions",Level 5,80,AI_Agents
+"L20: Iterative Deepening A* (IDA*) and Memory-Bounded Heuristic Search (SMA*) Implementations",Level 5,85,AI_Agents
+"L21: Two-Player Zero-Sum Game Tree Formulations and Recursive Minimax Search Engines",Level 6,65,AI_Agents
+"L22: Alpha-Beta Pruning Edge Truncations for Multi-Step Minimax State Spaces",Level 6,80,AI_Agents
+"L23: Dynamic Evaluation Cutoff Approximations and Horizon Effect Mitigations in Game Trees",Level 6,75,AI_Agents
+"L24: Constraint Satisfaction Problems (CSP): Backtracking Search with MRV and Degree Heuristics",Level 6,85,AI_Agents
+"L25: Forward Checking and AC-3 Arc Consistency Network Pruning Optimization Algorithms",Level 6,90,AI_Agents
+"L26: Cryptarithmetic Solver Construction via Graph-Based Constraint Dependency Injectors",Level 6,95,AI_Agents
+"L27: Propositional Logic Inferences: Automatic Truth Table Generators & SAT Solvers",Level 7,70,AI_Agents
+"L28: Logical Forward and Backward Chaining Inference Engines for Production Rule Verification",Level 7,80,AI_Agents
+"L29: Proof by Contradiction: Automated Propositional Resolution and Conjunctive Normal Form (CNF) Converters",Level 7,85,AI_Agents
+"L30: Object-Oriented Semantic Networks and Frame Taxonomy Structures with Inheritance Resolution",Level 7,75,AI_Agents
+"L31: First-Order Logic (FOL) Syntax Compilers with Universal and Existential Quantifier Handlers",Level 8,85,AI_Agents
+"L32: Generalized Modus Ponens Inferences & Syntactic Substitution Mappings inside Knowledge Bases",Level 8,90,AI_Agents
+"L33: First-Order Logic Robinson Unification Algorithm Development for Literal String Matrices",Level 8,105,AI_Agents
+"L34: First-Order Resolution Pipelines via Lifted Skolemination and Horn Clause Reductions",Level 8,115,AI_Agents
+"L35: Joint Probability Distribution Factorization via Directed Acyclic Graphs (Bayesian Networks)",Level 9,90,AI_Agents
+"L36: Exact Inference in Bayesian Networks via Enumeration and Variable Elimination Calculations",Level 9,105,AI_Agents
+"L37: Approximate Inference Loops in Complex Belief Spaces using Gibbs and Metropolis-Hastings MCMC Sampling",Level 9,120,AI_Agents
+"L38: Vectorized Multinomial Naive Bayes Classifier from Scratch using Pure NumPy Log-Likelihood Arrays",Level 9,85,AI_Agents
+"L39: Biological Neuron Abstractions and Mathematical Properties of Continuous Activation Gradients",Level 10,50,AI_Agents
+"L40: Analytical Calculus Derivations of Sigmoid, Hyperbolic Tangent, ReLU, and Softmax Derivatives",Level 10,65,AI_Agents
+"L41: Single-Layer Perceptron Binary Classification Learning Rule Convergence Vector Proofs",Level 10,75,AI_Agents
+"L42: Multi-Layer Perceptron (MLP) Forward Propagation Matrix Multiplication Mechanics",Level 11,80,AI_Agents
+"L43: Vectorized Backpropagation Calculus Engine: Chain Rule Kronecker Product Derivations from First Principles",Level 11,130,AI_Agents
+"L44: Stochastic Gradient Descent (SGD) with Momentum and Adam Optimization Weight Updates",Level 11,95,AI_Agents
+"L45: Deep Feed-Forward Layer Topologies: Vanishing/Exploding Gradient Diagnostics & Xavier/He Initializations",Level 11,100,AI_Agents
+"L46: Energy-Based Probabilistic Architectures: Restricted Boltzmann Machine (RBM) Matrix Layers",Level 12,120,AI_Agents
+"L47: Contrastive Divergence (CD-k) MCMC Sampling Implementations for RBM Feature Extraction",Level 12,135,AI_Agents
+"L48: Rule-Based Expert System Shell Development with Conflicting Rule Resolution Matrices",Level 12,80,AI_Agents
+"CAT: Mid-Term Adversarial Search, Logic Solvers & State Optimization Assessment",Level 6,500,AI_Agents
+"DA: Custom Vectorized Neural Network & Backpropagation Calculus Execution Production Pipeline",Level 12,800,AI_Agents
+"L01: Three-Tier Data Warehousing Architectures & OLAP Cube Multi-Dimensional Slice/Dice Vectorization",Level 1,30,Data_Mining_Forecasting
+"L02: Supervised vs Unsupervised Generalization Bounds & Structural Risk Minimization Principles",Level 1,35,Data_Mining_Forecasting
+"L03: Equi-Width vs Equi-Frequency Histogram Binning Algebra & Data Smoothing Pipelines",Level 1,40,Data_Mining_Forecasting
+"L04: Vectorized Chi-Square Test of Independence Contingency Matrix Scaling",Level 2,45,Data_Mining_Forecasting
+"L05: Data Warehousing Schema Layouts: Star, Snowflake, and Fact Constellation NumPy Emulations",Level 2,45,Data_Mining_Forecasting
+"L06: Nominal, Ordinal, Interval, and Ratio Attribute Distance-Metric Formulations",Level 2,50,Data_Mining_Forecasting
+"L07: Proximity Matrix Computations: Minkowski, Cosine, and Jaccard Dissimilarity Layouts",Level 2,55,Data_Mining_Forecasting
+"L08: Pearson Product-Moment Correlation Matrix Covariance Normalization Mechanics",Level 3,50,Data_Mining_Forecasting
+"L09: Spearman Rank and Kendall’s Tau Non-Linear Correlation Coefficient Rankers",Level 3,55,Data_Mining_Forecasting
+"L10: One-Hot, Binary, and Target Categorical Inversion Encoding Architectures",Level 3,60,Data_Mining_Forecasting
+"L11: Principal Component Analysis (PCA) SVD Subspace Reconstruction Variance Retention",Level 4,70,Data_Mining_Forecasting
+"L12: Ordinary Least Squares (OLS) Univariate Cost-Function Gradient Calculations",Level 4,65,Data_Mining_Forecasting
+"L13: Multiple Linear Regression Closed-Form Matrix Solving via Pseudoinverses",Level 4,75,Data_Mining_Forecasting
+"L14: Information Gain, Entropy, and Gini Impurity Mathematical Minimizers for Decision Splits",Level 5,55,Data_Mining_Forecasting
+"L15: Recursive Binary Partitioning Tree Compilers from Scratch in NumPy",Level 5,65,Data_Mining_Forecasting
+"L16: Cost-Complexity Tree Pruning Algorithms via Alpha-Parameter Tuning Matrix States",Level 5,70,Data_Mining_Forecasting
+"L17: CART Classification and Regression Tree Leaf Node Optimization Criteria",Level 5,75,Data_Mining_Forecasting
+"L18: Bootstrap Aggregation (Bagging) Mechanics & Out-of-Bag (OOB) Error Estimation Math",Level 6,45,Data_Mining_Forecasting
+"L19: Random Forest Classifier Feature Subspace Subsampling Randomization Engines",Level 6,55,Data_Mining_Forecasting
+"L20: K-Nearest Neighbor Brute-Force Vectorized Distance Sorting Pipelines",Level 6,50,Data_Mining_Forecasting
+"L21: Spatial Indexing Optimizations for KNN: KD-Trees and Ball-Trees Ball Traversals",Level 6,60,Data_Mining_Forecasting
+"L22: MAP (Maximum A Posteriori) Classification & Gaussian Naive Bayes Log-Likelihood Arrays",Level 7,70,Data_Mining_Forecasting
+"L23: Logistic Regression Sigmoid Cross-Entropy Loss Derivative Formulations",Level 7,75,Data_Mining_Forecasting
+"L24: Newton-Raphson Optimization Algorithms for Log-Likelihood Maximization",Level 7,85,Data_Mining_Forecasting
+"L25: Regularized Logistic Regression: Analytical L1/L2 Weight Penalty Matrix Updates",Level 7,90,Data_Mining_Forecasting
+"L26: Support Vector Machine (SVM) Soft-Margin Primal Convex Optimization Problems",Level 8,80,Data_Mining_Forecasting
+"L27: Dual SVM Lagrange Multipliers & Mercer Kernel Space Coordinate Layouts",Level 8,95,Data_Mining_Forecasting
+"L28: Fisher’s Linear Discriminant Analysis (LDA) Discriminant Functions Matrix Equations",Level 8,85,Data_Mining_Forecasting
+"L29: Quadratic Discriminant Analysis (QDA) Non-Equal Covariance Hyper-Surfaces",Level 8,90,Data_Mining_Forecasting
+"L30: Apriori Frequent Itemset Generation: Support, Confidence, and Lift Pruning Matrices",Level 9,80,Data_Mining_Forecasting
+"L31: Bitwise Array Transformations for Accelerated Transaction Database Scans",Level 9,85,Data_Mining_Forecasting
+"L32: FP-Growth Frequent Pattern Prefix-Tree Dynamic Construction Mechanics",Level 9,95,Data_Mining_Forecasting
+"L33: Conditional FP-Tree Recursive Mining Engines from First Principles",Level 9,105,Data_Mining_Forecasting
+"L34: K-Means Vector Quantization Distortion & Convergence Bound Proofs",Level 10,90,Data_Mining_Forecasting
+"L35: Vectorized K-Medoids Partitioning around Medoids (PAM) Swap Implementations",Level 10,95,Data_Mining_Forecasting
+"L36: Agglomerative Hierarchical Clustering Proximity Traversal Layouts",Level 10,100,Data_Mining_Forecasting
+"L37: Single-Linkage Hierarchical Clustering Minimal Spanning Tree Conversions",Level 10,105,Data_Mining_Forecasting
+"L38: Complete-Linkage Hierarchical Clustering Diametric Subspace Pruning",Level 10,110,Data_Mining_Forecasting
+"L39: Average-Linkage and Ward’s Minimum Variance Geometric Distance Merges",Level 11,115,Data_Mining_Forecasting
+"L40: Cophenetic Correlation Coefficient Calculations for Hierarchical Tree Evaluation",Level 11,120,Data_Mining_Forecasting
+"L41: DBScan Density-Based Spatial Clustering Core, Border, and Noise Allocations",Level 11,125,Data_Mining_Forecasting
+"L42: Classical Time-Series Decomposition: Additive and Multiplicative Trend/Seasonality Filters",Level 12,110,Data_Mining_Forecasting
+"L43: Autocorrelation (ACF) and Partial Autocorrelation (PACF) Mathematical Convolutions",Level 12,120,Data_Mining_Forecasting
+"L44: Stationary Time Series Criteria: Dickey-Fuller & Augmented Dickey-Fuller (ADF) Matrix Roots",Level 12,130,Data_Mining_Forecasting
+"L45: Backshift Operator Notations and Polynomial Difference Equations",Level 12,115,Data_Mining_Forecasting
+"L46: Autoregressive (AR) Yule-Walker Matrix Equation Systems & Parameter Fitting",Level 12,135,Data_Mining_Forecasting
+"L47: Moving Average (MA) Error Term Stochastic Process Inversion Algorithms",Level 12,135,Data_Mining_Forecasting
+"L48: ARIMA Integrated Non-Seasonal Process State-Space Modelers via Statsmodels",Level 12,145,Data_Mining_Forecasting
+"L49: Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC) Order Selectors",Level 12,130,Data_Mining_Forecasting
+"L50: Simple Exponential Smoothing (SES) Recursive Weighting Convolution Formulations",Level 12,125,Data_Mining_Forecasting
+"L51: Holt-Winters Double and Triple Exponential Smoothing Multiplicative Forecast Systems",Level 12,140,Data_Mining_Forecasting
+"L52: Vector Autoregression (VAR) Interdependent Multivariate Time-Series Production Engines",Level 12,150,Data_Mining_Forecasting
+"CAT: Mid-Term Statistical Classification & Pattern Mining Optimization Sprint",Level 6,500,Data_Mining_Forecasting
+"DA: High-Dimensional Time-Series Pipeline Decomposition & Autoregressive Forecasting System",Level 12,800,Data_Mining_Forecasting
+"L01: Vectorized Forecast Error Architectures: Analytical Implementations of MSE, RMSE, MAE, and MAPE Profiles",Level 1,30,Advanced_Forecasting
+"L02: Derivation and Computation of Prediction Intervals vs Frequentist Confidence Intervals in High-Dimensional Streams",Level 1,35,Advanced_Forecasting
+"L03: Parametric Least-Squares Linear and Non-Linear Trend Measurement Mathematical Modeling",Level 2,40,Advanced_Forecasting
+"L04: Single Exponential Smoothing Recursive Filtering Weight Algorithms from First Principles",Level 2,45,Advanced_Forecasting
+"L05: Holt’s Linear Exponential Smoothing Equations: Dynamic Level and Trend Tracking Models",Level 3,50,Advanced_Forecasting
+"L06: Classical Time-Series Convolution Matrix Decompositions: Additive vs Multiplicative Geometric Inverses",Level 3,55,Advanced_Forecasting
+"L07: Strict Stochastic Stationarity Boundary Audits via Unit Root Augmented Dickey-Fuller Formulations",Level 3,60,Advanced_Forecasting
+"L08: Classical Linear Regression Ordinary Least Squares (OLS) Foundational Convex Assumptions",Level 4,50,Advanced_Forecasting
+"L09: Univariate Descriptive Regression Mapping and Error Sum of Squares Tensor Formulations",Level 4,55,Advanced_Forecasting
+"L10: Inferential Analysis of Slopes: Two-Tailed T-Distribution Hypothesis Testing for Beta Coefficients",Level 4,65,Advanced_Forecasting
+"L11: Model Significance Testing: Analysis of Variance (ANOVA) F-Ratio Derivative Target Engines",Level 4,70,Advanced_Forecasting
+"L12: General Cross-Validation Estimation of Prediction Errors to Mitigate Structural Overfitting Traps",Level 5,60,Advanced_Forecasting
+"L13: Coefficient of Determination (R-Squared) Decomposition Algebra and Maximization Analysis",Level 5,55,Advanced_Forecasting
+"L14: Degrees-of-Freedom Adjustments for Multi-Feature R-Squared Loss Degradation Vectors",Level 5,65,Advanced_Forecasting
+"L15: Leverage Score Metrics, Cook's Distance Outlier Diagnoses, and Influence Matrix Constraints",Level 5,75,Advanced_Forecasting
+"L16: Non-Parametric Shapiro-Wilk and Jarque-Bera Residual Normality Diagnostic Test Compilers",Level 5,70,Advanced_Forecasting
+"L17: Design and Execution of Multi-Variable Matrix Regression Models with Vectorized Partial Derivatives",Level 6,65,Advanced_Forecasting
+"L18: Simultaneous Confidence Interval Inferences for Multiple Covariate Elasticity Slopes",Level 6,70,Advanced_Forecasting
+"L19: Gauss-Markov Theorem Mathematical Proofs: Deriving the Best Linear Unbiased Estimator (BLUE) Space",Level 6,85,Advanced_Forecasting
+"L20: Partial F-Test Matrix Nested Model Comparisons for Parsimonious Feature Pruning",Level 6,80,Advanced_Forecasting
+"L21: Exact Multicollinearity Determinants: Ill-Conditioned Design Matrices and Singular Value Drops",Level 7,75,Advanced_Forecasting
+"L22: Variance Inflation Factor (VIF) Inverse Correlation Matrix Diagnostics and Threshold Systems",Level 7,80,Advanced_Forecasting
+"L23: Remedial Shrinkage Regressions: L2 Regularized Ridge Operator Matrix Inversion Defenses",Level 7,90,Advanced_Forecasting
+"L24: Heteroscedasticity Identification: Breusch-Pagan and White Mathematical Residual Variance Solvers",Level 7,85,Advanced_Forecasting
+"L25: Heteroscedasticity Defenses: Weighted Least Squares (WLS) Analytical Covariance Scaling Matrices",Level 7,95,Advanced_Forecasting
+"L26: Stochastic Autocorrelation Mapping: Vectorized Lagged Residual Covariance Computations",Level 8,75,Advanced_Forecasting
+"L27: First-Order Serial Dependency Verification via Durbin-Watson Matrix Ratio Bounds Test Rules",Level 8,85,Advanced_Forecasting
+"L28: Higher-Order Autoregressive Residual Testing via Breusch-Godfrey LM Optimization Models",Level 8,90,Advanced_Forecasting
+"L29: First-Order Autoregressive AR(1) Time-Series Process Parameter Estimation Algorithms",Level 9,85,Advanced_Forecasting
+"L30: Second-Order Autoregressive AR(2) Stochastic Inversion Models and Characteristic Polynomial Roots",Level 9,95,Advanced_Forecasting
+"L31: Mathematical Relationship Boundaries Linking Durbin-Watson Statistics directly to Serial Coefficients",Level 9,90,Advanced_Forecasting
+"L32: Curvilinear and Polynomial Map Formulations for Multi-Dimensional Matrix Structural Transformations",Level 9,80,Advanced_Forecasting
+"L33: Out-of-Sample Predictive Power Audits: Symmetrical Data Splitting Validation Strategies",Level 10,75,Advanced_Forecasting
+"L34: Predicted Residual Error Sum of Squares (PRESS) Statistical Calculation Automation Modules",Level 10,95,Advanced_Forecasting
+"L35: Variance Stabilizing Projections via Box-Cox Maximum Likelihood Lambda Grid Search Engines",Level 10,100,Advanced_Forecasting
+"L36: Analytical Information Criteria: Akaike Information Criterion (AIC) Structural Penalty Calculators",Level 11,85,Advanced_Forecasting
+"L37: Schwarz Bayesian Information Criterion (BIC) Log-Sample Size Penalty Parameter Optimization Sets",Level 11,90,Advanced_Forecasting
+"L38: Mallows’ Cp Standardized Mean Square Error Optimizers for Feature Space Selection Matrix Arrays",Level 11,95,Advanced_Forecasting
+"L39: Model Misspecification Analysis: Omitted Variable Bias and Irrelevant Feature Inflation Traps",Level 11,105,Advanced_Forecasting
+"L40: Generalized Linear Models (GLM) Foundations: Exponential Family Distribution Vector Forms",Level 12,110,Advanced_Forecasting
+"L41: Monotonic Link Function Formulations: Canonical Link Derivations for Gaussian, Binomial, and Poisson Systems",Level 12,120,Advanced_Forecasting
+"L42: Iteratively Reweighted Least Squares (IRLS) Optimization Algorithms for Maximum Likelihood Parameters",Level 12,135,Advanced_Forecasting
+"L43: GLM Inference Operators: Wald Tests, Score Tests, and Likelihood Ratio Deviance Decompositions",Level 12,125,Advanced_Forecasting
+"L44: Residual Analytics for Non-Linear Mappings: Anscombe and Pearson Standardized Target Profiles",Level 12,115,Advanced_Forecasting
+"L45: Mathematical Diagnosis of Overdispersion Anomalies via Negative Binomial Iterative Relaxations",Level 12,130,Advanced_Forecasting
+"L46: Vectorized Logit Link Inversions and Maximum Likelihood Binary Logistic Regression Engines",Level 12,140,Advanced_Forecasting
+"CAT: Mid-Term Regression Diagnostics, Model Selection & Residual Analysis Marathon",Level 6,500,Advanced_Forecasting
+"DA: Complete GLM Autoregressive Production Pipeline & Box-Cox Time-Series Forecasting System",Level 12,800,Advanced_Forecasting
+"L01: Empirical vs Theoretical Data Generation: Simulating Population Parameters and Sample Statistics via Vectorized NumPy Engines",Level 1,30,Statistical_Inference
+"L02: Asymptotic Consistency and Invariance Testing of Estimators using Multi-Scale Sample Size Loops",Level 1,35,Statistical_Inference
+"L03: Bias-Variance Decomposition Mathematical Formulations and Mean Squared Error (MSE) Surface Optimizers",Level 1,40,Statistical_Inference
+"L04: Fisher Information Matrix Computations and Analytical Cramér-Rao Lower Bound Constraint Builders",Level 1,45,Statistical_Inference
+"L05: Relative Efficiency Audits of Completeness and Minimum Variance Bounds across Competing Estimator Systems",Level 2,45,Statistical_Inference
+"L06: Sufficiency Metrics and Neyman-Factorization Theorem Matrix Inversion Proofs from Scratch",Level 2,50,Statistical_Inference
+"L07: Minimum Variance Unbiased Estimator (MVUE) Formulations via Rao-Blackwellization Conditioning Functions",Level 2,55,Statistical_Inference
+"L08: Maximum Likelihood Estimation (MLE) Log-Likelihood Continuous Cost Functions and Gradient Evaluators",Level 3,55,Statistical_Inference
+"L09: Multi-Dimensional Parameter MLE Optimization Solvers via SciPy Optimize L-BFGS-B Backends",Level 3,60,Statistical_Inference
+"L10: Profile Likelihood Ratio Constraint Frameworks for Parameter Identifiability Analysis",Level 3,65,Statistical_Inference
+"L11: Method of Moments vs MLE Estimator Parameter Discrepancy Audits for Non-Standard Distributions",Level 4,60,Statistical_Inference
+"L12: Gauss-Markov Classical Linear Regression Parameter Closures via Least-Squares Minimization Matrices",Level 4,65,Statistical_Inference
+"L13: Multi-Dimensional Confidence Interval Pivoting and Frequentist Variance Coverage Simulation Iterators",Level 5,55,Statistical_Inference
+"L14: Non-Parametric Studentized Bootstrap Confidence Interval Resampling Frameworks from First Principles",Level 5,65,Statistical_Inference
+"L15: Exact Wald-Interval Formulations for Population Proportions with Continuity Correction Adjustments",Level 5,70,Statistical_Inference
+"L16: Iterative Sample Size Determinations based on Strict Statistical Power and Effect-Size Margin Targets",Level 5,75,Statistical_Inference
+"L17: Frequentist Neyman-Pearson Neyman Bounds: Simulating Type I (Alpha) and Type II (Beta) Error Vector Spaces",Level 6,45,Statistical_Inference
+"L18: Statistical Power Curve Compilers and ROC Area Formulations as a Function of Sample Count Metrics",Level 6,55,Statistical_Inference
+"L19: Neyman-Pearson Lemma Likelihood Ratio Test (LRT) Optimizations for Simple vs Simple Hypotheses",Level 6,65,Statistical_Inference
+"L20: Monotone Likelihood Ratios (MLR) and Uniformly Most Powerful (UMP) Test Space Decision Boundaries",Level 6,70,Statistical_Inference
+"L21: Large Sample Two-Tailed Z-Tests for Population Mean Convergence via Central Limit Theorem Models",Level 7,70,Statistical_Inference
+"L22: Large Sample Difference of Means Inference Solvers over Heterogeneous Vector Stream Matrices",Level 7,75,Statistical_Inference
+"L23: Large Sample Population Proportion Z-Test Verification Arrays using Gaussian Approximation Tools",Level 7,85,Statistical_Inference
+"L24: Small Sample Student's T-Test Solvers under Unknown Population Variance Conditions",Level 8,75,Statistical_Inference
+"L25: Independent Two-Sample T-Tests with Pooled vs Welch-Satterthwaite Degrees-of-Freedom Calculations",Level 8,85,Statistical_Inference
+"L26: Dependent Paired-Sample T-Tests for Before-and-After Engineering Pipeline Feature Transformations",Level 8,90,Statistical_Inference
+"L27: Snedecor's F-Test Variance-Ratio Probability Density Optimizers for Multi-Sample Variance Constraints",Level 8,95,Statistical_Inference
+"L28: Pearson's Chi-Square Goodness-of-Fit Test Engines over Categorical Multinomial Model Alignments",Level 9,80,Statistical_Inference
+"L29: Multi-Dimensional Contingency Table Independence Chi-Square Matrices & Cramér's V Effect Size Analytics",Level 9,90,Statistical_Inference
+"L30: Exact Multi-Sample Variance Scale Hypotheses Testing using Chi-Square Distribution Surfaces",Level 9,95,Statistical_Inference
+"L31: Wald Hypothesis Testing for Causal Correlation Matrix Coefficients via Fisher Z-Transformations",Level 10,85,Statistical_Inference
+"L32: Multiple Linear Regression Partial T-Statistic Inference Loops over Beta Coefficient Vectors",Level 10,95,Statistical_Inference
+"L33: Non-Parametric Single-Sample Sign-Test Pipelines for Median Location Parameter Inferences",Level 11,80,Statistical_Inference
+"L34: Wilcoxon Signed-Rank Sum Algorithms for Matched-Pair Dependent Ordinal Array Measurements",Level 11,90,Statistical_Inference
+"L35: Mood's Median Matrix Subspace Multi-Class Partitioning and Non-Parametric Homogeneity Checks",Level 11,95,Statistical_Inference
+"L36: Mann-Whitney U Test Stochastic Dominance Ranking Systems for Independent Group Comparison",Level 11,105,Statistical_Inference
+"L37: Wald-Wolfowitz Runs Test Network Automations for Direct Sequence Randomness Trend Testing",Level 12,110,Statistical_Inference
+"L38: Two-Sample Kolmogorov-Smirnov (KS) Empirical Continuous Cumulative Distribution Maximum Distance Solvers",Level 12,130,Statistical_Inference
+"L39: Kruskal-Wallis Non-Parametric Multi-Group One-Way Analysis of Variance Rank Extractor Compilers",Level 12,125,Statistical_Inference
+"CAT: Mid-Term Parametric Estimation, Maximum Likelihood Optimization & Hypothesis Testing Assessment",Level 6,500,Statistical_Inference
+"DA: Complete End-to-End Non-Parametric Subspace Validation & Automated Statistical Inference Engine Pipeline",Level 12,800,Statistical_Inference
+"L01: Evolution of Storage Architectures: From Flat Files to Relational Engines and Data Lakehouses",Level 1,30,Database_Systems
+"L02: Three-Schema Database Abstraction: Physical, Conceptual, and External Mapping Inverses",Level 1,35,Database_Systems
+"L03: Data Definition Language (DDL) and Data Manipulation Language (DML) Compiler Parsing Mechanics",Level 1,40,Database_Systems
+"L04: Entity-Relationship (ER) Graph Models: Strong vs Weak Entity Set Geometric Structural Mappings",Level 2,45,Database_Systems
+"L05: Cardinality and Participation Structural Constraints: Formulating Min-Max Bounds in Subspace Schemas",Level 2,45,Database_Systems
+"L06: Ternary and N-ary Relationship Degree Decompositions and Degree Resolution Arrays",Level 2,50,Database_Systems
+"L07: Enhanced ER (EER) Modeling: Class-Subclass Specialization and Generalization Disjointness Constraints",Level 3,50,Database_Systems
+"L08: EER Category Union and Aggregation Topologies for Complex Attribute Polymorphism",Level 3,55,Database_Systems
+"L09: Algorithmic Transformation of ER and EER Graphic Schemas into Normalized Relational Relations",Level 3,60,Database_Systems
+"L10: Relational Model Integrity Constraints: Domain, Entity, and Referential Foreign Key Invariants",Level 4,55,Database_Systems
+"L11: Relational Algebra (RA) Foundational Operators: Selection Filter and Projection Column Scopes",Level 4,60,Database_Systems
+"L12: Set-Theoretic Relational Operations: Cartesian Products, Intersections, and Set Difference Engines",Level 4,60,Database_Systems
+"L13: Relational Algebra Join Mechanics: Theta-Joins, Equi-Joins, and Natural Join Outer Transformations",Level 4,70,Database_Systems
+"L14: Advanced Relational Operators: Formal Database Division and Universal Quantifier Emulations",Level 4,75,Database_Systems
+"L15: Mathematical Verification of Complex Relational Algebra Expressions for Target Schema Optimization",Level 5,65,Database_Systems
+"L16: First-Order Predicate Calculus: Tuple Relational Calculus (TRC) Well-Formed Formula (WFF) Evaluation",Level 5,75,Database_Systems
+"L17: Domain Relational Calculus (DRC) Variable Mappings and Safe Expression Constraint Checks",Level 5,80,Database_Systems
+"L18: Production SQL Schema Definition: Compiling DDL Tables with Exact Domain and Check Constraints",Level 5,60,Database_Systems
+"L19: High-Performance DML Operations: Multi-Row Inserts, Positional Updates, and Cascading Deletes",Level 5,65,Database_Systems
+"L20: Basic Declarative SQL Query Pipelines: Filtering using Multi-Valued Logical Connective Operators",Level 6,45,Database_Systems
+"L21: Schema Mutation Engines: Altering Table Constraints, Modifying Column Types, and Catalog Cascades",Level 6,55,Database_Systems
+"L22: Metadata Ingestion: Querying System Catalog Tables and Information Schemas for DB Introspection",Level 6,50,Database_Systems
+"L23: Aggregate Inbuilt Functions: Computing Group Math over Partitioned Matrix Row Blocks",Level 6,55,Database_Systems
+"L24: Single-Row Vectorized Manipulations: Character String Transformations and Regular Expression Matches",Level 6,60,Database_Systems
+"L25: Temporal Data Operations: Timezone-Aware Date Arithmetic, Inter-Interval Parsing, and Conversions",Level 6,65,Database_Systems
+"L26: Multi-Set Operations: UNION ALL, INTERSECT, and EXCEPT Declarative Data Pipelines",Level 7,70,Database_Systems
+"L27: Relational Join Performance Tuning: Hash Joins, Nested Loops, and Sort-Merge Query Execution Plans",Level 7,85,Database_Systems
+"L28: Subquery Declarative Formulations: Correlated vs Uncorrelated Nested Query Optimization Sweeps",Level 7,80,Database_Systems
+"L29: Informal Design Guidelines for Relation Attributes: Minimizing Redundancies and Null Anomalies",Level 8,70,Database_Systems
+"L30: Functional Dependency (FD) Matrix Identification and Superkey/Candidate Key Mathematical Discovery",Level 8,75,Database_Systems
+"L31: Inference Rules for Functional Dependencies: Formal Algebraic Proofs using Armstrong's Axioms",Level 8,85,Database_Systems
+"L32: Computing Closure Sets of Functional Dependencies ($F^+$) via Recursive Matrix Closure Algorithms",Level 8,90,Database_Systems
+"L33: Redundant Dependency Pruning: Computing the Minimal Cover (Canonical Cover) of FD Sets",Level 8,95,Database_Systems
+"L34: Normalization Algorithms: First (1NF), Second (2NF), and Third (3NF) Normal Form Decomposition Models",Level 9,90,Database_Systems
+"L35: Boyce-Codd Normal Form (BCNF) Structural Criteria & Lossless-Join Decomposition Verification",Level 9,105,Database_Systems
+"L36: Dependency Preservation Audits for BCNF/3NF Multi-Table Subspace Partition Schemas",Level 9,100,Database_Systems
+"L37: Advanced Normalization Boundaries: Multi-Valued Dependencies (4NF) and Join Dependencies (5NF)",Level 9,115,Database_Systems
+"L38: Database Storage Hardware Profiles: Block Size Optimization, Page Layouts, and Slotted Page Records",Level 10,75,Database_Systems
+"L39: Sequential File Operations: Heap Files, Ordered Files, and Primary Block Space Allocations",Level 10,85,Database_Systems
+"L40: Direct File Addressing: Static vs Dynamic Extendible Hashing Directory Space Formulations",Level 10,95,Database_Systems
+"L41: Indexing Topologies: Dense vs Sparse Primary, Secondary, and Clustering Index Pointer Maps",Level 10,100,Database_Systems
+"L42: Multi-Level Search Tree Indexing: Balanced B+ Tree Node-Splitting, Inversion, and Merge Mechanics",Level 11,115,Database_Systems
+"L43: Relational Query Processing Cost Formulations: Cost Estimation of Selection and Join Disk I/Os",Level 11,110,Database_Systems
+"L44: Database Performance Tuning: Statistics Generation, Index Selection, and Database Vacuuming",Level 11,120,Database_Systems
+"L45: Transaction State Machines: Mathematical Modeling of ACID Properties and Execution Lifecycles",Level 12,110,Database_Systems
+"L46: Conflict Serializability Tracking: Generating and Pruning Precedence (Serialization) Directed Graphs",Level 12,130,Database_Systems
+"L47: View Serializability Criteria and Blind Write Operation Equivalence Verification Controls",Level 12,125,Database_Systems
+"L48: Lock-Based Concurrency Control: Two-Phase Locking (2PL), Strict 2PL, and Rigorous 2PL Proofs",Level 12,135,Database_Systems
+"L49: Deadlock Handling Mechanics: Wait-For Graphs, Deadlock Detection, and Wound-Wait/Wait-Die Schemes",Level 12,130,Database_Systems
+"L50: Timestamp-Based Concurrency Control: Thomas’ Write Rule and Timestamp Ordering Serializations",Level 12,140,Database_Systems
+"L51: Granularity of Data Items: Multiple-Granularity Locking Matrices and Intent Lock (IS/IX) Routing",Level 12,135,Database_Systems
+"L52: Log-Based Recovery Architectures: Deferred vs Immediate Database Modification WAL Protocols",Level 12,140,Database_Systems
+"L53: ARIES Recovery Algorithm: Analysis, Redo (Physiological Logging), and Undo Idempotent Passes",Level 12,150,Database_Systems
+"L54: Database Security Profiles: Discretionary Access Control (DAC) via SQL GRANT/REVOKE Matrix Maps",Level 12,115,Database_Systems
+"CAT: Mid-Term Relational Calculus, Schema Normalization & Query Execution Plan Assessment",Level 6,500,Database_Systems
+"DA: Complete High-Throughput Normalized SQL Database Engine Optimization & B+ Tree Tuning Pipeline",Level 12,800,Database_Systems
+"L01: NumPy N-Dimensional Array Memory Architecture: Strides, Contiguity, and C vs Fortran Memory Formats",Level 1,30,Python_Data_Science
+"L02: Non-Copy View Mutations vs Explicit Deep Memory Allocations during Vector Arrays Reshaping",Level 1,35,Python_Data_Science
+"L03: High-Dimensional Boolean Masking, Fancy Indexing, and Coordinate Selection Matrix Operations",Level 1,40,Python_Data_Science
+"L04: Vectorized Broadcasting Mathematical Rules and In-Memory Dimensional Extension Layouts",Level 1,45,Python_Data_Science
+"L05: Universal Functions (Ufuncs) Compilation and Accelerated Element-Wise Array Transformations",Level 1,45,Python_Data_Science
+"L06: Linear and Cubic Spline Data Interpolation Mechanics via SciPy Interpolate Profiles",Level 2,50,Python_Data_Science
+"L07: Object-Oriented Canvas Architectures: Controlling Figure, Axes, and Artist Collections in Matplotlib",Level 2,55,Python_Data_Science
+"L08: Advanced Multi-Panel Dashboards Layouts via Matplotlib GridSpec Projection Ensembles",Level 2,50,Python_Data_Science
+"L09: Multi-Dimensional Polynomial Data Mapping and Vector Meshgrid Coordinate Generations",Level 2,60,Python_Data_Science
+"L10: Mathematical Optimization: Unconstrained Non-Linear Minimization via SciPy Optimize L-BFGS-B Solvers",Level 3,65,Python_Data_Science
+"L11: High-Performance Linear Algebra Solvers: Vectorized QR, LU, and Cholesky Matrix Inversions via SciPy Linalg",Level 3,60,Python_Data_Science
+"L12: Continuous Probability Distribution Model Fitting and Parameter Likelihood Profiling via SciPy Stats",Level 3,70,Python_Data_Science
+"L13: Automated Parametric Inferential Test Engines: Two-Sample Independent and Paired T-Tests via SciPy",Level 3,75,Python_Data_Science
+"L14: Advanced Non-Parametric Distribution Testing: Kolmogorov-Smirnov and Mann-Whitney U Inferences",Level 3,80,Python_Data_Science
+"L15: Columnar Memory Layouts: Constructing High-Performance Pandas Series Vectors and Index Alignments",Level 4,50,Python_Data_Science
+"L16: Memory-Optimized DataFrame Partitions, Dynamic Row Slicing, and Vectorized Data Extraction Profiles",Level 4,55,Python_Data_Science
+"L17: Explicit Index Mutators: Reindexing Arrays, Label Swapping, and Forward/Backward Value Propagation",Level 4,60,Python_Data_Science
+"L18: Accelerated Custom Function Ingestions: Optimizing Vector Appliers via .apply, .map, and .transform Engine Hooks",Level 4,70,Python_Data_Science
+"L19: Rolling, Expanding, and Exponentially Weighted Window Statistical Math Calculations across Time-Series",Level 5,65,Python_Data_Science
+"L20: Strategic Missing Data Imputation Pipelines: Vectorized Masking, Forward-Fills, and Moving Average Recoveries",Level 5,70,Python_Data_Science
+"L21: High-Cardinality Categorical Array Configurations: Dynamic Categorical Sorting and Sparse Object Types Memory Tuning",Level 5,75,Python_Data_Science
+"L22: Native Pandas Visualization Engines and Backend Subplot Figure Configurations",Level 5,60,Python_Data_Science
+"L23: High-Performance Multi-Column Sorting, Lexicographical Priorities, and In-Place Matrix Transformations",Level 5,65,Python_Data_Science
+"L24: Closed-Form Ordinary Least Squares (OLS) Linear Regression Matrix Solvers from Scratch in Python",Level 6,80,Python_Data_Science
+"L25: High-Dimensional Multiple Linear Regression Vectorized Coefficient Estimators and Prediction Inferences",Level 6,90,Python_Data_Science
+"L26: Non-Linear Coordinate Transformations: Generating High-Order Vandermonde Arrays for Polynomial Regression Layers",Level 6,95,Python_Data_Science
+"L27: Production-Grade Exception Environments: Architecting Custom Data-Pipeline Exception Classes and Assertion Loops",Level 6,70,Python_Data_Science
+"L28: Dynamic Exception Handling Layers: Multi-Tiered Try-Except Block Chains and Context-Aware Error Recovery Daemons",Level 6,85,Python_Data_Science
+"CAT: Mid-Term Mathematical Matrix Manipulation & Vectorized Data Transformation Sprint",Level 6,500,Python_Data_Science
+"DA: End-to-End High-Dimensional Feature Engineering & Polynomial Regression Production Pipeline Optimization Challenge",Level 12,800,Python_Data_Science
+"L01: Machine Learning Ecosystem Foundations & Bias-Variance Tradeoff Geometric Intuition",Level 1,30,Machine_Learning
+"L02: Feature Matrix Construction, Target Variable Engineering & Train/Test Partition Mechanics",Level 1,35,Machine_Learning
+"L03: Data Standardization, Normalization & Distribution Rescaling Transform Pipelines",Level 1,40,Machine_Learning
+"L04: Missing Value Imputation Architectures: Mean, Median, KNN and Iterative Strategies",Level 2,45,Machine_Learning
+"L05: Feature Engineering Operators: Polynomial Expansion, Interaction Terms & Log Transforms",Level 2,50,Machine_Learning
+"L06: Cross-Validation Frameworks: Holdout, K-Fold and Stratified Sampling Mechanics",Level 2,55,Machine_Learning
+"L07: Model Evaluation Metrics: Accuracy, Precision, Recall, F1 and ROC-AUC Formulations",Level 2,60,Machine_Learning
+"L08: Loss Functions: MSE, MAE, Huber and Quantile Regression Optimization Landscapes",Level 3,60,Machine_Learning
+"L09: Gradient Descent Optimization: Batch, Stochastic and Mini-Batch Update Rules",Level 3,65,Machine_Learning
+"L10: Learning Rate Scheduling, Momentum and Nesterov Accelerated Gradient Dynamics",Level 3,70,Machine_Learning
+"L11: Ridge Regression Analytical Solutions & L2 Regularization Penalty Geometries",Level 4,70,Machine_Learning
+"L12: Lasso Regression Coordinate Descent Sparsity-Inducing Optimization Systems",Level 4,75,Machine_Learning
+"L13: Elastic Net Combined L1/L2 Constraint Optimization Matrix Frameworks",Level 4,80,Machine_Learning
+"L14: Logistic Regression Probability Calibration & Decision Boundary Hyperplane Mechanics",Level 5,75,Machine_Learning
+"L15: Multiclass Classification via One-vs-Rest and Softmax Regression Architectures",Level 5,80,Machine_Learning
+"L16: Class Imbalance Handling: SMOTE, ADASYN and Cost-Sensitive Learning Pipelines",Level 5,85,Machine_Learning
+"L17: Hyperparameter Optimization: Grid Search, Random Search and Bayesian Sampling Engines",Level 5,90,Machine_Learning
+"L18: Decision Tree Split Optimization using Entropy, Gini and Gain Ratio Metrics",Level 6,70,Machine_Learning
+"L19: Ensemble Learning Foundations: Bagging, Boosting and Stacking Meta-Architectures",Level 6,80,Machine_Learning
+"L20: AdaBoost Weak Learner Weight Reallocation & Exponential Loss Minimization",Level 6,85,Machine_Learning
+"L21: Gradient Boosting Functional Gradient Descent Residual Learning Frameworks",Level 6,90,Machine_Learning
+"L22: XGBoost Regularized Tree Boosting with Second-Order Taylor Approximation Updates",Level 7,95,Machine_Learning
+"L23: LightGBM Histogram-Based Gradient Boosting & Leaf-Wise Growth Optimization",Level 7,100,Machine_Learning
+"L24: CatBoost Ordered Target Encoding & Symmetric Tree Construction Engines",Level 7,105,Machine_Learning
+"L25: Kernel Methods: Polynomial, RBF and Sigmoid Similarity Transform Spaces",Level 7,90,Machine_Learning
+"L26: Support Vector Classification Margin Maximization and Hinge Loss Optimization",Level 8,95,Machine_Learning
+"L27: Support Vector Regression Epsilon-Insensitive Loss Function Approximation Models",Level 8,100,Machine_Learning
+"L28: Probabilistic Learning with Gaussian Processes Covariance Kernel Inference Systems",Level 8,110,Machine_Learning
+"L29: Expectation-Maximization (EM) Algorithm Latent Variable Likelihood Maximization",Level 8,115,Machine_Learning
+"L30: Gaussian Mixture Models Soft Clustering Posterior Probability Allocations",Level 9,90,Machine_Learning
+"L31: Dimensionality Reduction using PCA Eigenvalue Decomposition and SVD Transformations",Level 9,95,Machine_Learning
+"L32: Kernel PCA Nonlinear Feature Space Projection Architectures",Level 9,100,Machine_Learning
+"L33: Independent Component Analysis (ICA) Blind Source Separation Optimization Systems",Level 9,105,Machine_Learning
+"L34: t-SNE Stochastic Neighbor Embedding Similarity Preservation Dynamics",Level 10,110,Machine_Learning
+"L35: UMAP Uniform Manifold Approximation and Topological Graph Embedding Mechanics",Level 10,115,Machine_Learning
+"L36: Feature Selection via Mutual Information, Recursive Elimination and Embedded Methods",Level 10,120,Machine_Learning
+"L37: Model Explainability: Permutation Importance and Partial Dependence Visualization Engines",Level 10,125,Machine_Learning
+"L38: SHAP Shapley Additive Explanations Cooperative Game-Theoretic Attribution Systems",Level 10,130,Machine_Learning
+"L39: LIME Local Interpretable Model-Agnostic Explanation Surrogate Frameworks",Level 11,120,Machine_Learning
+"L40: Calibration Curves and Brier Score Reliability Assessment Architectures",Level 11,125,Machine_Learning
+"L41: Online Learning Algorithms and Incremental Model Update Strategies",Level 11,130,Machine_Learning
+"L42: Recommender Systems: Collaborative Filtering Matrix Factorization Pipelines",Level 11,135,Machine_Learning
+"L43: Singular Value Decomposition Recommendation Engines and Latent Factor Models",Level 12,140,Machine_Learning
+"L44: Association Rule-Based Recommendation Hybrid Personalization Architectures",Level 12,145,Machine_Learning
+"L45: Anomaly Detection using Isolation Forest and One-Class SVM Boundary Estimators",Level 12,150,Machine_Learning
+"L46: AutoML Search Spaces, Pipeline Optimization and Meta-Learning Frameworks",Level 12,155,Machine_Learning
+"L47: Neural Network Foundations: Perceptrons, Activation Functions and Backpropagation Gradients",Level 12,160,Machine_Learning
+"L48: Deep Feedforward Networks Weight Initialization and Vanishing Gradient Countermeasures",Level 12,165,Machine_Learning
+"L49: Convolutional Neural Network Feature Extraction Hierarchies and Receptive Field Analysis",Level 12,175,Machine_Learning
+"L50: Recurrent Neural Networks, LSTM and GRU Sequential Memory State Architectures",Level 12,180,Machine_Learning
+"L51: Transformer Self-Attention Mechanisms and Positional Encoding Matrix Operations",Level 12,190,Machine_Learning
+"L52: End-to-End Machine Learning Pipeline Deployment, Monitoring and MLOps Lifecycle Systems",Level 12,200,Machine_Learning
+"L53: Survival Analysis & Time-to-Event Modeling: Cox Proportional Hazards & Random Survival Forests Math",Level 8,100,Machine_Learning
+"L54: Graph Neural Networks (GNN): Graph Convolutional Networks (GCN) & Graph Attention Networks (GAT) Message passing",Level 12,180,Machine_Learning
+"L55: Model Compression Architectures: Weight Pruning, Quantization Vector Calculus & Knowledge Distillation Loss Fields",Level 12,175,Machine_Learning
+"L56: Self-Supervised & Contrastive Learning Frameworks: InfoNCE Loss, Siamese Networks & Triplet Loss Space Optimizers",Level 12,170,Machine_Learning
+"L57: Deep Learning Normalization & Optimization Dynamics: LayerNorm, BatchNorm, WeightNorm & Cosine Annealing Math",Level 12,165,Machine_Learning
+"L58: Bayesian Neural Networks & Variational Inference Loops: Monte Carlo Dropout & Evidence Lower Bound (ELBO) Derivations",Level 12,185,Machine_Learning
+"L59: Algorithmic Fairness & Bias Mitigation: Demographic Parity, Equalized Odds & Counterfactual Fairness Optimization",Level 10,120,Machine_Learning
+"L60: Metamorphic Testing & Data Validation Rules for End-to-End Automated Production ML Pipelines",Level 11,130,Machine_Learning
+"L61: Vector Database Indexing Mechanics: Hierarchical Navigable Small World (HNSW) & Inverted File Index (IVF) Proximity Subspaces",Level 12,150,Machine_Learning
+"L62: Federated Learning Topologies: Secure Multi-Party Aggregation, FedAvg Mathematics & Differential Privacy Bounds",Level 12,160,Machine_Learning
+"CAT: Mid-Term Predictive Modeling, Ensemble Learning & Hyperparameter Optimization Sprint",Level 6,500,Machine_Learning
+"DA: Enterprise-Scale Machine Learning Pipeline Design, Explainability & Production Deployment System",Level 12,900,Machine_Learning"L01: Limit Laws, Epsilon-Delta Definitions, and Continuity Verification for Single-Variable Functions",Level 1,30,Calculus_Optimization
+"L02: Differentiability Rules: Product, Quotient, and Chain Rule Derivations from First Principles",Level 1,35,Calculus_Optimization
+L03: Taylor and Maclaurin Polynomial Approximations and Remainder Error Bound Estimations,Level 2,40,Calculus_Optimization
+L04: First and Second Derivative Tests for Local Maxima and Minima in Single-Variable Functions,Level 2,45,Calculus_Optimization
+L05: Convex Function Properties: Jensen Inequality and Sub-Gradient Descent Formulations,Level 3,50,Calculus_Optimization
+L06: Gradient Descent Algorithm: Step-Size Selection and Convergence Rate Proofs,Level 3,55,Calculus_Optimization
+L07: Stochastic Gradient Descent Variance Reduction and Mini-Batch Mechanics,Level 4,60,Calculus_Optimization
+L08: Lagrange Multipliers for Equality-Constrained Optimization Problems,Level 4,65,Calculus_Optimization
+L09: KKT Conditions for Inequality-Constrained Convex Programming,Level 5,70,Calculus_Optimization
+"L10: Numerical Differentiation: Forward, Backward, and Central Finite Difference Approximations",Level 5,65,Calculus_Optimization
+L11: Newton-Raphson Root Finding and Quasi-Newton BFGS Optimization Algorithms,Level 6,75,Calculus_Optimization
+"L12: Partial Derivatives, Gradient Vectors, and Jacobian Matrix Computations",Level 6,80,Calculus_Optimization
+L13: Hessian Matrix Definiteness Tests for Multi-Variable Saddle Point Detection,Level 7,85,Calculus_Optimization
+L14: Coordinate Descent and Alternating Minimization for Block-Separable Objectives,Level 7,90,Calculus_Optimization
+L15: Automatic Differentiation via Forward and Reverse Mode Computational Graph Passes,Level 8,95,Calculus_Optimization
+L16: Proximal Gradient Methods and ISTA/FISTA Accelerated Composite Minimizers,Level 9,100,Calculus_Optimization
+CAT: GATE Calculus and Optimization Assessment: Derivative Analysis and Gradient Descent,Level 5,500,Calculus_Optimization
+DA: End-to-End Gradient Descent Implementation with Convergence Analysis Production Engine,Level 8,800,Calculus_Optimization

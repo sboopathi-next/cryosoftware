@@ -1,0 +1,48 @@
+# Secrets & env
+.env
+.env.local
+login-config.json
+
+# Python cache & build artifacts
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Vercel
+.vercel
+
+# Testing
+.pytest_cache/
+
+# Logs
+*.log
+sync_log.csv
+
+# Virtual environments (NEVER commit these)
+venv/
+env/
+**/venv/
+**/env/
+antigravity_core/venv/
+antigravity/venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local state & databases (stored in Neon online)
+state.json
+*.db
+*.sqlite
+
+# Large binary / app files (serve from releases, not git)
+static/app-debug.apk
+*.apk
+
+# Syllabus & data files (large, generated - exclude from repo if desired)
+syllabus.json

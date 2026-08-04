@@ -1,0 +1,503 @@
+/* ── SHARED NAV + UTILITIES ─────────────────────────────────
+   Loaded on every page. Handles:
+   - Active nav link highlighting
+   - Toast notifications
+   - Settings modal (API key)
+   - Stats mini-bar fetch
+──────────────────────────────────────────────────────────── */
+
+// ── Active nav link ──────────────────────────────────────────
+(function(){
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  document.querySelectorAll('.nav a').forEach(a => {
+    const href = a.getAttribute('href').replace(/\/$/, '') || '/';
+    if (href === path) a.classList.add('active');
+  });
+})();
+
+function escHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── Toast ────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.className = type === 'ok' ? 'ok' : type === 'err' ? 'err' : 'info';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hide'), 3200);
+}
+
+// ── Groq Models ─────────────────────────────────────────────────────────────
+const DECOMMISSIONED_MODELS_JS = [
+  'llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it', 
+  'llama-3.1-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile'
+];
+
+function getSanitizedGroqModel() {
+  let m = localStorage.getItem('groq_model');
+  if (!m || DECOMMISSIONED_MODELS_JS.includes(m)) {
+    m = 'openai/gpt-oss-120b';
+    localStorage.setItem('groq_model', m);
+    localStorage.setItem('studio_model', m);
+  }
+  return m;
+}
+
+const GROQ_MODELS = [
+  { value: 'openai/gpt-oss-120b',     label: 'openai/gpt-oss-120b 🔥 Recommended (Most Powerful)' },
+  { value: 'openai/gpt-oss-20b',      label: 'openai/gpt-oss-20b ⚡ Fast & Lightweight' },
+  { value: 'qwen/qwen3.6-27b',        label: 'qwen/qwen3.6-27b 🎯 Qwen 3.6 27B' },
+];
+
+function _buildGroqModelOptions(selected) {
+  let html = '<optgroup label="🚀 Groq Models (Ultra-Fast Hardware)">';
+  for (const m of GROQ_MODELS) {
+    html += `<option value="${m.value}" ${selected === m.value ? 'selected' : ''}>${escHTML(m.label)}</option>`;
+  }
+  html += '</optgroup>';
+  return html;
+}
+
+// ── Settings modal ───────────────────────────────────────────
+function openSettings() {
+  const m = document.getElementById('settings-modal');
+  if (!m) return;
+
+  const currentKey = localStorage.getItem('groq_key') || localStorage.getItem('gemini_key') || '';
+  let currentModel = getSanitizedGroqModel();
+
+  m.innerHTML = `
+    <div class="modal" style="max-width: 480px; width: 90%;">
+      <div class="modal-hd">
+        <span><i class="fa-solid fa-bolt" style="color:var(--cyan);margin-right:6px"></i> Groq AI Settings</span>
+        <button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <p class="text-muted" style="font-size: 11px; margin-bottom: 8px; color: var(--text3);">
+          Get a free Groq API key from <a href="https://console.groq.com/keys" target="_blank" style="color:var(--cyan); text-decoration: underline;">console.groq.com/keys</a>
+        </p>
+        <div class="field">
+          <label>GROQ API KEY</label>
+          <input type="password" id="api-key-inp" value="${escHTML(currentKey)}" placeholder="gsk_..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+        </div>
+        <div class="field mt-1">
+          <label>GROQ MODEL</label>
+          <select id="studio-model-sel" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+            ${_buildGroqModelOptions(currentModel)}
+          </select>
+          <div style="font-size:10px; color:#10b981; margin-top:4px;">🚀 Ultra-fast inference provided by Groq LPU hardware</div>
+        </div>
+
+        <div class="field mt-1">
+          <label>Voice Demon Test</label>
+          <button id="test-voice-btn" class="btn btn-secondary btn-full" onclick="testVoiceDemon()">
+            <i class="fa-solid fa-bullhorn" style="color:var(--cyan)"></i> Test Voice Demon Audio
+          </button>
+        </div>
+
+        <button class="btn btn-primary btn-full mt-2" onclick="saveWorkstationSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+      </div>
+    </div>
+  `;
+  m.classList.remove('hidden');
+  m.style.display = 'flex';
+}
+
+async function saveWorkstationSettings() {
+  const groqKey = (document.getElementById('api-key-inp')?.value || '').trim();
+  const groqModel = document.getElementById('studio-model-sel')?.value || 'llama-3.3-70b-versatile';
+
+  localStorage.setItem('groq_key', groqKey);
+  localStorage.setItem('groq_model', groqModel);
+  // Keep legacy key synced so existing code reads it seamlessly
+  localStorage.setItem('gemini_key', groqKey);
+  localStorage.setItem('studio_model', groqModel);
+
+  if (groqKey) {
+    try {
+      await fetch('/api/settings/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groq_api_key: groqKey, groq_model: groqModel })
+      });
+    } catch(e) {
+      console.warn('[Settings] Could not sync Groq API key to server DB:', e);
+    }
+  }
+
+  closeSettings();
+  toast('Settings saved! Groq AI Engine activated.', 'ok');
+
+  const notice = document.getElementById('key-notice');
+  if (notice) {
+    if (groqKey) {
+      notice.classList.add('hidden');
+    } else {
+      notice.classList.remove('hidden');
+    }
+  }
+}
+
+function closeSettings() {
+  const m = document.getElementById('settings-modal');
+  if (m) {
+    m.classList.add('hidden');
+    m.style.display = 'none';
+  }
+}
+
+// ── Voice Demon AI Engine — Stoic & Discipline Phrase Banks ──────
+const STOIC_PHRASE_BANKS = {
+  RUTHLESS_DISCIPLINE: [
+    "Boopathi... Your competitors are studying while you negotiate with comfort.",
+    "Discipline begins where motivation ends.",
+    "Comfort is expensive. Discipline is cheaper.",
+    "The work doesn't care how you feel.",
+    "Execute the plan. Ignore the emotion.",
+    "The clock moves whether you do or not.",
+    "Your future self is watching today's decisions.",
+    "Earn your confidence through action.",
+    "Stop explaining. Start producing.",
+    "Action destroys anxiety.",
+    "Weak habits build weak lives.",
+    "One more excuse. One less opportunity.",
+    "The mind obeys the habits you train.",
+    "Choose discomfort today or regret tomorrow.",
+    "Master yourself before trying to master anything else."
+  ],
+  MARCUS_STYLE: [
+    "You control your effort, Boopathi, not the outcome.",
+    "Do what is necessary. Nothing more. Nothing less.",
+    "Waste no time arguing what excellence is. Become it.",
+    "Your duty exists independent of your mood.",
+    "The obstacle is not your enemy. It is your teacher.",
+    "Nothing external can weaken a disciplined mind.",
+    "Meet every task as if it defines your character.",
+    "The universe owes you nothing. Earn everything.",
+    "Character is built in ordinary moments.",
+    "Do not seek an easier life. Become stronger."
+  ],
+  WARRIOR: [
+    "Boopathi... Today you conquer yourself or you surrender to yourself.",
+    "Every rep is a vote for the man you're becoming.",
+    "Pain leaves. Weakness negotiates.",
+    "Stand up. Finish what you started.",
+    "Champions are built when nobody is watching.",
+    "Your enemy is comfort.",
+    "Attack the task before the task attacks your confidence.",
+    "A warrior measures effort, not excuses.",
+    "No shortcuts. No negotiations.",
+    "You don't need permission to become dangerous."
+  ],
+  STUDY_MODE: [
+    "One theorem mastered today beats ten videos watched.",
+    "Read. Think. Solve. Repeat.",
+    "Every bug solved sharpens your mind, Boopathi.",
+    "Every proof understood increases your advantage for GATE 2028.",
+    "Concepts create ranks. Memorization creates disappointment.",
+    "Debug your code. Debug your mind.",
+    "One page more. One problem more.",
+    "Consistency beats intelligence without discipline.",
+    "Knowledge compounds daily.",
+    "Small improvements become elite performance."
+  ],
+  COLD_REALITY: [
+    "Time will pass whether you improve or not, Boopathi.",
+    "Nobody can study on your behalf.",
+    "Potential without execution is fiction.",
+    "Results remember actions, not intentions.",
+    "Your habits write your future.",
+    "The mirror never lies.",
+    "Progress cannot be outsourced.",
+    "Excuses produce identical results every time: nothing.",
+    "Your calendar reveals your priorities.",
+    "Respect is earned through consistency."
+  ],
+  REAL_STOICS: [
+    "Waste no more time arguing what a good man should be. Be one. Marcus Aurelius.",
+    "We suffer more often in imagination than in reality. Seneca.",
+    "No man is free who is not master of himself. Epictetus.",
+    "Difficulties strengthen the mind. Seneca.",
+    "It is not what happens to you, but how you react to it that matters. Epictetus.",
+    "The impediment to action advances action. Marcus Aurelius.",
+    "First say to yourself what you would be; then do what you have to do. Epictetus.",
+    "Luck is what happens when preparation meets opportunity. Seneca.",
+    "If it is not right, do not do it. If it is not true, do not say it. Marcus Aurelius.",
+    "He who fears death will never do anything worthy of a living man. Seneca."
+  ],
+  SYSTEM: [
+    "System message. Emotional interference detected. Returning control to logic.",
+    "System message. Discipline increased by one percent. Continue execution.",
+    "System message. Comfort protocol rejected.",
+    "System message. Mission priority: Complete today's objectives.",
+    "System message. Willpower reserve restored through action.",
+    "System message. Excuse rejected. Continue.",
+    "System message. Identity updated: One who finishes.",
+    "System message. Momentum acquired.",
+    "System message. Focus stabilized.",
+    "System message. Execute. Evaluate. Improve."
+  ]
+};
+
+const STOIC_PHRASES = Object.values(STOIC_PHRASE_BANKS).flat();
+
+function isVoiceMuted() {
+  return localStorage.getItem('ag_voice_muted') === 'true';
+}
+
+function toggleVoiceMute() {
+  const muted = !isVoiceMuted();
+  localStorage.setItem('ag_voice_muted', muted ? 'true' : 'false');
+  if (muted && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  updateVoiceUI();
+  toast(muted ? 'Voice Demon Muted 🔇' : 'Voice Demon Activated 🔊', muted ? 'info' : 'ok');
+  if (!muted) {
+    speakVoice("Voice Demon online. Ready, Boopathi.");
+  }
+}
+
+function primeSpeechSynthesis() {
+  if (!('speechSynthesis' in window) || isVoiceMuted()) return;
+  try {
+    const dummy = new SpeechSynthesisUtterance(' ');
+    dummy.volume = 0.01;
+    window.speechSynthesis.speak(dummy);
+  } catch(_) {}
+}
+
+function cleanTextForSpeech(text) {
+  if (!text) return "";
+  return text
+    .replace(/\[\s*AI GOVERNANCE DECREE\s*\][\s\S]*$/gi, '') // strip governance decree footer
+    .replace(/\$\$[\s\S]*?\$\$/g, ' math equation ')          // remove display math
+    .replace(/\\\[[\s\S]*?\\\]/g, ' math equation ')
+    .replace(/\$[^\$\n]+?\$/g, ' math term ')                // remove inline math
+    .replace(/\\\([\s\S]*?\\\)/g, ' math term ')
+    .replace(/```[\s\S]*?```/g, ' code block ')              // remove code blocks
+    .replace(/`([^`]+)`/g, '$1')                             // inline code
+    .replace(/^#+\s+/gm, '')                                 // strip headers
+    .replace(/[*#_~>•]/g, '')                                // markdown formatting
+    .replace(/<[^>]*>/g, '')                                 // html tags
+    .replace(/\|[\s\S]*?\|/g, ' ')                           // markdown tables
+    .replace(/\s+/g, ' ')                                    // normalize spaces
+    .trim();
+}
+
+function extractValuableAISpeech(replyText) {
+  if (!replyText) return "";
+  const rawClean = cleanTextForSpeech(replyText);
+  if (!rawClean) return "";
+
+  // Split into sentences
+  const sentences = rawClean.match(/[^.!?]+[.!?]+/g) || [rawClean];
+  
+  // Filter out standalone titles/headers (e.g., "TODAYS BATTLE PLAN", "THE ENGINE OF ALL MACHINE LEARNING")
+  const valuableSentences = sentences.filter(s => {
+    const trimmed = s.trim();
+    if (trimmed.length < 15) return false;
+    if (/^(TODAY'S BATTLE PLAN|SYSTEM GOVERNANCE DECREE|THE ENGINE OF ALL|CURRENT STREAK|ACTIVE SUBJECT)/i.test(trimmed)) return false;
+    return true;
+  });
+
+  const selected = (valuableSentences.length > 0 ? valuableSentences : sentences).slice(0, 7);
+  return selected.join(' ');
+}
+
+function speakVoice(text, forceInterrupt = false, moodObj = null) {
+  if (isVoiceMuted()) return;
+  if (!('speechSynthesis' in window)) return;
+
+  const clean = cleanTextForSpeech(text);
+  if (!clean) return;
+
+  if (forceInterrupt) {
+    window.speechSynthesis.cancel();
+  }
+
+  const utter = new SpeechSynthesisUtterance(clean);
+  utter.volume = 1.0;
+
+  // Dynamic Voice Selection matching Coach Mood
+  const allVoices = window.speechSynthesis.getVoices();
+  const enVoices = allVoices.filter(v => v.lang.startsWith('en'));
+
+  if (enVoices.length > 0) {
+    const targetPitch = moodObj && moodObj.pitch ? moodObj.pitch : null;
+    const targetRate = moodObj && moodObj.rate ? moodObj.rate : null;
+
+    const pickFemale = (moodObj && moodObj.gender === 'female') ? true :
+                       (moodObj && moodObj.gender === 'male') ? false :
+                       ((moodObj && moodObj.warmth > 6) ? true : (Math.random() < 0.4));
+    let selectedVoice = null;
+
+    if (pickFemale) {
+      selectedVoice = enVoices.find(v => 
+        v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Hazel') || 
+        v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Google UK English Female')
+      );
+      if (selectedVoice) {
+        utter.voice = selectedVoice;
+        utter.pitch = targetPitch || (0.62 + (Math.random() * 0.1));
+        utter.rate = targetRate || 0.92;
+      }
+    }
+
+    if (!selectedVoice) {
+      selectedVoice = enVoices.find(v => 
+        v.name.includes('Male') || v.name.includes('David') || v.name.includes('James') || 
+        v.name.includes('George') || v.name.includes('Google UK English Male')
+      ) || enVoices[0];
+      if (selectedVoice) {
+        utter.voice = selectedVoice;
+        utter.pitch = targetPitch || (0.35 + (Math.random() * 0.12));
+        utter.rate = targetRate || 0.85;
+      }
+    }
+  } else {
+    utter.pitch = moodObj && moodObj.pitch ? moodObj.pitch : 0.45;
+    utter.rate = moodObj && moodObj.rate ? moodObj.rate : 0.88;
+  }
+
+  window.speechSynthesis.speak(utter);
+}
+
+function speakAIResponse(replyText, moodObj = null) {
+  if (isVoiceMuted() || !replyText) return;
+  const valuableSpeech = extractValuableAISpeech(replyText);
+  if (valuableSpeech) {
+    speakVoice(valuableSpeech, true, moodObj);
+  }
+}
+
+function testVoiceDemon() {
+  speakVoice("Greetings Boopathi. I am your Voice Demon. Ready to conquer GATE 2028.", true);
+}
+
+function checkLevelUpEvent(newLevel) {
+  const lastLevelStr = localStorage.getItem('ag_last_level');
+  if (lastLevelStr !== null) {
+    const lastLevel = parseInt(lastLevelStr, 10);
+    if (!isNaN(lastLevel) && newLevel > lastLevel) {
+      speakVoice(`Hey Boopathi! You are leveling up! Welcome to Level ${newLevel}. Great work!`, true);
+      toast(`LEVEL UP! Welcome to Level ${newLevel}! 🎉`, 'ok');
+    }
+  }
+  localStorage.setItem('ag_last_level', newLevel.toString());
+}
+
+function renderVoiceControls() {
+  const footer = document.querySelector('.sidebar-footer');
+  if (!footer) return;
+  
+  if (document.getElementById('voice-toggle-btn')) {
+    updateVoiceUI();
+    return;
+  }
+
+  const btn = document.createElement('button');
+  btn.id = 'voice-toggle-btn';
+  btn.className = 'btn-ico';
+  btn.title = 'Toggle Voice Demon (Click to Mute/Unmute)';
+  btn.onclick = toggleVoiceMute;
+  
+  const settingsBtn = footer.querySelector('button');
+  if (settingsBtn) {
+    footer.insertBefore(btn, settingsBtn);
+  } else {
+    footer.appendChild(btn);
+  }
+  
+  updateVoiceUI();
+}
+
+function updateVoiceUI() {
+  const btn = document.getElementById('voice-toggle-btn');
+  if (!btn) return;
+  const muted = isVoiceMuted();
+  btn.innerHTML = muted ? '<i class="fa-solid fa-volume-xmark" style="color:var(--text3)"></i>' : '<i class="fa-solid fa-volume-high" style="color:var(--cyan)"></i>';
+  btn.style.borderColor = muted ? 'var(--border)' : 'var(--cyan)';
+  btn.style.boxShadow = muted ? 'none' : '0 0 10px rgba(6,182,212,0.3)';
+}
+
+function startVoiceDaemonTimer() {
+  if (window._voiceDaemonTimerStarted) return;
+  window._voiceDaemonTimerStarted = true;
+  
+  setInterval(() => {
+    if (!isVoiceMuted()) {
+      const phrase = STOIC_PHRASES[Math.floor(Math.random() * STOIC_PHRASES.length)];
+      speakVoice(phrase);
+    }
+  }, 12 * 60 * 1000);
+}
+
+// Preload voices
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+}
+
+// ── Mini stats bar — floating top-right corner ────────────────
+function injectFloatingStatsBar() {
+  if (document.getElementById('ag-stats-bar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'ag-stats-bar';
+  bar.style.cssText = [
+    'position:fixed', 'top:12px', 'right:16px', 'z-index:900',
+    'display:flex', 'align-items:center', 'gap:6px',
+    'background:rgba(6,8,24,0.85)', 'backdrop-filter:blur(12px)',
+    'border:1px solid rgba(99,102,241,0.25)', 'border-radius:30px',
+    'padding:5px 12px', 'box-shadow:0 4px 20px rgba(0,0,0,0.5)',
+    'font-family:var(--ff-mono)', 'font-size:11px', 'color:var(--text2)',
+    'pointer-events:none', 'user-select:none'
+  ].join(';');
+  bar.innerHTML = `
+    <span style="color:var(--indigo);font-weight:700;letter-spacing:.05em;"><i class="fa-solid fa-microchip" style="font-size:10px"></i></span>
+    <span style="color:var(--text3)">Lv</span><span id="hdr-lvl" style="color:var(--cyan);font-weight:700">—</span>
+    <span style="color:var(--border)">|</span>
+    <span id="hdr-energy" style="color:var(--green)">—%</span>
+    <span style="color:var(--border)">|</span>
+    <i class="fa-solid fa-fire" style="color:var(--amber);font-size:9px"></i>
+    <span id="hdr-streak" style="color:var(--amber)">0d</span>
+  `;
+  document.body.appendChild(bar);
+}
+
+async function loadMiniStats() {
+  try {
+    injectFloatingStatsBar();
+    renderVoiceControls();
+    startVoiceDaemonTimer();
+
+    const r = await fetch('/stats');
+    if (!r.ok) return;
+    const d = await r.json();
+    const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    setEl('hdr-lvl', d.level);
+    setEl('hdr-xp', d.xp);
+    setEl('hdr-energy', Math.round(d.energy) + '%');
+    setEl('hdr-streak', d.streak_days + 'd');
+
+    if (d.level) {
+      checkLevelUpEvent(d.level);
+    }
+  } catch(_) {}
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadMiniStats);
+} else {
+  loadMiniStats();
+}

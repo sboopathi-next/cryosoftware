@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Activity Logs</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+.log-timeline { display: flex; flex-direction: column; gap: 10px; }
+.log-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px;
+  border-left: 3px solid var(--indigo);
+  transition: border-color .18s;
+}
+.log-item:hover { border-color: var(--border-hi); }
+.log-dot {
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%;
+  background: linear-gradient(135deg, var(--indigo), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #fff; margin-top: 1px;
+}
+.log-time { font-family: var(--ff-mono); font-size: 10px; color: var(--cyan); margin-bottom: 5px; }
+.log-doing { font-size: 13px; color: var(--text1); margin-bottom: 3px; }
+.log-doing strong { color: #a5b4fc; }
+.log-did { font-size: 12px; color: var(--text2); }
+.log-did strong { color: var(--green); }
+
+/* Tabs styling */
+.log-tabs { display: flex; gap: 8px; margin-top: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.log-tab { background: none; border: 1px solid transparent; color: var(--text3); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--ff-body); transition: all 0.2s; }
+.log-tab:hover { color: var(--text1); }
+.log-tab.active { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); color: var(--indigo); }
+
+/* Reading Log Specifics */
+.log-item-reading { border-left-color: var(--amber); }
+.log-dot-reading { background: linear-gradient(135deg, var(--amber), #f97316); }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs" class="active"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Logs &amp; History</div>
+        <div class="page-sub">Track your check-ins and reading sessions</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="checkin-btn" onclick="triggerCheckin()">
+        <i class="fa-solid fa-clock-rotate-left"></i> Check-In Now
+      </button>
+    </div>
+
+    <div class="log-tabs">
+      <button class="log-tab active" id="tab-checkin" onclick="switchLogTab('checkin')">Check-in Logs</button>
+      <button class="log-tab" id="tab-reading" onclick="switchLogTab('reading')">Reading History</button>
+    </div>
+
+    <!-- CHECK-IN WRAPPER -->
+    <div id="checkin-logs-wrap" class="log-timeline">
+      <div id="log-list" class="log-timeline">
+        <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>Loading logs...</div>
+      </div>
+    </div>
+    
+    <!-- READING WRAPPER -->
+    <div id="reading-logs-wrap" class="log-timeline" style="display:none;">
+      <div id="reading-list" class="log-timeline">
+        <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>Loading reading logs...</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="settings-modal" class="modal-mask hidden">
+  <div class="modal">
+    <div class="modal-hd"><span>API Key</span><button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Groq API Key</label><input type="password" id="api-key-inp" placeholder="gsk_..."></div>
+      <button class="btn btn-primary btn-full" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+let currentTab = 'checkin';
+
+async function loadLogs() {
+  try {
+    const r = await fetch('/api/activity_logs');
+    if (!r.ok) throw new Error();
+    const logs = await r.json();
+    const container = document.getElementById('log-list');
+    if (!logs.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-clock"></i>No check-in entries yet.<br>Entries auto-populate every 3 hours via the background daemon.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    logs.forEach(log => {
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = `
+        <div class="log-dot"><i class="fa-solid fa-clock"></i></div>
+        <div style="flex:1">
+          <div class="log-time">${log.timestamp}</div>
+          <div class="log-doing"><strong>Current:</strong> ${log.doing}</div>
+          <div class="log-did"><strong>Accomplished:</strong> ${log.did}</div>
+        </div>`;
+      container.appendChild(item);
+    });
+  } catch(e) {
+    document.getElementById('log-list').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Could not load logs. Is the daemon running?</div>';
+  }
+}
+
+async function loadReadingLogs() {
+  try {
+    const r = await fetch('/api/reading/logs');
+    if (!r.ok) throw new Error();
+    const res = await r.json();
+    const container = document.getElementById('reading-list');
+    if (res.status !== 'success' || !res.logs || !res.logs.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-book-open"></i>No reading sessions logged yet.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    res.logs.forEach(log => {
+      const item = document.createElement('div');
+      item.className = 'log-item log-item-reading';
+      item.innerHTML = `
+        <div class="log-dot log-dot-reading"><i class="fa-solid fa-book-bookmark"></i></div>
+        <div style="flex:1">
+          <div class="log-time">${log.timestamp}</div>
+          <div class="log-doing"><strong>Book:</strong> ${log.book_title}</div>
+          <div class="log-did">Read pages <strong>${log.page_from}</strong> to <strong>${log.page_to}</strong> (<strong>${log.pages_read}</strong> pages).</div>
+        </div>`;
+      container.appendChild(item);
+    });
+  } catch(e) {
+    document.getElementById('reading-list').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Could not load reading logs.</div>';
+  }
+}
+
+async function triggerCheckin() {
+  try {
+    const r = await fetch('/api/trigger_checkin', {method:'POST'});
+    const d = await r.json();
+    toast(d.status === 'success' ? 'Check-in logged!' : 'Cancelled.', d.status === 'success' ? 'ok' : 'info');
+    loadLogs();
+  } catch(e) { toast('Error triggering check-in', 'err'); }
+}
+
+function switchLogTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-checkin').classList.toggle('active', tab === 'checkin');
+  document.getElementById('tab-reading').classList.toggle('active', tab === 'reading');
+  
+  document.getElementById('checkin-logs-wrap').style.display = tab === 'checkin' ? 'block' : 'none';
+  document.getElementById('reading-logs-wrap').style.display = tab === 'reading' ? 'block' : 'none';
+  
+  const checkinBtn = document.getElementById('checkin-btn');
+  if (checkinBtn) {
+    checkinBtn.style.display = tab === 'checkin' ? 'block' : 'none';
+  }
+
+  if (tab === 'checkin') loadLogs();
+  else loadReadingLogs();
+}
+
+// Initial calls
+loadLogs();
+loadReadingLogs();
+setInterval(() => {
+  if (currentTab === 'checkin') loadLogs();
+  else loadReadingLogs();
+}, 30000);
+</script>
+</body>
+</html>

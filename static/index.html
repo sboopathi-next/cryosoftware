@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0f1d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Antigravity Core</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      var div = document.createElement('div');
+      div.id = 'js-debug-error';
+      div.style.position = 'fixed';
+      div.style.bottom = '20px';
+      div.style.left = '20px';
+      div.style.right = '20px';
+      div.style.backgroundColor = '#ff4a4a';
+      div.style.color = '#fff';
+      div.style.padding = '12px';
+      div.style.zIndex = '100000';
+      div.style.fontSize = '12px';
+      div.style.borderRadius = '8px';
+      div.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
+      div.style.maxHeight = '200px';
+      div.style.overflowY = 'auto';
+      div.innerHTML = '<strong>JS Error:</strong> ' + message + ' <br><small>at ' + (source ? source.split("/").pop() : "unknown") + ':' + lineno + '</small>';
+      document.body.appendChild(div);
+      return false;
+    };
+  </script>
+</head>
+<body>
+  <div class="phone-container">
+    <!-- Screen Header -->
+    <header class="app-header">
+      <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="avatar">⚡</div>
+          <div>
+            <h2>Boopathi Subramaniyan</h2>
+            <p class="role">World-Class ML Engineer in Training</p>
+          </div>
+        </div>
+        <button id="btn-settings" class="btn-icon" style="background: transparent; border: none; font-size: 1.4rem; padding: 4px; cursor: pointer; transition: transform 0.2s;">⚙️</button>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-badge lvl">LVL <span id="level-val">1</span></div>
+        <div class="metric-badge wil">WIL <span id="willpower-val">10</span></div>
+        <div class="metric-badge streak">🔥 <span id="streak-val">0</span>d</div>
+        <div class="metric-badge energy" id="energy-badge">🔋 <span id="energy-val">100</span>%</div>
+      </div>
+      <div class="xp-container">
+        <div class="xp-bar-wrapper">
+          <div class="xp-bar-fill" id="xp-bar-fill" style="width: 0%"></div>
+        </div>
+        <div class="xp-label"><span id="xp-current">0</span> / <span id="xp-required">100</span> XP</div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Screen Content -->
+    <main class="screen-content">
+      <!-- Curriculum Tracker (Prioritized First) -->
+      <section class="syllabus-section card">
+        <h3>World-Class Curriculum</h3>
+        <p class="section-desc">Progress through your 12-month master curriculum modules to earn massive level-ups.</p>
+        
+        <div class="course-selector-wrapper">
+          <div class="course-tabs-container" id="course-tabs">
+            <!-- Dynamic rendering of course chips -->
+          </div>
+        </div>
+
+        <div class="course-progress-wrapper">
+          <div class="progress-bar-container">
+            <div class="course-progress-fill" id="course-progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="progress-label">Course Progress: <span id="course-pct-label">0%</span></div>
+        </div>
+
+        <!-- Weekly Modules Accordion/Container -->
+        <div class="weeks-list" id="weeks-list">
+          <!-- Dynamic rendering from app.js -->
+        </div>
+      </section>
+
+      <!-- Logging Slider Drawer -->
+      <section class="log-section card">
+        <h3>Log Daily Telemetry</h3>
+        <form id="telemetry-form">
+          <div class="slider-group">
+            <label>Cognitive Study/Strain: <span id="study-label">0</span> hrs</label>
+            <input type="range" id="study-hours" min="0" max="12" step="0.5" value="0">
+            <span class="subtext">Drawdown Coefficient: α (Alpha) = 15.0 / hr</span>
+          </div>
+          <div class="slider-group">
+            <label>Gym/Exercise Training: <span id="gym-label">0</span> hrs</label>
+            <input type="range" id="gym-hours" min="0" max="4" step="0.5" value="0">
+            <span class="subtext">Replenish Coefficient: β (Beta) = 25.0 / hr</span>
+          </div>
+          <div class="slider-group">
+            <label>Completed Dopamine Rewards: <span id="dopamine-label">0</span></label>
+            <input type="range" id="dopamine-rewards" min="0" max="10" step="1" value="0">
+            <span class="subtext">Stabilizer Coefficient: γ (Gamma) = 10.0 / reward</span>
+          </div>
+          <button type="submit" class="btn-primary">Ingest Telemetry</button>
+        </form>
+      </section>
+
+      <!-- Discipline Checks -->
+      <section class="discipline-section card">
+        <h3>Daily Discipline Anchors</h3>
+        <div class="discipline-checklist">
+          <label class="checklist-item">
+            <input type="checkbox" id="check-gym">
+            <span class="checkbox-custom"></span>
+            <div>
+              <strong>Gym Daily Session (+10 XP)</strong>
+              <p class="sub">Non-negotiable physical discipline anchor.</p>
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" id="check-cooking">
+            <span class="checkbox-custom"></span>
+            <div>
+              <strong>Healthy Cooking (+10 XP)</strong>
+              <p class="sub">Nutritional self-control vector.</p>
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" id="check-nopmo">
+            <span class="checkbox-custom"></span>
+            <div>
+              <strong>No PMO Discipline (+15 XP, +1 WIL)</strong>
+              <p class="sub">Total mental clarity and baseline control.</p>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Active Quests -->
+      <section class="quests-section card">
+        <h3>Active Quests</h3>
+        <div class="quest-card" id="quest-core">
+          <div class="quest-icon">📚</div>
+          <div class="quest-details">
+            <span class="quest-tag core">CORE SKILL (INT)</span>
+            <h4 id="core-quest-title">Solve LeetCode #200 Number of Islands (Medium)</h4>
+            <button class="btn-secondary" id="btn-verify-leetcode">Verify Solve on LeetCode API</button>
+          </div>
+        </div>
+        <div class="quest-card" id="quest-agility">
+          <div class="quest-icon">💻</div>
+          <div class="quest-details">
+            <span class="quest-tag agility">AGILITY CODE (AGI)</span>
+            <h4 id="agility-quest-title">Verify code layouts and launch Uvicorn server</h4>
+            <button class="btn-secondary" id="btn-complete-agility">Claim Quest Complete</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dopamine Economy -->
+      <section class="shop-section card">
+        <h3>Dopamine Economy & Rewards</h3>
+        <p class="section-desc">Unlock and claim rewards. Willpower anchors protect your progression.</p>
+        <div class="shop-grid">
+          <div class="shop-item" data-id="ammu_chat">
+            <div class="shop-badge">0 XP</div>
+            <h4>Ammu Chat ❤️</h4>
+            <p>Dedicated chat session with girlfriend.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+          <div class="shop-item" data-id="park_walk">
+            <div class="shop-badge">0 XP</div>
+            <h4>Bengaluru Park 🌳</h4>
+            <p>20-minute walk in localized park.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+          <div class="shop-item" data-id="music_session">
+            <div class="shop-badge">0 XP</div>
+            <h4>Music Session 🎵</h4>
+            <p>Listen to your favorite music tracks.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+          <div class="shop-item" data-id="chess_match">
+            <div class="shop-badge">20 XP</div>
+            <h4>Chess Match ♟️</h4>
+            <p>Deep-dive competitive chess.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+          <div class="shop-item" data-id="movie_session">
+            <div class="shop-badge">60 XP</div>
+            <h4>Guilt-Free Movie 🎬</h4>
+            <p>Watch one high-quality film.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+          <div class="shop-item" data-id="buy_dress">
+            <div class="shop-badge">100 XP</div>
+            <h4>Dress Shopping 🛍️</h4>
+            <p>Fresh wardrobe enhancement.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+          <div class="shop-item" data-id="travel_trip">
+            <div class="shop-badge">250 XP</div>
+            <h4>Excursion Trip ⛰️</h4>
+            <p>Travel to Mountains or Sea.</p>
+            <button class="btn-shop">Claim Offer</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Full-screen Lockout Overlay -->
+    <div class="lockscreen" id="lockscreen" style="display: none;">
+      <div class="lockscreen-card">
+        <div class="lock-icon">⚠️</div>
+        <h2>SYSTEM LOCKDOWN ACTIVE</h2>
+        <p class="lock-reason">Cognitive depletion or continuous 21-day study streak overload detected. You are forced to recover to bypass the crash cycle.</p>
+        
+        <div class="cleanse-selection">
+          <button class="btn-toggle active" id="btn-toggle-physical">Physical Strain</button>
+          <button class="btn-toggle" id="btn-toggle-math">Mathematical Proof</button>
+        </div>
+
+        <!-- Physical Challenge Form -->
+        <div class="challenge-form" id="form-physical">
+          <p class="challenge-desc">Execute 100 muscular challenge repetitions (pushups) to cleanse the dungeon and restore baseline capacity.</p>
+          <button class="btn-primary" id="btn-submit-pushups">I completed 100 Pushups</button>
+        </div>
+
+        <!-- Math Challenge Form -->
+        <div class="challenge-form" id="form-math" style="display: none;">
+          <p class="challenge-desc">Derive and input the exact LaTeX format for the following ML proof:</p>
+          <div class="math-question" id="math-question">Loading math proof challenge...</div>
+          <input type="text" id="math-answer" placeholder="Enter mathematical formula...">
+          <button class="btn-primary" id="btn-submit-math">Verify Derivation</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-screen Settings Overlay -->
+    <div class="lockscreen" id="settings-modal" style="display: none;">
+      <div class="lockscreen-card settings-card" style="border-color: var(--accent-blue); box-shadow: 0 0 25px rgba(0, 210, 255, 0.3);">
+        <div class="lock-icon" style="color: var(--accent-blue);">⚙️</div>
+        <h2>SYSTEM CONFIGURATION</h2>
+        <p class="lock-reason" style="margin-bottom: 15px;">Configure emergency options and view connection diagnostics.</p>
+        
+        <div class="settings-content" style="text-align: left; margin-bottom: 20px;">
+          <div style="margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--accent-blue); font-size: 0.8rem; display: block; margin-bottom: 4px;">Host Diagnostics</strong>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Local Server Status: <span style="color: var(--accent-green); font-weight: bold;">ONLINE</span></span><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">API Base URL: <span style="font-family: monospace;">http://172.29.29.126:8000/</span></span>
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <strong style="color: var(--accent-red); font-size: 0.8rem; display: block; margin-bottom: 4px;">⚠️ EMERGENCY BYPASS</strong>
+            <p style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.35; margin-bottom: 8px;">
+              Lifting a lockout without completing physical/math strains triggers a strict penalty. Use ONLY in extreme emergencies.
+            </p>
+            <p style="font-size: 0.7rem; color: var(--accent-red); font-weight: bold; margin-bottom: 8px;">
+              Discipline Penalty: -5 Willpower (WIL) &amp; -100 XP
+            </p>
+            <button id="btn-emergency-bypass" class="btn-primary" style="background: linear-gradient(135deg, var(--accent-red), #b91c1c); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); color: white;">
+              Activate Emergency Bypass
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-close-settings" class="btn-secondary" style="width: 100%; padding: 10px;">Close Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

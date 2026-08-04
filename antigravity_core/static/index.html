@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Dashboard</title>
+<meta name="description" content="GATE 2028 DA mission control: stats, energy, attributes, progress overview.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ── Dashboard-specific ─── */
+.stats-grid { display: grid; grid-template-columns: 260px 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.level-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.level-ring { position: relative; width: 130px; height: 130px; }
+.level-ring svg { width: 130px; height: 130px; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 9; }
+.ring-prog  { fill: none; stroke: url(#rg); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset .9s ease; }
+.ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.ring-lbl { font-size: 9px; color: var(--text3); font-family: var(--ff-mono); letter-spacing: .1em; display: block; }
+.ring-val { font-family: var(--ff-brand); font-size: 36px; font-weight: 900; color: #e2e8f0; line-height: 1; }
+.xp-label { font-family: var(--ff-mono); font-size: 11px; color: var(--cyan); }
+.streak-label { font-size: 12px; color: var(--amber); font-weight: 600; }
+
+.energy-ring-wrap { position: relative; width: 90px; height: 90px; margin: 8px auto; }
+.energy-ring-wrap svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+.energy-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 20px; }
+.energy-pct { font-family: var(--ff-brand); font-size: 24px; font-weight: 800; text-align: center; }
+.circuit-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
+  color: #f87171; font-size: 11px; font-weight: 600;
+  padding: 7px 10px; border-radius: 8px; margin-top: 8px;
+}
+
+.attrs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.attr {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: #0a0d1e; border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px;
+  transition: border-color .18s;
+}
+.attr:hover { border-color: var(--border-hi); }
+.attr-icon { font-size: 16px; }
+.attr-val { font-family: var(--ff-brand); font-size: 22px; font-weight: 800; }
+.attr-name { font-family: var(--ff-mono); font-size: 9px; color: var(--text3); letter-spacing: .1em; }
+.str .attr-icon, .str .attr-val { color: #f97316; }
+.int .attr-icon, .int .attr-val { color: var(--blue); }
+.agi .attr-icon, .agi .attr-val { color: var(--green); }
+.wil .attr-icon, .wil .attr-val { color: var(--purple); }
+.hrt .attr-icon, .hrt .attr-val { color: #ec4899; }
+.stc .attr-icon, .stc .attr-val { color: #94a3b8; }
+
+.quest-banner {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(59,130,246,.07));
+  border: 1px solid rgba(99,102,241,.25);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.quest-banner::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--indigo), var(--blue));
+}
+.quest-icon { font-size: 22px; color: #a5b4fc; }
+.quest-tag { font-family: var(--ff-mono); font-size: 9px; color: var(--cyan); letter-spacing: .14em; display: block; margin-bottom: 3px; }
+.quest-text { font-family: var(--ff-brand); font-weight: 700; font-size: 14px; color: var(--text1); }
+.quest-pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  margin-left: auto;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
+
+.gate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gate-row { display: grid; grid-template-columns: 140px 1fr 50px; align-items: center; gap: 10px; }
+.gate-label { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gate-pct { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); text-align: right; }
+
+.hdr-stats {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.hdr-stat {
+  font-family: var(--ff-mono); font-size: 11px;
+  background: #0a0d1e; border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 8px;
+  color: var(--text2);
+}
+.hdr-stat span { color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<!-- SETTINGS MODAL -->
+<div id="settings-modal" class="modal-mask hidden">
+  <div class="modal">
+    <div class="modal-hd">
+      <span><i class="fa-solid fa-key" style="color:var(--amber);margin-right:6px"></i>Groq API Key</span>
+      <button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="text-muted">Get a <strong style="color:var(--text1)">free</strong> key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--cyan)">console.groq.com/keys</a>.</p>
+      <div class="field"><label>API Key</label><input type="password" id="api-key-inp" placeholder="gsk_..."></div>
+      <button class="btn btn-primary btn-full" onclick="saveApiKey()"><i class="fa-solid fa-floppy-disk"></i> Save Key</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Mission Control</div>
+        <div class="page-sub">GATE 2028 DA · Machine Learning Engineer Track</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="gymComplete()">
+        <i class="fa-solid fa-dumbbell"></i> Gym Complete
+      </button>
+    </div>
+
+    <!-- ACTIVE QUEST -->
+    <div class="quest-banner">
+      <div class="quest-icon"><i class="fa-solid fa-crosshairs"></i></div>
+      <div>
+        <span class="quest-tag">ACTIVE TARGET</span>
+        <div id="quest-text" class="quest-text">Loading active mission...</div>
+      </div>
+      <div class="quest-pulse"></div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-grid">
+      <!-- Level & XP -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-trophy"></i> System Level</div>
+        <div class="level-wrap">
+          <div class="level-ring">
+            <svg viewBox="0 0 130 130">
+              <defs>
+                <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="100%" stop-color="#3b82f6"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-track" cx="65" cy="65" r="56"/>
+              <circle class="ring-prog" id="xp-ring" cx="65" cy="65" r="56" stroke-dasharray="351.86" stroke-dashoffset="351.86"/>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-lbl">LEVEL</span>
+              <span class="ring-val" id="stat-level">1</span>
+            </div>
+          </div>
+          <div class="xp-label" id="xp-text">XP: 0 / 100</div>
+          <div class="progress-track" style="width:100%"><div class="progress-fill" id="xp-bar" style="width:0%"></div></div>
+          <div class="streak-label"><i class="fa-solid fa-fire"></i> <span id="stat-streak">0</span> day streak</div>
+        </div>
+      </div>
+
+      <!-- Energy -->
+      <div class="card">
+        <div class="card-title flex-between">
+          <span><i class="fa-solid fa-bolt"></i> Cognitive Energy</span>
+          <span class="text-mono" id="energy-pct" style="font-size:18px;font-weight:800;color:var(--green)">100%</span>
+        </div>
+        <div class="energy-ring-wrap">
+          <svg viewBox="0 0 90 90">
+            <circle class="ring-track" cx="45" cy="45" r="37"/>
+            <circle id="e-ring" cx="45" cy="45" r="37" fill="none" stroke="var(--green)" stroke-width="8" stroke-linecap="round"
+              stroke-dasharray="232.48" stroke-dashoffset="0" style="transition:all .8s ease"/>
+          </svg>
+          <div class="energy-icon" id="e-icon"><i class="fa-solid fa-brain" style="color:var(--green)"></i></div>
+        </div>
+        <div id="circuit-alert" class="circuit-bar hidden">
+          <i class="fa-solid fa-triangle-exclamation"></i> CIRCUIT BREAKER — Rest or gym required
+        </div>
+        <div class="divider"></div>
+        <!-- Attributes -->
+        <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Attributes</div>
+        <div class="attrs">
+          <div class="attr str"><i class="fa-solid fa-hand-fist attr-icon"></i><div class="attr-val" id="attr-str">10</div><div class="attr-name">STR</div></div>
+          <div class="attr int"><i class="fa-solid fa-brain attr-icon"></i><div class="attr-val" id="attr-int">10</div><div class="attr-name">INT</div></div>
+          <div class="attr agi"><i class="fa-solid fa-person-running attr-icon"></i><div class="attr-val" id="attr-agi">10</div><div class="attr-name">AGI</div></div>
+          <div class="attr wil"><i class="fa-solid fa-shield-halved attr-icon"></i><div class="attr-val" id="attr-wil">10</div><div class="attr-name">WIL</div></div>
+          <div class="attr hrt" title="Heart/Humanity"><i class="fa-solid fa-heart attr-icon"></i><div class="attr-val" id="attr-hrt">10</div><div class="attr-name">HRT</div></div>
+          <div class="attr stc" title="Stoicism/Mental Strength"><i class="fa-solid fa-mountain attr-icon"></i><div class="attr-val" id="attr-stc">10</div><div class="attr-name">STC</div></div>
+        </div>
+      </div>
+
+      <!-- Mind OS Radar & Quick Actions -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-brain" style="color:var(--purple)"></i> Mind OS Radar</div>
+        
+        <!-- Flashing Alert container for relationship cutoff triggers -->
+        <div id="mind-alert-box" class="circuit-bar hidden" style="background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#fca5a5; font-size:11px; margin-bottom:12px; border-radius:8px;">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--red);"></i> PREEMPTIVE CUTOFF RISK DETECTED
+        </div>
+        
+        <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px;">
+            <span style="color:var(--text2);">Reality Checks</span>
+            <span id="home-rc-stats" style="font-family:var(--ff-mono); color:var(--purple); font-weight:700;">0 (0 pending)</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px;">
+            <span style="color:var(--text2);">Avg Rumination Distress</span>
+            <span id="home-rum-distress" style="font-family:var(--ff-mono); color:var(--amber); font-weight:700;">0.0/10</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:12px;">
+            <span style="color:var(--text2);">Tracked Connections</span>
+            <span id="home-connections-count" style="font-family:var(--ff-mono); color:var(--cyan); font-weight:700;">0 active</span>
+          </div>
+        </div>
+
+        <a href="/mind-os" class="btn btn-primary btn-sm btn-full" style="background:linear-gradient(135deg,var(--purple),var(--indigo)); font-weight:bold; margin-bottom:14px; text-align:center; display:block;"><i class="fa-solid fa-brain"></i> Open Mind OS</a>
+
+        <div class="divider" style="margin:10px 0;"></div>
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-bolt"></i> Quick Actions</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <a href="/gym" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-dumbbell"></i> Gym</a>
+          <a href="/syllabus" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-book-open"></i> Path</a>
+          <a href="/ai" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-robot"></i> Coach</a>
+          <button class="btn btn-secondary btn-sm" onclick="openHumanModal()" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-handshake" style="color:var(--rose)"></i> Log HRT</button>
+          <a href="/logs" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; grid-column:1/-1; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-list-check"></i> Activity Logs</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILY CHECKLIST -->
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-title"><i class="fa-solid fa-list-check"></i> Daily Accountability Checklist</div>
+      <div class="checklist-card">
+        <div class="checklist-item auto-checked" id="chk-study">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">Daily Study Target</div>
+          <div class="checklist-meta">Auto: Complete Syllabus Item</div>
+        </div>
+        <div class="checklist-item auto-checked" id="chk-leetcode">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">Daily LeetCode Problem</div>
+          <div class="checklist-meta">Auto: Sync solved count</div>
+        </div>
+        <div class="checklist-item auto-checked" id="chk-gym">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">Daily Gym/Physical Target</div>
+          <div class="checklist-meta">Auto: Log Workout or Gym Check-in</div>
+        </div>
+        <div class="checklist-item auto-checked" id="chk-english">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">Daily English & Translation Booster</div>
+          <div class="checklist-meta">Auto: Spend 5 min on English page under AI Surveillance</div>
+        </div>
+        <div class="checklist-item" id="chk-cooking" onclick="toggleChecklistItem('cooking')">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">Home Cooking / Meal Prep</div>
+          <div class="checklist-meta">Manual: +10 XP</div>
+        </div>
+        <div class="checklist-item" id="chk-nopmo" onclick="toggleChecklistItem('nopmo')">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">NoPMO Discipline</div>
+          <div class="checklist-meta">Manual: +15 XP, +1 WIL</div>
+        </div>
+        <div class="checklist-item" id="chk-reading" onclick="openReadingModal()">
+          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
+          <div class="checklist-lbl">Daily Reading</div>
+          <div class="checklist-meta">Manual: +10 XP, +1 INT (Click to Log Pages)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GATE PROGRESS -->
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:16px">
+        <div class="card-title" style="margin:0"><i class="fa-solid fa-chart-line"></i> GATE 2028 DA — Course Progress (66 Weeks)</div>
+        <span class="badge badge-indigo">12 COURSES</span>
+      </div>
+      <div id="gate-progress" class="gate-grid">
+        <div class="empty-state" style="grid-column:span 2"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js?v=voice4"></script>
+<script>
+const COURSE_COLORS = {
+  Calculus_Optimization:'#f97316', Python_Data_Science:'#3b82f6',
+  Linear_Algebra:'#8b5cf6', Probability_Stats:'#ec4899',
+  Statistical_Inference:'#f59e0b', EDA:'#10b981',
+  Database_Systems:'#6366f1', Data_Mining_Forecasting:'#14b8a6',
+  Advanced_Forecasting:'#f97316', DSA_LeetCode:'#ef4444',
+  AI_Agents:'#a855f7', Machine_Learning:'#06b6d4'
+};
+
+async function loadDashboard() {
+  // Stats
+  try {
+    const r = await fetch('/stats');
+    const d = await r.json();
+    const s = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+    s('stat-level', d.level);
+    s('stat-streak', d.streak_days || 0);
+    document.getElementById('quest-text').textContent = d.active_quest || 'Study course materials';
+
+    const xpPct = Math.min(100, d.xp / d.xp_required * 100);
+    document.getElementById('xp-text').textContent = `XP: ${d.xp} / ${d.xp_required}`;
+    document.getElementById('xp-bar').style.width = xpPct + '%';
+    const circ = 2 * Math.PI * 56;
+    const ring = document.getElementById('xp-ring');
+    ring.style.strokeDasharray = circ;
+    ring.style.strokeDashoffset = circ - xpPct / 100 * circ;
+
+    const en = d.energy;
+    document.getElementById('energy-pct').textContent = Math.round(en) + '%';
+    const eColor = en > 50 ? 'var(--green)' : en > 20 ? 'var(--amber)' : 'var(--red)';
+    const eRing = document.getElementById('e-ring');
+    const eCirc = 2 * Math.PI * 37;
+    eRing.style.strokeDasharray = eCirc;
+    eRing.style.strokeDashoffset = eCirc - en / 100 * eCirc;
+    eRing.style.stroke = eColor;
+    document.getElementById('energy-pct').style.color = eColor;
+    document.getElementById('e-icon').innerHTML = `<i class="fa-solid fa-brain" style="color:${eColor}"></i>`;
+    document.getElementById('circuit-alert')[d.lockout_active ? 'classList' : 'classList'][d.lockout_active ? 'remove' : 'add']('hidden');
+
+    const a = d.attributes || {};
+    s('attr-str', a.STR); s('attr-int', a.INT); s('attr-agi', a.AGI); s('attr-wil', a.WIL); s('attr-hrt', a.HRT); s('attr-stc', a.STC);
+    
+    // Update daily checklist items
+    const toggleDone = (id, isDone) => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (isDone) el.classList.add('done');
+        else el.classList.remove('done');
+      }
+    };
+    toggleDone('chk-study', d.study_completed);
+    toggleDone('chk-leetcode', d.leetcode_completed);
+    toggleDone('chk-gym', d.gym_completed);
+    toggleDone('chk-english', d.english_completed);
+    toggleDone('chk-cooking', d.cooking_completed);
+    toggleDone('chk-nopmo', d.nopmo_completed);
+    toggleDone('chk-reading', d.reading_completed);
+    
+    const bookLbl = document.getElementById('reading-book-lbl');
+    if (bookLbl) bookLbl.textContent = d.reading_book || 'None';
+    const bookInp = document.getElementById('reading-book-inp');
+    if (bookInp && !bookInp.value && d.reading_book && d.reading_book !== 'None') {
+      bookInp.value = d.reading_book;
+    }
+
+  } catch(e) { console.error(e); }
+
+  // Mind OS Summary & Alerts
+  try {
+    const rSummary = await fetch('/api/mind_os/summary');
+    if (rSummary.ok) {
+      const summary = await rSummary.json();
+      const rcStatsEl = document.getElementById('home-rc-stats');
+      if (rcStatsEl) rcStatsEl.textContent = `${summary.total_reality_checks} (${summary.pending_reality_checks} pending)`;
+      const rumDistEl = document.getElementById('home-rum-distress');
+      if (rumDistEl) rumDistEl.textContent = `${summary.avg_rumination_distress}/10`;
+      const connCountEl = document.getElementById('home-connections-count');
+      if (connCountEl) connCountEl.textContent = `${summary.total_relationships} active`;
+
+      const alertBox = document.getElementById('mind-alert-box');
+      if (alertBox) {
+        if (summary.warning_relationships > 0) {
+          // Fetch relationships to find the exact warning person
+          const rRels = await fetch('/api/mind_os/relationships');
+          if (rRels.ok) {
+            const rels = await rRels.json();
+            const warningPerson = rels.find(r => r.leave_urge >= r.trust_score && r.status === 'Active');
+            if (warningPerson) {
+              const nameSafe = typeof escHTML === 'function' ? escHTML(warningPerson.person_name) : warningPerson.person_name;
+              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i> PREEMPTIVE CUTOFF WARNING: Urge to leave <strong>${nameSafe}</strong> detected!`;
+              alertBox.classList.remove('hidden');
+            } else {
+              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i> PREEMPTIVE CUTOFF WARNING: Active trigger detected!`;
+              alertBox.classList.remove('hidden');
+            }
+          } else {
+            alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i> PREEMPTIVE CUTOFF RISK DETECTED`;
+            alertBox.classList.remove('hidden');
+          }
+        } else {
+          alertBox.classList.add('hidden');
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error loading Mind OS summary on home:", e);
+  }
+
+  // Syllabus progress
+  try {
+    const r2 = await fetch('/api/syllabus');
+    const syl = await r2.json();
+    const container = document.getElementById('gate-progress');
+    container.innerHTML = '';
+    Object.entries(syl.courses || {}).forEach(([cid, course]) => {
+      let total = 0, done = 0;
+      (course.weeks || []).forEach(w => w.items.forEach(item => { total++; if(item.completed) done++; }));
+      const pct = total > 0 ? Math.round(done / total * 100) : 0;
+      const color = COURSE_COLORS[cid] || '#6366f1';
+      const row = document.createElement('div');
+      row.className = 'gate-row';
+      row.innerHTML = `
+        <div class="gate-label" title="${course.name}">${course.name}</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="gate-pct">${done}/${total}</div>`;
+      container.appendChild(row);
+    });
+  } catch(e) { console.error(e); }
+}
+
+async function toggleChecklistItem(item) {
+  const el = document.getElementById(`chk-${item}`);
+  if (!el) return;
+  const isDoneNow = !el.classList.contains('done');
+  
+  try {
+    const r = await fetch('/api/checklist/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item: item, value: isDoneNow })
+    });
+    if (r.ok) {
+      toast(`${item.toUpperCase()} updated!`, 'ok');
+      if (isDoneNow && typeof speakVoice === 'function') {
+        speakVoice(`${item} target completed, Boopathi. Discipline reinforced.`, true);
+      }
+      loadDashboard();
+    } else {
+      const err = await r.json();
+      toast(`Error: ${err.detail}`, 'err');
+    }
+  } catch (e) {
+    toast("Connection error", "err");
+  }
+}
+
+async function gymComplete() {
+  try {
+    const r = await fetch('/gym_check', {method:'POST',headers:{'Content-Type':'application/json'},body:'{"completed":true}'});
+    const d = await r.json();
+    toast(d.message, 'ok');
+    loadDashboard();
+  } catch(e) { toast("Connection error", "err"); }
+}
+
+async function loadSavedBooks() {
+  try {
+    const r = await fetch('/api/reading/books');
+    const d = await r.json();
+    const sel = document.getElementById('reading-book-sel');
+    if (!sel) return;
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">— Pick Book —</option>';
+    if (d.status === 'success' && d.books) {
+      d.books.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.title;
+        opt.textContent = b.title;
+        sel.appendChild(opt);
+      });
+      // Restore previous selection if still exists
+      sel.value = currentVal;
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function addSavedBook() {
+  const inp = document.getElementById('new-book-inp');
+  if (!inp) return;
+  const title = inp.value.trim();
+  if (!title) { toast("Enter a book title first!", "err"); return; }
+  try {
+    const r = await fetch('/api/reading/books', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: title })
+    });
+    const d = await r.json();
+    if (d.status === 'success') {
+      toast("Book added to saved list!", "ok");
+      inp.value = '';
+      await loadSavedBooks();
+      document.getElementById('reading-book-sel').value = title;
+    } else {
+      toast("Failed to add book", "err");
+    }
+  } catch(e) { toast("Connection error", "err"); }
+}
+
+async function logReadingSession() {
+  const sel = document.getElementById('reading-book-sel');
+  const fromInp = document.getElementById('reading-page-from');
+  const toInp = document.getElementById('reading-page-to');
+  
+  if (!sel || !fromInp || !toInp) return;
+  const bookTitle = sel.value;
+  const pageFrom = parseInt(fromInp.value);
+  const pageTo = parseInt(toInp.value);
+  
+  if (!bookTitle) { toast("Select a book first!", "err"); return; }
+  if (isNaN(pageFrom) || isNaN(pageTo)) { toast("Enter valid page numbers!", "err"); return; }
+  if (pageTo <= pageFrom) { toast("Page To must be greater than Page From!", "err"); return; }
+  
+  try {
+    const r = await fetch('/api/reading/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ book_title: bookTitle, page_from: pageFrom, page_to: pageTo })
+    });
+    const d = await r.json();
+    if (d.status === 'success') {
+      toast(`Logged! Read ${d.pages_read} pages.`, "ok");
+      if (typeof speakVoice === 'function') {
+        speakVoice(`Reading session logged! ${d.pages_read} pages completed, Boopathi. Knowledge is power.`, true);
+      }
+      fromInp.value = '';
+      toInp.value = '';
+      closeReadingModal();
+      loadDashboard();
+    } else {
+      toast(`Error: ${d.detail || 'Failed to log'}`, "err");
+    }
+  } catch(e) { toast("Connection error", "err"); }
+}
+
+async function triggerCheckin() {
+  try {
+    const r = await fetch('/api/trigger_checkin', {method:'POST'});
+    const d = await r.json();
+    toast(d.status === 'success' ? 'Check-in logged!' : 'Cancelled.', d.status === 'success' ? 'ok' : 'info');
+  } catch(e) { toast('Error', 'err'); }
+}
+
+function openReadingModal() {
+  document.getElementById('reading-modal').classList.remove('hidden');
+  loadSavedBooks();
+}
+
+function closeReadingModal() {
+  document.getElementById('reading-modal').classList.add('hidden');
+}
+
+function openHumanModal() {
+  document.getElementById('human-modal').classList.remove('hidden');
+}
+
+function closeHumanModal() {
+  document.getElementById('human-modal').classList.add('hidden');
+}
+
+function openHumanHistoryModal() {
+  closeHumanModal();
+  document.getElementById('human-history-modal').classList.remove('hidden');
+  loadHumanHistory();
+}
+
+function closeHumanHistoryModal() {
+  document.getElementById('human-history-modal').classList.add('hidden');
+}
+
+async function saveHumanConnection() {
+  const name = (document.getElementById('hc-name')?.value || '').trim();
+  const context = (document.getElementById('hc-context')?.value || '').trim();
+  const story = (document.getElementById('hc-story')?.value || '').trim();
+  const felt = (document.getElementById('hc-felt')?.value || '').trim();
+  const emoji = document.getElementById('hc-emoji')?.value || '🤝';
+
+  if (!name || !story) {
+    toast('Please enter person name and story/interaction.', 'err');
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/human-connection', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ person_name: name, context_meeting: context, what_happened: story, what_i_felt: felt, emoji: emoji })
+    });
+    const d = await r.json();
+    if (d.status === 'success') {
+      toast(`Logged encounter with ${name}! ❤️ +1 HRT Awarded!`, 'ok');
+      closeHumanModal();
+      document.getElementById('hc-name').value = '';
+      document.getElementById('hc-context').value = '';
+      document.getElementById('hc-story').value = '';
+      document.getElementById('hc-felt').value = '';
+      loadDashboard();
+    } else {
+      toast('Failed to save log', 'err');
+    }
+  } catch(e) {
+    toast('Server Error', 'err');
+  }
+}
+
+async function loadHumanHistory() {
+  const container = document.getElementById('hc-history-list');
+  if (!container) return;
+  container.innerHTML = '<div style="color:var(--muted); font-size:12px;">Loading past human connections...</div>';
+  try {
+    const r = await fetch('/api/human-connection?limit=50');
+    const d = await r.json();
+    if (!d.connections || d.connections.length === 0) {
+      container.innerHTML = '<div style="color:var(--muted); font-size:12px;">No human connection logs recorded yet.</div>';
+      return;
+    }
+    container.innerHTML = d.connections.map(c => `
+      <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <strong style="color:var(--rose); font-size:13px;">${c.emoji} ${c.person_name}</strong>
+          <span style="font-size:10px; color:var(--muted);">${c.date} ${c.timestamp.split(' ')[1] || ''}</span>
+        </div>
+        <div style="font-size:11px; color:var(--cyan); margin-bottom:4px;">📍 Context: ${c.context_meeting || 'Meeting Encounter'}</div>
+        <div style="font-size:12px; color:var(--text1); line-height:1.4; margin-bottom:4px;"><strong>What Happened:</strong> ${c.what_happened}</div>
+        <div style="font-size:12px; color:var(--amber); line-height:1.4; font-style:italic;"><strong>Reflected Feeling:</strong> ${c.what_i_felt || 'Warm human connection.'}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--red); font-size:12px;">Error loading reflection logs.</div>';
+  }
+}
+
+// Initial load
+loadDashboard();
+loadSavedBooks();
+setInterval(loadDashboard, 30000);
+</script>
+
+<!-- READING MODAL -->
+<div id="reading-modal" class="modal-mask hidden">
+  <div class="modal" style="max-width: 400px;">
+    <div class="modal-hd">
+      <span>Log Daily Reading</span>
+      <button class="modal-close" onclick="closeReadingModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="field">
+        <label>Select Book</label>
+        <select id="reading-book-sel" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+          <option value="">— Pick Book —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Or Add New Book Title</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="new-book-inp" placeholder="New book title..." style="flex:1; background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body);">
+          <button class="btn btn-secondary" style="padding:6px 14px;" onclick="addSavedBook()">Add</button>
+        </div>
+      </div>
+      <div class="row-2 gap-md">
+        <div class="field">
+          <label>From Page</label>
+          <input type="number" id="reading-page-from" placeholder="0" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+        </div>
+        <div class="field">
+          <label>To Page</label>
+          <input type="number" id="reading-page-to" placeholder="0" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full mt-1" onclick="logReadingSession()">
+        <i class="fa-solid fa-book-open"></i> Log Session &amp; Earn XP
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HUMAN CONNECTION MODAL (+1 HRT) -->
+<div id="human-modal" class="modal-mask hidden">
+  <div class="modal" style="max-width: 480px;">
+    <div class="modal-hd">
+      <span><i class="fa-solid fa-handshake" style="color:var(--rose); margin-right:6px;"></i>Human Connection &amp; Stranger Encounter</span>
+      <button class="modal-close" onclick="closeHumanModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="field">
+        <label>Person / Stranger Name</label>
+        <input type="text" id="hc-name" placeholder="e.g. Alex (Barista), Unknown Stranger on Bus, New Teammate..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+      </div>
+      <div class="field">
+        <label>Context / Where You Met</label>
+        <input type="text" id="hc-context" placeholder="e.g. Morning Coffee Shop, Gym, Office Hallway..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+      </div>
+      <div class="field">
+        <label>Emotional Mood Emoji</label>
+        <select id="hc-emoji" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+          <option value="🤝">🤝 Connection / Friendly Interaction</option>
+          <option value="😊">😊 Warmth &amp; Kindness</option>
+          <option value="💡">💡 Inspiration / Learning</option>
+          <option value="🥺">🥺 Empathy &amp; Compassion</option>
+          <option value="🧘‍♂️">🧘‍♂️ Calm &amp; Stoic Conversation</option>
+          <option value="💬">💬 Deep Meaningful Discussion</option>
+          <option value="⚡">⚡ High Energy Motivation</option>
+          <option value="🌟">🌟 Joy &amp; Laughter</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>What Happened (Interaction Story)</label>
+        <textarea id="hc-story" rows="2" placeholder="Describe what happened or what you discussed..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+      </div>
+      <div class="field">
+        <label>What I Felt (Personal Emotional Reflection)</label>
+        <textarea id="hc-felt" rows="2" placeholder="Reflect on your emotions, empathy, or what this encounter taught you..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="saveHumanConnection()">
+          <i class="fa-solid fa-heart" style="color:#f43f5e;"></i> Save Log (+1 HRT)
+        </button>
+        <button class="btn btn-secondary" onclick="openHumanHistoryModal()">
+          <i class="fa-solid fa-clock-rotate-left"></i> Reflections
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAST HUMAN CONNECTIONS TIMELINE MODAL -->
+<div id="human-history-modal" class="modal-mask hidden">
+  <div class="modal" style="max-width: 550px;">
+    <div class="modal-hd">
+      <span><i class="fa-solid fa-heart" style="color:var(--rose); margin-right:6px;"></i>Past Human Encounter Reflections</span>
+      <button class="modal-close" onclick="closeHumanHistoryModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="max-height: 450px; overflow-y: auto;">
+      <div id="hc-history-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

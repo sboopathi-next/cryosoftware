@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — AI Teacher</title>
+<meta name="description" content="Friendly AI tutor that classifies syllabus PDFs/images, generates dynamic study checklists, teaches step-by-step, and auto-ticks completed topics.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+<script src="/static/vendor/katex/katex.min.js"></script>
+<script src="/static/vendor/katex/marked.min.js"></script>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+.teacher-grid { display: flex; flex: 1; min-height: 0; overflow: hidden; background: #060818; }
+.checklist-pane { width: 320px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: rgba(99,102,241,0.02); flex-shrink: 0; }
+.pane-section { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+.pane-section:last-child { border-bottom: none; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.upload-box { border: 2px dashed rgba(99,102,241,0.3); border-radius: var(--radius); padding: 16px; text-align: center; cursor: pointer; background: rgba(99,102,241,0.01); transition: all .2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.upload-box:hover, .upload-box.dragover { border-color: var(--indigo); background: rgba(99,102,241,0.07); }
+.upload-box i { font-size: 20px; color: var(--indigo); }
+.upload-box span { font-size: 11px; color: var(--text3); }
+.upload-box .filename { font-size: 11px; font-weight: 700; color: var(--cyan); word-break: break-all; }
+.progress-container { margin-top: 14px; }
+.progress-hdr { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--ff-mono); color: var(--text3); margin-bottom: 6px; }
+.progress-bar-bg { background: #0c0f24; border-radius: 6px; height: 7px; overflow: hidden; border: 1px solid var(--border); }
+.progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #3b82f6); transition: width 0.3s ease; }
+.checklist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
+.topic-item { display: flex; align-items: flex-start; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all .15s; }
+.topic-item:hover { border-color: rgba(99,102,241,0.4); background: var(--bg-hover); }
+.topic-item.completed { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.02); }
+.topic-checkbox { width: 15px; height: 15px; border-radius: 4px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; background: #0a0d1e; color: transparent; transition: all .15s; }
+.topic-item.completed .topic-checkbox { background: var(--green); border-color: var(--green); color: white; }
+.topic-name { font-size: 12.5px; color: var(--text2); line-height: 1.3; }
+.topic-item.completed .topic-name { color: var(--text3); text-decoration: line-through; }
+.chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e; }
+.chat-scroll { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+.bubble { display: flex; gap: 14px; max-width: 80%; margin-bottom: 4px; }
+.bubble.user { align-self: flex-end; flex-direction: row-reverse; }
+.bubble.ai { align-self: flex-start; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+.bubble.user .avatar { background: #3b82f6; color: white; }
+.bubble.ai .avatar { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+.bubble-body { border-radius: 12px; padding: 12px 16px; font-size: 13.5px; line-height: 1.6; font-family: var(--ff-body); color: var(--text1); word-break: break-word; }
+.bubble.user .bubble-body { background: #1e293b; border: 1px solid rgba(255,255,255,0.06); }
+.bubble.ai .bubble-body { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); }
+
+.bubble-body table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+.bubble-body th, .bubble-body td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+.bubble-body th { background: rgba(255,255,255,0.05); font-weight: 600; color: var(--cyan); }
+.bubble-body code { background: rgba(255,255,255,0.08); padding: 2px 4px; border-radius: 4px; font-family: var(--ff-mono); font-size: 11.5px; color: #f472b6; }
+.bubble-body pre { background: #060818; padding: 12px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; margin: 12px 0; }
+.bubble-body pre code { background: transparent; padding: 0; color: #38bdf8; font-size: 12px; }
+
+.chat-footer { padding: 16px 28px; border-top: 1px solid var(--border); background: #060818; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; }
+.chat-input { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: var(--text1); padding: 10px 14px; font-size: 13.5px; outline: none; transition: border-color .15s; }
+.chat-input:focus { border-color: var(--indigo); }
+.learn-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; padding: 0 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
+.learn-btn:hover { opacity: 0.9; }
+.header-meta { font-size: 10px; font-family: var(--ff-mono); color: var(--indigo); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+
+.speak-bubble-btn { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 11px; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; transition: color .15s; }
+.speak-bubble-btn:hover { color: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher" class="active"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="teacher-grid">
+      <div class="checklist-pane">
+        <div class="pane-section">
+          <span class="header-meta">Study Material Upload</span>
+          <div style="height:8px;"></div>
+          <div class="upload-box" id="upload-box" onclick="triggerFileSelect()">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span id="upload-txt">Drag &amp; Drop or Upload Syllabus<br>(PDF or Image up to 10 pages)</span>
+            <input type="file" id="file-input" style="display:none;" accept="application/pdf,image/*" onchange="handleFileSelect(event)">
+          </div>
+          <div class="progress-container">
+            <div class="progress-hdr"><span>Syllabus Progress</span><span id="progress-lbl">0% (0/0)</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
+          </div>
+        </div>
+        <div class="pane-section">
+          <span class="header-meta">Topic checklist</span>
+          <div class="checklist-scroll" id="checklist-scroll">
+            <div style="color:var(--text3);font-size:12px;text-align:center;padding:30px;">No topics loaded yet. Upload your syllabus above or ask the teacher to list topics!</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-pane">
+        <div style="padding:16px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text1);display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i> Antigravity AI Teacher</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">Warm, patient tutor &middot; Simplifies concepts &middot; Auto-ticks syllabus checklist</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearTeacherChat()"><i class="fa-solid fa-trash-can"></i> Clear Chat</button>
+        </div>
+        <div class="chat-scroll" id="chat-scroll">
+          <div class="bubble ai">
+            <div class="avatar" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="bubble-body">
+              Hello Boopathi! I am your <strong>Antigravity AI Teacher</strong>. 📚<br><br>
+              Upload a syllabus PDF or photo on the left, and I will extract the topics and guide you through them step-by-step. 
+              Whenever you master a topic, I'll tick it off your list automatically!<br><br>
+              What would you like to study today?
+            </div>
+          </div>
+        </div>
+        <div class="chat-footer">
+          <div class="input-row">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Ask your teacher to explain a concept or topic..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); sendTeacherMessage(); }">
+            <button class="btn btn-primary" onclick="sendTeacherMessage()" id="send-btn" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+            <span style="color:var(--text3);" id="upload-status-badge"></span>
+            <button class="learn-btn" onclick="teachNextTopic()"><i class="fa-solid fa-forward"></i> Learn Next Topic</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="settings-modal" class="modal-mask hidden"></div>
+<script src="/static/shared.js?v=teach3"></script>
+<script>
+let topicsList = [];
+let uploadMimeType = '';
+let uploadBase64 = '';
+let uploadFileName = '';
+
+function escH(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function loadChecklistState() {
+  try {
+    const res = await fetch('/api/teacher/topics');
+    const data = await res.json();
+    if (data.topics && data.topics.length) {
+      topicsList = data.topics;
+      renderChecklist();
+    } else {
+      const savedList = localStorage.getItem('teacher_topics_list');
+      if (savedList) {
+        topicsList = JSON.parse(savedList);
+        renderChecklist();
+        saveChecklistState(); // Sync to DB
+      }
+    }
+  } catch(e) {
+    const savedList = localStorage.getItem('teacher_topics_list');
+    if (savedList) { topicsList = JSON.parse(savedList); renderChecklist(); }
+  }
+}
+async function saveChecklistState() {
+  localStorage.setItem('teacher_topics_list', JSON.stringify(topicsList));
+  try {
+    const topicsOnly = topicsList.map(t => t.name);
+    await fetch('/api/teacher/topics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topics: topicsOnly })
+    });
+    // Sync completion status
+    for (const t of topicsList) {
+      await fetch('/api/teacher/topics/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: t.name, completed: t.completed })
+      });
+    }
+  } catch(e) {
+    console.warn('Could not sync topics to server:', e);
+  }
+}
+
+// Render Markdown with KaTeX math (reused from ai.html)
+function renderMarkdownWithMath(text) {
+  const placeholders = [];
+  let placeholderCounter = 0;
+  let processedText = text;
+
+  // 1. Display math: $$ ... $$
+  processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+    const id = `MATHDISPLAYPLACEHOLDER${placeholderCounter}XYZ`;
+    placeholderCounter++;
+    placeholders.push({ id, math, display: true });
+    return id;
+  });
+
+  // 2. Display math: \[ ... \]
+  processedText = processedText.replace(/\\\[([\s\S]*?)\\\]/g, (match, math) => {
+    const id = `MATHDISPLAYPLACEHOLDER${placeholderCounter}XYZ`;
+    placeholderCounter++;
+    placeholders.push({ id, math, display: true });
+    return id;
+  });
+
+  // 3. Inline math: $ ... $
+  processedText = processedText.replace(/\$([^\$\n]+?)\$/g, (match, math) => {
+    const id = `MATHINLINEPLACEHOLDER${placeholderCounter}XYZ`;
+    placeholderCounter++;
+    placeholders.push({ id, math, display: false });
+    return id;
+  });
+
+  // 4. Inline math: \( ... \)
+  processedText = processedText.replace(/\\\(([\s\S]*?)\\\)/g, (match, math) => {
+    const id = `MATHINLINEPLACEHOLDER${placeholderCounter}XYZ`;
+    placeholderCounter++;
+    placeholders.push({ id, math, display: false });
+    return id;
+  });
+
+  // 5. Compile markdown
+  let html = "";
+  if (typeof marked !== 'undefined') {
+    html = marked.parse(processedText);
+  } else {
+    html = processedText.replace(/\n/g, '<br>');
+  }
+
+  // 6. Restore KaTeX math
+  placeholders.forEach(({ id, math, display }) => {
+    let renderedMath = id;
+    if (typeof katex !== 'undefined') {
+      try {
+        renderedMath = katex.renderToString(math, {
+          displayMode: display,
+          throwOnError: false
+        });
+      } catch (err) {
+        console.error("KaTeX error:", err);
+        renderedMath = `<span class="katex-error">${escH(math)}</span>`;
+      }
+    } else {
+      renderedMath = escH(display ? `$$${math}$$` : `$${math}$`);
+    }
+    html = html.split(id).join(renderedMath);
+  });
+
+  return html;
+}
+
+const uploadBox = document.getElementById('upload-box');
+uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.classList.add('dragover'); });
+uploadBox.addEventListener('dragleave', () => { uploadBox.classList.remove('dragover'); });
+uploadBox.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadBox.classList.remove('dragover');
+  if (e.dataTransfer.files.length) { processFile(e.dataTransfer.files[0]); }
+});
+function triggerFileSelect() { document.getElementById('file-input').click(); }
+function handleFileSelect(e) { if (e.target.files.length) { processFile(e.target.files[0]); } }
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const raw = evt.target.result;
+    uploadBase64 = raw.split(',')[1];
+    
+    let mime = file.type;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'pdf') mime = 'application/pdf';
+    else if (ext === 'png') mime = 'image/png';
+    else if (ext === 'jpg' || ext === 'jpeg') mime = 'image/jpeg';
+    else if (ext === 'txt') mime = 'text/plain';
+
+    uploadMimeType = mime || 'application/octet-stream';
+    uploadFileName = file.name;
+    uploadBox.innerHTML = `<i class="fa-solid fa-file-circle-check" style="color:var(--green)"></i><span class="filename">${escH(file.name)}</span><span style="font-size:9px;color:var(--text3);">Click to change file</span>`;
+    document.getElementById('upload-status-badge').innerHTML = `📎 Attachment: ${escH(file.name)}`;
+    toast('📎 File attached. Auto-processing syllabus topics...', 'ok');
+    
+    sendTeacherMessage("Please analyze this syllabus or study document and extract all the main study topics as a clean, simple JSON list of strings, in this format: { \"topics\": [\"Topic 1\", \"Topic 2\", \"Topic 3\"] }. Reply ONLY with the raw JSON code block. Do not write any conversational text before or after.");
+  };
+  reader.readAsDataURL(file);
+}
+
+async function sendTeacherMessage(customPrompt = null) {
+  const input = document.getElementById('chat-input');
+  const text = customPrompt || input.value.trim();
+  if (!text && !uploadBase64) return;
+  if (!customPrompt) input.value = '';
+
+  appendBubble(text || `Uploaded study file: ${uploadFileName}`, 'user');
+
+  const tid = 'think-' + Date.now();
+  appendBubble('Teacher is preparing lesson...', 'ai', tid, true);
+
+  const currentKey = localStorage.getItem('groq_key') || localStorage.getItem('gemini_key') || '';
+  const currentModel = window.getSanitizedGroqModel ? getSanitizedGroqModel() : (localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile');
+
+  const payload = {
+    message: text || "Please inspect this file and help me understand its contents.",
+    provider: 'groq',
+    api_key: currentKey,
+    groq_model: currentModel,
+    media_type: uploadMimeType,
+    media_base64: uploadBase64,
+    history: []
+  };
+
+  if (uploadBase64) {
+    uploadBase64 = ''; uploadMimeType = ''; uploadFileName = '';
+    uploadBox.innerHTML = `<i class="fa-solid fa-file-pdf"></i><span>Drag &amp; Drop or Upload Syllabus<br>(PDF or Image up to 10 pages)</span>`;
+    document.getElementById('upload-status-badge').innerHTML = '';
+  }
+
+  try {
+    const r = await fetch('/api/ai/teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    document.getElementById(tid)?.remove();
+    if (r.status !== 200) {
+      appendBubble(`⚠️ Error: ${data.detail || 'Failed to connect to teacher.'}`, 'ai');
+      return;
+    }
+
+    const reply = data.reply;
+    appendBubble(reply, 'ai');
+
+    // Speak response using friendly voice setting (warmth: 10)
+    if (typeof speakAIResponse === 'function') {
+      speakAIResponse(reply, { warmth: 10, pitch: 0.9, rate: 0.95 });
+    }
+
+    const compMatch = reply.match(/\[COMPLETE_TOPIC:\s*(.*?)\]/i);
+    if (compMatch) { tickTopic(compMatch[1].trim()); }
+    if (text.toLowerCase().includes('syllabus') || text.toLowerCase().includes('extract') || text.toLowerCase().includes('topics')) {
+      tryJSONParseSyllabus(reply);
+    }
+  } catch(e) {
+    document.getElementById(tid)?.remove();
+    appendBubble('⚠️ Network error connecting to teacher.', 'ai');
+  }
+}
+
+function speakBubbleText(btn) {
+  const bubble = btn.closest('.bubble');
+  if (!bubble) return;
+  const textEl = bubble.querySelector('.bubble-body');
+  if (textEl && typeof speakVoice === 'function') {
+    speakVoice(textEl.innerText, true, { warmth: 10, pitch: 0.9, rate: 0.95 });
+  }
+}
+
+async function tickTopic(name) {
+  const match = topicsList.find(t => t.name.toLowerCase() === name.toLowerCase());
+  if (match && !match.completed) {
+    match.completed = true;
+    renderChecklist();
+    toast(`🎓 Auto-Ticked Topic: ${match.name}!`, 'ok');
+    localStorage.setItem('teacher_topics_list', JSON.stringify(topicsList));
+    try {
+      await fetch('/api/teacher/topics/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: match.name, completed: true })
+      });
+    } catch(e) {
+      console.warn('Could not sync topic completion to server:', e);
+    }
+  }
+}
+async function toggleTopic(idx) {
+  const item = topicsList[idx];
+  item.completed = !item.completed;
+  renderChecklist();
+  localStorage.setItem('teacher_topics_list', JSON.stringify(topicsList));
+  try {
+    await fetch('/api/teacher/topics/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: item.name, completed: item.completed })
+    });
+  } catch(e) {
+    console.warn('Could not sync topic toggle to server:', e);
+  }
+}
+function renderChecklist() {
+  const listEl = document.getElementById('checklist-scroll');
+  if (!topicsList.length) {
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:30px;">No topics loaded yet. Upload your syllabus above or ask the teacher to list topics!</div>';
+    document.getElementById('progress-lbl').textContent = '0% (0/0)';
+    document.getElementById('progress-bar').style.width = '0%';
+    return;
+  }
+  const completedCount = topicsList.filter(t => t.completed).length;
+  const pct = Math.round((completedCount / topicsList.length) * 100);
+  document.getElementById('progress-lbl').textContent = `${pct}% (${completedCount}/${topicsList.length})`;
+  document.getElementById('progress-bar').style.width = `${pct}%`;
+  listEl.innerHTML = topicsList.map((t, i) => `
+    <div class="topic-item ${t.completed ? 'completed' : ''}" onclick="toggleTopic(${i})">
+      <div class="topic-checkbox">${t.completed ? '✓' : ''}</div>
+      <div class="topic-name">${t.name}</div>
+    </div>
+  `).join('');
+}
+function teachNextTopic() {
+  const next = topicsList.find(t => !t.completed);
+  if (!next) {
+    toast('🎉 Excellent! All topics on your list are completed!', 'ok');
+    sendTeacherMessage("Teacher, I have completed all topics on my syllabus checklist! Let's celebrate or review the course.");
+    return;
+  }
+  sendTeacherMessage(`Teacher, please explain and teach me the next topic on my list: "${next.name}"`);
+}
+function tryJSONParseSyllabus(text) {
+  const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)```/g;
+  let match;
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      if (parsed && Array.isArray(parsed.topics)) {
+        topicsList = parsed.topics.map(t => ({ name: t, completed: false }));
+        saveChecklistState();
+        renderChecklist();
+        toast('📚 Syllabus checklist loaded successfully!', 'ok');
+        return;
+      }
+    } catch(e) {}
+  }
+}
+function appendBubble(text, role, id = '', isThinking = false) {
+  const container = document.getElementById('chat-scroll');
+  const b = document.createElement('div');
+  b.className = `bubble ${role}`;
+  if (id) b.id = id;
+  const icon = role === 'user' ? 'fa-user' : 'fa-graduation-cap';
+  
+  let formatted = (role === 'ai' && !isThinking)
+    ? renderMarkdownWithMath(text)
+    : (isThinking ? text : escH(text));
+
+  const speakBtn = (role === 'ai' && !isThinking)
+    ? `<br><button class="speak-bubble-btn" onclick="speakBubbleText(this)"><i class="fa-solid fa-volume-high"></i> Speak</button>`
+    : '';
+
+  b.innerHTML = `
+    <div class="avatar" style="${role==='user'?'background:#3b82f6;':'background:linear-gradient(135deg,#10b981,#059669);'}"><i class="fa-solid ${icon}"></i></div>
+    <div class="bubble-body">${formatted}${speakBtn}</div>
+  `;
+  container.appendChild(b);
+  container.scrollTop = container.scrollHeight;
+}
+async function clearTeacherChat() {
+  try {
+    await fetch('/api/ai/clear/teacher', { method: 'POST' });
+    document.getElementById('chat-scroll').innerHTML = `
+      <div class="bubble ai"><div class="avatar" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-graduation-cap"></i></div><div class="bubble-body">Chat history cleared. Ready to start our next lesson!</div></div>
+    `;
+    toast('Chat cleared', 'ok');
+  } catch(e) {
+    toast('Failed to clear history', 'err');
+  }
+}
+
+async function loadChatHistory() {
+  try {
+    const res = await fetch('/api/ai/history/teacher');
+    const data = await res.json();
+    if (data.messages && data.messages.length) {
+      document.getElementById('chat-scroll').innerHTML = '';
+      data.messages.forEach(h => appendBubble(h.message, h.role === 'user' ? 'user' : 'ai'));
+    }
+  } catch(e) {}
+}
+
+loadChecklistState();
+loadChatHistory();
+</script>
+</body>
+</html>

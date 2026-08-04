@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Teaching Log (+2 INT +1 HRT)</title>
+<meta name="description" content="Log teaching sessions with friends and students. Earn +2 INT +1 HRT per session.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+.teach-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: #060818; flex-shrink: 0; padding: 16px 28px 0; }
+.teach-tab { padding: 10px 22px; font-size: 13px; font-weight: 600; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-family: var(--ff-body); color: var(--text3); background: transparent; transition: all .18s; position: relative; bottom: -1px; display: flex; align-items: center; gap: 8px; }
+.teach-tab:hover { color: var(--text1); background: var(--bg-hover); }
+.teach-tab.active { color: var(--text1); background: var(--bg-card); border-color: var(--border); border-bottom-color: var(--bg-card); }
+.badge-int { background: rgba(99,102,241,0.2); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+.badge-hrt { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.3); font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+.teach-pane { display: none; flex: 1; overflow-y: auto; padding: 24px 28px; }
+.teach-pane.active { display: flex; flex-direction: column; gap: 16px; }
+.log-form { background: var(--bg-card); border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius); padding: 24px; max-width: 620px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid .full { grid-column: 1 / -1; }
+.stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+.stat-box-val { font-family: var(--ff-brand); font-size: 28px; font-weight: 800; color: var(--cyan); }
+.stat-box-lbl { font-size: 10px; font-family: var(--ff-mono); color: var(--text3); margin-top: 4px; letter-spacing: .08em; }
+.report-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.report-table th { text-align: left; padding: 8px 12px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: .07em; color: var(--text3); border-bottom: 1px solid var(--border); font-weight: 700; }
+.report-table td { padding: 9px 12px; border-bottom: 1px solid rgba(30,35,64,0.6); color: var(--text2); }
+.report-table tr:hover td { background: var(--bg-hover); }
+.teach-header { padding: 20px 28px 0; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach" class="active"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="teach-header">
+      <div>
+        <div class="page-title"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i> Teaching Log</div>
+        <div class="page-sub">Every session you teach deepens your own mastery &middot; Earns <strong style="color:#818cf8">+2 INT</strong> &amp; <strong style="color:#fda4af">+1 HRT</strong></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="total-sessions-badge" class="badge badge-blue">0 sessions</span>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Export</button>
+      </div>
+    </div>
+    <div class="teach-tabs">
+      <button class="teach-tab active" id="tab-log" onclick="switchTab('log')">
+        <i class="fa-solid fa-graduation-cap"></i> Log Session
+        <span class="badge-int">+2 INT</span>
+        <span class="badge-hrt">+1 HRT</span>
+      </button>
+      <button class="teach-tab" id="tab-report" onclick="switchTab('report')">
+        <i class="fa-solid fa-chart-bar"></i> Report &amp; History
+      </button>
+    </div>
+    <div class="teach-pane active" id="pane-log">
+      <div class="log-form">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Student / Friend Name <span style="color:var(--red)">*</span></label>
+            <select id="t-person-sel" onchange="togglePersonSelect()" style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;">
+              <option value="">— Select Person or Add New —</option>
+              <option value="__new__">➕ Add New Person / Stranger...</option>
+            </select>
+            <input type="text" id="t-person-inp" placeholder="Type new student / friend name..." style="display:none;margin-top:6px;background:#0a0d1e;border:1px solid var(--indigo);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;">
+          </div>
+          <div class="field">
+            <label>Subject Area</label>
+            <select id="t-subject" style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;">
+              <option>ML / AI</option><option>GATE Math</option><option>Python / Data Science</option>
+              <option>SQL / Databases</option><option>Statistics</option><option>Deep Learning</option>
+              <option>General CS</option><option>Career / GATE Prep</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Duration</label>
+            <select id="t-duration" style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;">
+              <option>15 min</option><option selected>30 min</option><option>1 hour</option><option>2 hours</option><option>3+ hours</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Topic Taught <span style="color:var(--red)">*</span></label>
+            <input type="text" id="t-topic" placeholder="e.g. Gradient Descent, Linear Regression, SQL Joins..." style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;">
+          </div>
+          <div class="field full">
+            <label>How did it go?</label>
+            <select id="t-outcome" style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;">
+              <option>Understood well</option><option>Partial understanding</option>
+              <option>Need another session</option><option>Breakthrough moment!</option><option>More questions raised</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Teaching Notes</label>
+            <textarea id="t-notes" rows="3" placeholder="What analogy clicked? What do you need to prep better? Any insights from explaining this?" style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:9px 13px;outline:none;font-size:13px;font-family:var(--ff-body);width:100%;resize:vertical;"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full mt-2" onclick="submitSession()" style="background:linear-gradient(135deg,#6366f1,#4338ca);font-size:14px;padding:11px;">
+          <i class="fa-solid fa-graduation-cap"></i> Log Session &amp; Earn +2 INT +1 HRT
+        </button>
+      </div>
+    </div>
+    <div class="teach-pane" id="pane-report">
+      <div class="stat-row" id="report-stats">
+        <div class="stat-box"><div class="stat-box-val" id="r-total">0</div><div class="stat-box-lbl">TOTAL SESSIONS</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="r-students" style="color:var(--green)">0</div><div class="stat-box-lbl">UNIQUE STUDENTS</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="r-int" style="color:#818cf8">+0</div><div class="stat-box-lbl">INT EARNED</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="r-hrt" style="color:#fda4af">+0</div><div class="stat-box-lbl">HRT EARNED</div></div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:4px;">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:var(--ff-mono);font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.07em;">ALL TEACHING SESSIONS</div>
+          <input type="text" id="search-inp" placeholder="Search person or topic..." oninput="renderReport()" style="background:#0a0d1e;border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 10px;outline:none;font-size:12px;font-family:var(--ff-body);width:220px;">
+        </div>
+        <div style="overflow-y:auto;max-height:calc(100vh - 370px);">
+          <table class="report-table">
+            <thead><tr><th>DATE</th><th>STUDENT</th><th>SUBJECT</th><th>TOPIC</th><th>DURATION</th><th>OUTCOME</th><th>NOTES</th></tr></thead>
+            <tbody id="report-body"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3);">No sessions yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="settings-modal" class="modal-mask hidden"></div>
+<script src="/static/shared.js?v=teach1"></script>
+<script>
+function escH(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function switchTab(tab){document.querySelectorAll('.teach-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.teach-pane').forEach(p=>p.classList.remove('active'));document.getElementById('tab-'+tab).classList.add('active');document.getElementById('pane-'+tab).classList.add('active');if(tab==='report')renderReport();}
+function getSessions(){return JSON.parse(localStorage.getItem('teach_sessions_v2')||'[]');}
+function saveSessions(arr){localStorage.setItem('teach_sessions_v2',JSON.stringify(arr));localStorage.setItem('teach_sessions',JSON.stringify(arr));}
+function updateBadge(){const n=getSessions().length;const el=document.getElementById('total-sessions-badge');if(el)el.textContent=n+' session'+(n!==1?'s':'');}
+function togglePersonSelect() {
+  const sel = document.getElementById('t-person-sel');
+  const inp = document.getElementById('t-person-inp');
+  if (sel.value === '__new__') {
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    if (sel.value) inp.value = sel.value;
+  }
+}
+
+async function loadPeopleMeta() {
+  try {
+    const r = await fetch('/api/human-connection/meta');
+    const d = await r.json();
+    if (d.status === 'success') {
+      const pSel = document.getElementById('t-person-sel');
+      const cur = pSel.value;
+      // Get unique people list
+      pSel.innerHTML = '<option value="">— Select Person or Add New —</option>' +
+        d.people.map(p => `<option value="${escH(p)}">${escH(p)}</option>`).join('') +
+        '<option value="__new__">➕ Add New Person / Stranger...</option>';
+      if (cur && Array.from(pSel.options).some(o => o.value === cur)) pSel.value = cur;
+    }
+  } catch(_) {}
+}
+
+async function submitSession(){
+  const sel = document.getElementById('t-person-sel');
+  let person = sel.value;
+  if (person === '__new__') {
+    person = document.getElementById('t-person-inp').value.trim();
+  }
+  const topic=document.getElementById('t-topic').value.trim();
+  if(!person){toast('Enter student / friend name','err');return;}
+  if(!topic){toast('Enter topic taught','err');return;}
+  
+  const session={
+    id:Date.now(),
+    person,
+    subject:document.getElementById('t-subject').value,
+    topic,
+    duration:document.getElementById('t-duration').value,
+    outcome:document.getElementById('t-outcome').value,
+    notes:document.getElementById('t-notes').value.trim(),
+    date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),
+    ts:new Date().toISOString()
+  };
+
+  const sessions=getSessions();
+  sessions.push(session);
+  saveSessions(sessions);
+
+  // Clear form
+  document.getElementById('t-person-sel').value = '';
+  document.getElementById('t-person-inp').value = '';
+  document.getElementById('t-person-inp').style.display = 'none';
+  document.getElementById('t-topic').value = '';
+  document.getElementById('t-notes').value = '';
+  
+  updateBadge();
+  toast('Teaching session logged! +2 INT +1 HRT earned','ok');
+  
+  try {
+    await fetch('/api/study/journal', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        topic: 'Taught "' + topic + '" to ' + person + ' (' + session.subject + ') for ' + session.duration,
+        notes: session.notes || 'Teaching session',
+        duration_minutes: ({'15 min':15,'30 min':30,'1 hour':60,'2 hours':120,'3+ hours':180}[session.duration]||30),
+        source: 'teaching'
+      })
+    });
+  } catch(_) {}
+  loadPeopleMeta();
+}
+function renderReport(){
+  const sessions=getSessions();const q=(document.getElementById('search-inp')?.value||'').toLowerCase();
+  const filtered=q?sessions.filter(s=>s.person.toLowerCase().includes(q)||s.topic.toLowerCase().includes(q)||(s.subject||'').toLowerCase().includes(q)):sessions;
+  const unique=[...new Set(sessions.map(s=>s.person.toLowerCase()))].length;
+  document.getElementById('r-total').textContent=sessions.length;document.getElementById('r-students').textContent=unique;document.getElementById('r-int').textContent='+'+(sessions.length*2);document.getElementById('r-hrt').textContent='+'+sessions.length;
+  const tbody=document.getElementById('report-body');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3);">No sessions match your search.</td></tr>';return;}
+  tbody.innerHTML=filtered.slice().reverse().map(s=>'<tr><td style="font-family:var(--ff-mono);font-size:11px;white-space:nowrap;">'+escH(s.date)+'</td><td style="font-weight:700;color:var(--text1);">'+escH(s.person)+'</td><td style="color:var(--indigo);font-size:11px;">'+escH(s.subject||'')+'</td><td style="color:var(--cyan);">'+escH(s.topic)+'</td><td style="font-family:var(--ff-mono);font-size:11px;">'+escH(s.duration)+'</td><td>'+escH(s.outcome)+'</td><td style="color:var(--text3);font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escH(s.notes)+'">'+escH(s.notes||'')+'</td></tr>').join('');
+}
+function exportCSV(){
+  const sessions=getSessions();if(!sessions.length){toast('No sessions to export','err');return;}
+  const headers='Date,Student,Subject,Topic,Duration,Outcome,Notes';
+  const rows=sessions.map(s=>[s.date,s.person,s.subject||'',s.topic,s.duration,s.outcome,s.notes||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+  const blob=new Blob([[headers,...rows].join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='teaching_log_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('Exported!','ok');
+}
+updateBadge();
+loadPeopleMeta();
+</script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Study Journal</title>
+<meta name="description" content="Log what you studied today, track mood, and earn XP for every session.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ── Journal-specific ─── */
+.journal-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; align-items: start; }
+
+.mood-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.mood-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 8px; padding: 6px 14px;
+  cursor: pointer; font-size: 12px; font-family: var(--ff-body);
+  transition: all .18s;
+}
+.mood-btn:hover { border-color: var(--border-hi); }
+.mood-btn.active { background: rgba(99,102,241,0.15); border-color: var(--indigo); color: #c7d2fe; }
+
+.syllabus-link-row { display: flex; gap: 8px; }
+.syllabus-link-row select { flex: 1; }
+
+.entry-card {
+  background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+  transition: border-color .18s;
+}
+.entry-card:hover { border-color: rgba(99,102,241,0.4); }
+.entry-card:last-child { margin-bottom: 0; }
+.entry-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; gap: 10px; }
+.entry-topic { font-size: 14px; font-weight: 700; color: var(--text1); flex: 1; }
+.entry-time { font-size: 10px; color: var(--text3); font-family: var(--ff-mono); white-space: nowrap; }
+.entry-notes { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+.entry-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.entry-tag { font-size: 10px; font-family: var(--ff-mono); padding: 2px 8px; border-radius: 4px; }
+.tag-subject { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.tag-mood { background: rgba(16,185,129,0.12); color: #6ee7b7; }
+.tag-mood.mood-tired { background: rgba(245,158,11,0.12); color: #fcd34d; }
+.tag-mood.mood-distracted { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.tag-mood.mood-motivated { background: rgba(168,85,247,0.15); color: #d8b4fe; }
+
+.empty-journal {
+  text-align: center; padding: 48px 20px; color: var(--text3);
+}
+.empty-journal i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+.filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.filter-row label { font-size: 11px; color: var(--text3); font-family: var(--ff-mono); white-space: nowrap; }
+.date-badge {
+  background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+  color: #c7d2fe; font-size: 10px; font-family: var(--ff-mono);
+  padding: 3px 10px; border-radius: 6px; margin-bottom: 10px;
+  display: inline-block;
+}
+.xp-flash {
+  animation: xpPop .4s ease;
+}
+@keyframes xpPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); background: rgba(99,102,241,0.25); }
+  100% { transform: scale(1); }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal" class="active"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title"><i class="fa-solid fa-pen-to-square" style="color:var(--indigo)"></i> Study Journal</div>
+        <div class="page-sub">Log sessions, track mood, earn XP — <kbd>Shift+J</kbd> to focus</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="badge badge-blue" id="today-count">0 today</span>
+        <span class="badge badge-amber">+10 XP per entry</span>
+      </div>
+    </div>
+
+    <div class="journal-grid">
+      <!-- LOG ENTRY FORM -->
+      <div class="card">
+        <div style="display:flex; gap:6px; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+          <button class="mood-btn active" id="tab-study" onclick="switchJournalTab('study')"><i class="fa-solid fa-book"></i> Study Session</button>
+          <button class="mood-btn" id="tab-human" onclick="switchJournalTab('human')"><i class="fa-solid fa-heart" style="color:var(--rose)"></i> Human Encounter (+1 HRT)</button>
+          <a href="/badlog" class="mood-btn"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i> Rage Fuel</a>
+        </div>
+
+        <!-- STUDY FORM -->
+        <div id="form-study">
+          <div class="card-title"><i class="fa-solid fa-plus-circle" style="color:var(--green)"></i> Log Study Session</div>
+
+        <div class="field">
+          <label>What did you study? <span style="color:var(--red)">*</span></label>
+          <input type="text" id="j-topic" placeholder="e.g. Calculus – Chain Rule, Gradient Descent concepts..." autofocus>
+        </div>
+
+        <div class="field">
+          <label>Notes / Key takeaways</label>
+          <textarea id="j-notes" rows="4" placeholder="What clicked? What was confusing? Any formulas or insights..." style="resize:vertical;min-height:80px"></textarea>
+        </div>
+
+        <div class="field">
+          <label>How was your mood?</label>
+          <div class="mood-row">
+            <button class="mood-btn active" id="mood-focused" onclick="selectMood('focused')">⚡ Focused</button>
+            <button class="mood-btn" id="mood-motivated" onclick="selectMood('motivated')">🔥 Motivated</button>
+            <button class="mood-btn" id="mood-tired" onclick="selectMood('tired')">😴 Tired</button>
+            <button class="mood-btn" id="mood-distracted" onclick="selectMood('distracted')">😵 Distracted</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Link to syllabus (optional)</label>
+          <div class="syllabus-link-row">
+            <select id="j-subject" onchange="loadItems()">
+              <option value="">— Choose course —</option>
+            </select>
+            <select id="j-item">
+              <option value="">— Choose item —</option>
+            </select>
+          </div>
+          <p class="field-hint" style="margin-top:5px;font-size:11px;color:var(--text3)">
+            <i class="fa-solid fa-info-circle"></i> If you pick a syllabus item, it'll also be ticked as complete automatically.
+          </p>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="save-btn" onclick="saveEntry()">
+          <i class="fa-solid fa-floppy-disk"></i> Save Session (+10 XP)
+        </button>
+        </div>
+
+        <!-- HUMAN ENCOUNTER FORM -->
+        <div id="form-human" style="display:none;">
+          <div class="card-title"><i class="fa-solid fa-heart" style="color:var(--rose)"></i> Log Human Encounter (+1 HRT)</div>
+          <div class="field">
+            <label>Person / Stranger Name <span style="color:var(--red)">*</span></label>
+            <input type="text" id="j-hc-name" placeholder="e.g. Alex (Barista), Stranger at Bus Stop, Teammate..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+          </div>
+          <div class="field mt-1">
+            <label>Context / Where You Met</label>
+            <input type="text" id="j-hc-context" placeholder="e.g. Morning Coffee Shop, Gym, Office..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+          </div>
+          <div class="field mt-1">
+            <label>Emotional Mood Emoji</label>
+            <select id="j-hc-emoji" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
+              <option value="🤝">🤝 Connection / Friendly Interaction</option>
+              <option value="😊">😊 Warmth &amp; Kindness</option>
+              <option value="💡">💡 Inspiration / Learning</option>
+              <option value="🥺">🥺 Empathy &amp; Compassion</option>
+              <option value="🧘‍♂️">🧘‍♂️ Calm &amp; Stoic Conversation</option>
+              <option value="💬">💬 Deep Meaningful Discussion</option>
+              <option value="⚡">⚡ High Energy Motivation</option>
+              <option value="🌟">🌟 Joy &amp; Laughter</option>
+            </select>
+          </div>
+          <div class="field mt-1">
+            <label>What Happened (Story) <span style="color:var(--red)">*</span></label>
+            <textarea id="j-hc-story" rows="3" placeholder="Describe the conversation or interaction..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+          </div>
+          <div class="field mt-1">
+            <label>What I Felt (Personal Emotional Reflection)</label>
+            <textarea id="j-hc-felt" rows="3" placeholder="Reflect on your emotions or what this taught you..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+          </div>
+          <button class="btn btn-primary btn-full mt-2" onclick="saveJournalHumanConnection()">
+            <i class="fa-solid fa-heart" style="color:#f43f5e"></i> Save Log &amp; Earn +1 HRT
+          </button>
+        </div>
+      </div>
+
+      <!-- JOURNAL HISTORY -->
+      <div>
+        <div class="filter-row">
+          <label>FILTER DATE:</label>
+          <input type="date" id="filter-date" style="flex:1;" onchange="loadJournal()">
+          <button class="btn btn-ghost btn-sm" onclick="clearFilter()">All</button>
+        </div>
+        <div id="journal-entries">
+          <div class="empty-journal">
+            <i class="fa-solid fa-book-open"></i>
+            No journal entries yet. Log your first session!
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+let selectedMood = 'focused';
+let syllabusData = null;
+
+function selectMood(mood) {
+  selectedMood = mood;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`mood-${mood}`)?.classList.add('active');
+}
+
+async function loadSyllabusDropdown() {
+  try {
+    const r = await fetch('/api/syllabus');
+    if (!r.ok) return;
+    syllabusData = await r.json();
+    const sel = document.getElementById('j-subject');
+    Object.entries(syllabusData.courses || {}).forEach(([cid, course]) => {
+      const opt = document.createElement('option');
+      opt.value = cid;
+      opt.textContent = course.name;
+      sel.appendChild(opt);
+    });
+  } catch(e) { console.warn('Syllabus load failed:', e); }
+}
+
+function loadItems() {
+  const cid = document.getElementById('j-subject').value;
+  const itemSel = document.getElementById('j-item');
+  itemSel.innerHTML = '<option value="">— Choose item —</option>';
+  if (!cid || !syllabusData) return;
+  const course = syllabusData.courses[cid];
+  if (!course) return;
+  course.weeks.forEach(w => {
+    w.items.forEach(item => {
+      if (!item.completed) {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.name.slice(0, 70) + (item.name.length > 70 ? '…' : '');
+        opt.dataset.xp = item.xp;
+        itemSel.appendChild(opt);
+      }
+    });
+  });
+}
+
+async function saveEntry() {
+  const topic = document.getElementById('j-topic').value.trim();
+  if (!topic) { toast('Topic is required!', 'err'); document.getElementById('j-topic').focus(); return; }
+
+  const notes = document.getElementById('j-notes').value.trim();
+  const subject_id = document.getElementById('j-subject').value;
+  const item_id = document.getElementById('j-item').value;
+  const btn = document.getElementById('save-btn');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    // Save journal entry
+    const r = await fetch('/api/study/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, notes, subject_id, item_id, mood: selectedMood })
+    });
+
+    if (!r.ok) {
+      const e = await r.json();
+      toast(`Error: ${e.detail}`, 'err');
+      return;
+    }
+
+    const data = await r.json();
+    toast(`✅ ${data.message}`, 'ok');
+
+    // If a syllabus item was selected, also toggle it complete
+    if (subject_id && item_id) {
+      await fetch('/api/syllabus/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject_id, item_id, completed: true, early_bird: true })
+      });
+      toast(`📚 Syllabus item ticked as complete!`, 'ok');
+    }
+
+    // Reset form
+    document.getElementById('j-topic').value = '';
+    document.getElementById('j-notes').value = '';
+    document.getElementById('j-subject').value = '';
+    document.getElementById('j-item').innerHTML = '<option value="">— Choose item —</option>';
+    selectMood('focused');
+
+    loadJournal();
+    loadMiniStats();
+  } catch(e) {
+    toast(`Connection error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Session (+10 XP)';
+  }
+}
+
+function clearFilter() {
+  document.getElementById('filter-date').value = '';
+  loadJournal();
+}
+
+const MOOD_ICON = {
+  focused: '⚡', motivated: '🔥', tired: '😴', distracted: '😵'
+};
+
+async function loadJournal() {
+  const dateFilter = document.getElementById('filter-date').value;
+  let url = `/api/study/journal?limit=50`;
+  if (dateFilter) url = `/api/study/journal?date=${dateFilter}`;
+
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return;
+    const data = await r.json();
+    const entries = data.entries || [];
+
+    // Update today count
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = entries.filter(e => e.date === today).length;
+    document.getElementById('today-count').textContent = `${todayCount} today`;
+
+    const container = document.getElementById('journal-entries');
+    if (entries.length === 0) {
+      container.innerHTML = `<div class="empty-journal">
+        <i class="fa-solid fa-book-open"></i>
+        ${dateFilter ? `No entries for ${dateFilter}.` : 'No journal entries yet. Log your first session!'}
+      </div>`;
+      return;
+    }
+
+    // Group by date
+    const byDate = {};
+    [...entries].reverse().forEach(e => {
+      if (!byDate[e.date]) byDate[e.date] = [];
+      byDate[e.date].push(e);
+    });
+
+    container.innerHTML = '';
+    Object.entries(byDate).sort((a,b) => b[0].localeCompare(a[0])).forEach(([date, dayEntries]) => {
+      const badge = document.createElement('div');
+      badge.className = 'date-badge';
+      badge.textContent = date === today ? `📅 Today — ${date}` : `📅 ${date}`;
+      container.appendChild(badge);
+
+      dayEntries.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+        card.innerHTML = `
+          <div class="entry-header">
+            <div class="entry-topic">${escJ(entry.topic)}</div>
+            <div class="entry-time">${entry.timestamp.split(' ')[1].slice(0,5)}</div>
+          </div>
+          ${entry.notes ? `<div class="entry-notes">${escJ(entry.notes)}</div>` : ''}
+          <div class="entry-tags">
+            ${entry.subject_id ? `<span class="entry-tag tag-subject"><i class="fa-solid fa-book" style="font-size:8px"></i> ${entry.subject_id.replace(/_/g,' ')}</span>` : ''}
+            <span class="entry-tag tag-mood mood-${entry.mood}">${MOOD_ICON[entry.mood] || ''} ${entry.mood}</span>
+          </div>`;
+        container.appendChild(card);
+      });
+    });
+  } catch(e) {
+    console.error('Journal load error:', e);
+  }
+}
+
+function escJ(t) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(t));
+  return d.innerHTML;
+}
+
+// Keyboard shortcut: Shift+J to focus topic input
+document.addEventListener('keydown', e => {
+  if (e.shiftKey && e.key === 'J') {
+    document.getElementById('j-topic')?.focus();
+  }
+});
+
+// Set today's date as default filter
+const todayStr = new Date().toISOString().split('T')[0];
+document.getElementById('filter-date').value = todayStr;
+
+function switchJournalTab(tab) {
+  const formStudy = document.getElementById('form-study');
+  const formHuman = document.getElementById('form-human');
+  const tabStudy = document.getElementById('tab-study');
+  const tabHuman = document.getElementById('tab-human');
+
+  if (tab === 'human') {
+    formStudy.style.display = 'none';
+    formHuman.style.display = 'block';
+    tabStudy.classList.remove('active');
+    tabHuman.classList.add('active');
+  } else {
+    formStudy.style.display = 'block';
+    formHuman.style.display = 'none';
+    tabStudy.classList.add('active');
+    tabHuman.classList.remove('active');
+  }
+}
+
+async function saveJournalHumanConnection() {
+  const name = (document.getElementById('j-hc-name')?.value || '').trim();
+  const context = (document.getElementById('j-hc-context')?.value || '').trim();
+  const story = (document.getElementById('j-hc-story')?.value || '').trim();
+  const felt = (document.getElementById('j-hc-felt')?.value || '').trim();
+  const emoji = document.getElementById('j-hc-emoji')?.value || '🤝';
+
+  if (!name || !story) {
+    toast('Please enter person name and story.', 'err');
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/human-connection', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ person_name: name, context_meeting: context, what_happened: story, what_i_felt: felt, emoji: emoji })
+    });
+    const d = await r.json();
+    if (d.status === 'success') {
+      toast(`Encounter logged! ❤️ +1 HRT Awarded!`, 'ok');
+      document.getElementById('j-hc-name').value = '';
+      document.getElementById('j-hc-context').value = '';
+      document.getElementById('j-hc-story').value = '';
+      document.getElementById('j-hc-felt').value = '';
+      loadJournal();
+      if (typeof loadMiniStats === 'function') loadMiniStats();
+    } else {
+      toast('Failed to save log', 'err');
+    }
+  } catch(e) {
+    toast('Server error', 'err');
+  }
+}
+
+loadSyllabusDropdown();
+loadJournal();
+</script>
+</body>
+</html>

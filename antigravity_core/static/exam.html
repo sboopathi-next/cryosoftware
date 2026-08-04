@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Exam Editor</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding-bottom: 16px; }
+.page-head { margin-bottom: 12px; flex-shrink: 0; }
+
+/* ── Exam Layout ─── */
+.exam-layout { display: flex; gap: 12px; flex: 1; min-height: 0; overflow: hidden; }
+
+/* Editor Pane */
+.editor-pane { flex: 1; display: flex; flex-direction: column; background: #0a0d1e; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-width: 0; }
+.preview-pane { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 12px; padding: 20px; overflow-y: auto; color: var(--text1); font-size: 15px; line-height: 1.7; min-width: 0; }
+.pane-header { background: rgba(0,0,0,0.35); padding: 9px 14px; font-family: var(--ff-mono); font-size: 11px; color: var(--cyan); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.editor-textarea { flex: 1; background: transparent; border: none; padding: 16px; color: #c9d1e0; font-family: var(--ff-mono); font-size: 13.5px; line-height: 1.6; resize: none; outline: none; }
+
+/* Vault Pane */
+.vault-pane { width: 290px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0; overflow: hidden; background: rgba(99,102,241,0.03); border: 1px solid rgba(99,102,241,0.18); border-radius: 12px; }
+.vault-header { padding: 12px 14px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.vault-title { font-size: 12px; color: #c7d2fe; font-weight: 700; letter-spacing: .06em; margin-bottom: 8px; }
+
+/* Tabs */
+.vault-tabs { display: flex; gap: 4px; }
+.vault-tab { flex: 1; padding: 5px 6px; font-size: 10px; font-family: var(--ff-mono); border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text3); cursor: pointer; transition: all .15s; }
+.vault-tab.active { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+.vault-tab:hover:not(.active) { color: var(--text2); border-color: var(--border-hi); }
+
+/* Search */
+.vault-search-wrap { padding: 8px 10px 0; flex-shrink: 0; }
+.vault-search { background: #0a0d1e; border: 1px solid var(--border); border-radius: 7px; color: var(--text1); padding: 7px 10px; font-size: 12px; width: 100%; outline: none; transition: border-color .2s; }
+.vault-search:focus { border-color: var(--indigo); }
+
+/* Scroll area for symbols/snippets */
+.vault-scroll { flex: 1; overflow-y: auto; padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 6px; }
+
+/* Symbol grid */
+.sym-category { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin-top: 8px; margin-bottom: 4px; padding-left: 2px; }
+.sym-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.sym-btn { background: #0f132a; border: 1px solid var(--border); border-radius: 6px; padding: 7px 4px; text-align: center; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sym-btn:hover { border-color: var(--indigo); background: rgba(99,102,241,0.12); }
+.sym-rendered { font-size: 14px; color: var(--text1); line-height: 1; min-height: 16px; display: flex; align-items: center; justify-content: center; }
+.sym-latex { font-family: var(--ff-mono); font-size: 8px; color: var(--cyan); opacity: 0.7; word-break: break-all; }
+
+/* Snippet buttons (formula list) */
+.snippet-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: #0f132a; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text2); cursor: pointer; transition: all .15s ease; text-align: left; }
+.snippet-btn:hover { border-color: var(--indigo); background: rgba(99,102,241,0.1); color: #fff; }
+.snip-title { font-size: 12px; font-weight: 500; color: var(--text1); }
+.snippet-code { font-family: var(--ff-mono); font-size: 9px; color: var(--cyan); display: block; margin-top: 2px; opacity: 0.7; }
+.snip-del { color: var(--red); opacity: 0.5; background: none; border: none; cursor: pointer; padding: 2px 4px; font-size: 11px; }
+.snip-del:hover { opacity: 1; }
+
+/* Save Formula Section */
+.save-formula-section { padding: 8px 10px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.save-row { display: flex; gap: 6px; }
+.save-input { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 7px; color: var(--text1); padding: 6px 8px; font-size: 11px; outline: none; }
+.save-input:focus { border-color: var(--indigo); }
+
+/* Hidden class for search filter */
+.hidden-item { display: none !important; }
+
+.save-status-badge { font-size: 10px; color: var(--text3); font-family: var(--ff-mono); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam" class="active"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="page-title">Exam Editor & Math Sandbox</div>
+          <div class="page-sub">Write LaTeX on the left · Rendered preview on the right · AI sees your scratchpad</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="save-status" class="save-status-badge">All changes saved</span>
+          <button class="btn btn-primary" onclick="forceSave()"><i class="fa-solid fa-cloud-arrow-up"></i> Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-layout">
+      <!-- Editor Pane -->
+      <div class="editor-pane">
+        <div class="pane-header">
+          <span><i class="fa-solid fa-code"></i> RAW INPUT (LaTeX + Markdown)</span>
+          <span style="color:var(--text3);font-size:10px;">Shift+Enter = new line</span>
+        </div>
+        <textarea id="editor" class="editor-textarea" placeholder="Start writing... e.g. $$ \int_0^\infty e^{-x} dx $$"></textarea>
+      </div>
+
+      <!-- Preview Pane -->
+      <div class="preview-pane" id="preview"></div>
+
+      <!-- Formula Vault -->
+      <div class="vault-pane">
+        <div class="vault-header">
+          <div class="vault-title"><i class="fa-solid fa-vault"></i> FORMULA VAULT</div>
+          <div class="vault-tabs">
+            <button class="vault-tab active" id="tab-symbols" onclick="switchTab('symbols')">Symbols</button>
+            <button class="vault-tab" id="tab-formulas" onclick="switchTab('formulas')">Formulas</button>
+            <button class="vault-tab" id="tab-saved" onclick="switchTab('saved')">Saved</button>
+          </div>
+        </div>
+
+        <div class="vault-search-wrap">
+          <input type="text" id="vault-search" class="vault-search" placeholder="Search..." onkeyup="filterVault()">
+        </div>
+
+        <!-- SYMBOLS TAB -->
+        <div id="tab-content-symbols" class="vault-scroll">
+
+          <div class="sym-category">Greek Lowercase</div>
+          <div class="sym-grid" id="sym-greek-lower"></div>
+
+          <div class="sym-category">Greek Uppercase</div>
+          <div class="sym-grid" id="sym-greek-upper"></div>
+
+          <div class="sym-category">Calculus & Analysis</div>
+          <div class="sym-grid" id="sym-calculus"></div>
+
+          <div class="sym-category">Binary Relations</div>
+          <div class="sym-grid" id="sym-relations"></div>
+
+          <div class="sym-category">Binary Operators</div>
+          <div class="sym-grid" id="sym-operators"></div>
+
+          <div class="sym-category">Big Operators</div>
+          <div class="sym-grid" id="sym-bigops"></div>
+
+          <div class="sym-category">Arrows</div>
+          <div class="sym-grid" id="sym-arrows"></div>
+
+          <div class="sym-category">Delimiters</div>
+          <div class="sym-grid" id="sym-delimiters"></div>
+
+          <div class="sym-category">Miscellaneous</div>
+          <div class="sym-grid" id="sym-misc"></div>
+
+          <div class="sym-category">Math Accents</div>
+          <div class="sym-grid" id="sym-accents"></div>
+        </div>
+
+        <!-- FORMULAS TAB -->
+        <div id="tab-content-formulas" class="vault-scroll" style="display:none;">
+          <div class="sym-category" style="margin-top:0;">Calculus</div>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\int_{a}^{b} f(x)\\,dx $$')"><div><div class="snip-title">Definite Integral</div><span class="snippet-code">\int_{a}^{b} f(x) dx</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\int_{-\\infty}^{\\infty} f(x)\\,dx $$')"><div><div class="snip-title">Improper Integral</div><span class="snippet-code">\int_{-\infty}^{\infty}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\frac{d}{dx} f(x) $$')"><div><div class="snip-title">Derivative</div><span class="snippet-code">\frac{d}{dx}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\frac{d^2}{dx^2} f(x) $$')"><div><div class="snip-title">Double Derivative</div><span class="snippet-code">\frac{d^2}{dx^2}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\frac{\\partial f}{\\partial x} $$')"><div><div class="snip-title">Partial Derivative</div><span class="snippet-code">\frac{\partial f}{\partial x}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\nabla f(x, y) $$')"><div><div class="snip-title">Gradient ∇f</div><span class="snippet-code">\nabla f</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\lim_{x \\to \\infty} f(x) $$')"><div><div class="snip-title">Limit</div><span class="snippet-code">\lim_{x \to \infty}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\sum_{i=1}^{n} x_i $$')"><div><div class="snip-title">Summation</div><span class="snippet-code">\sum_{i=1}^{n}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\prod_{i=1}^{n} x_i $$')"><div><div class="snip-title">Product</div><span class="snippet-code">\prod_{i=1}^{n}</span></div></button>
+
+          <div class="sym-category">Linear Algebra</div>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix} $$')"><div><div class="snip-title">2×2 Matrix</div><span class="snippet-code">\begin{bmatrix}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\begin{bmatrix} a_{11} & a_{12} & a_{13} \\\\ a_{21} & a_{22} & a_{23} \\\\ a_{31} & a_{32} & a_{33} \\end{bmatrix} $$')"><div><div class="snip-title">3×3 Matrix</div><span class="snippet-code">\begin{bmatrix} 3x3</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ A = Q \\Lambda Q^{-1} $$')"><div><div class="snip-title">Eigendecomposition</div><span class="snippet-code">Q \Lambda Q^{-1}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ A = U \\Sigma V^T $$')"><div><div class="snip-title">SVD</div><span class="snippet-code">U \Sigma V^T</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\det(A) = \\sum_{\\sigma \\in S_n} \\text{sgn}(\\sigma) \\prod_{i=1}^{n} a_{i,\\sigma(i)} $$')"><div><div class="snip-title">Determinant</div><span class="snippet-code">\det(A)</span></div></button>
+
+          <div class="sym-category">Statistics & ML</div>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\mathcal{N}(\\mu, \\sigma^2) $$')"><div><div class="snip-title">Normal Distribution</div><span class="snippet-code">\mathcal{N}(\mu, \sigma^2)</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ P(A|B) = \\frac{P(B|A)P(A)}{P(B)} $$')"><div><div class="snip-title">Bayes Theorem</div><span class="snippet-code">P(A|B)</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\bar{x} = \\frac{1}{n} \\sum_{i=1}^{n} x_i $$')"><div><div class="snip-title">Sample Mean</div><span class="snippet-code">\bar{x}</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\sigma^2 = \\frac{1}{n} \\sum_{i=1}^{n} (x_i - \\mu)^2 $$')"><div><div class="snip-title">Variance</div><span class="snippet-code">\sigma^2</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ L(\\theta) = \\prod_{i=1}^{n} p(x_i | \\theta) $$')"><div><div class="snip-title">Likelihood</div><span class="snippet-code">L(\theta)</span></div></button>
+          <button class="snippet-btn" onclick="insertSnippet('$$ \\hat{\\theta} = \\arg\\max_{\\theta} \\log L(\\theta) $$')"><div><div class="snip-title">MLE</div><span class="snippet-code">\arg\max \log L</span></div></button>
+        </div>
+
+        <!-- SAVED TAB -->
+        <div id="tab-content-saved" class="vault-scroll" style="display:none;">
+          <div id="saved-formulas-list"></div>
+          <div id="saved-empty" style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">
+            <i class="fa-solid fa-bookmark" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:0.3;"></i>
+            No saved formulas yet.<br>Use "Save Selection" below!
+          </div>
+        </div>
+
+        <!-- Save Formula Footer -->
+        <div class="save-formula-section">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-family:var(--ff-mono);">SAVE SELECTION AS FORMULA</div>
+          <div class="save-row">
+            <input type="text" id="formula-name" class="save-input" placeholder="Name (e.g. My Formula)">
+            <button class="btn btn-primary" style="padding:6px 10px;font-size:11px;" onclick="saveSelectedFormula()"><i class="fa-solid fa-floppy-disk"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  startup: { ready() { MathJax.startup.defaultReady(); } }
+};
+
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
+const statusEl = document.getElementById('save-status');
+
+let renderTimeout, saveTimeout;
+let currentTab = 'symbols';
+
+// ── Symbol Database (from LaTeX Math Symbols PDF) ──────────────────────────
+const SYMBOLS = {
+  'sym-greek-lower': [
+    {sym:'α', latex:'\\alpha'},{sym:'β', latex:'\\beta'},{sym:'γ', latex:'\\gamma'},{sym:'δ', latex:'\\delta'},
+    {sym:'ε', latex:'\\epsilon'},{sym:'ζ', latex:'\\zeta'},{sym:'η', latex:'\\eta'},{sym:'θ', latex:'\\theta'},
+    {sym:'ι', latex:'\\iota'},{sym:'κ', latex:'\\kappa'},{sym:'λ', latex:'\\lambda'},{sym:'μ', latex:'\\mu'},
+    {sym:'ν', latex:'\\nu'},{sym:'ξ', latex:'\\xi'},{sym:'π', latex:'\\pi'},{sym:'ρ', latex:'\\rho'},
+    {sym:'σ', latex:'\\sigma'},{sym:'τ', latex:'\\tau'},{sym:'υ', latex:'\\upsilon'},{sym:'φ', latex:'\\phi'},
+    {sym:'χ', latex:'\\chi'},{sym:'ψ', latex:'\\psi'},{sym:'ω', latex:'\\omega'},{sym:'ε', latex:'\\varepsilon'},
+    {sym:'ϑ', latex:'\\vartheta'},{sym:'φ', latex:'\\varphi'},{sym:'ϖ', latex:'\\varpi'},{sym:'ς', latex:'\\varsigma'},
+  ],
+  'sym-greek-upper': [
+    {sym:'Γ', latex:'\\Gamma'},{sym:'Δ', latex:'\\Delta'},{sym:'Θ', latex:'\\Theta'},{sym:'Λ', latex:'\\Lambda'},
+    {sym:'Ξ', latex:'\\Xi'},{sym:'Π', latex:'\\Pi'},{sym:'Σ', latex:'\\Sigma'},{sym:'Υ', latex:'\\Upsilon'},
+    {sym:'Φ', latex:'\\Phi'},{sym:'Ψ', latex:'\\Psi'},{sym:'Ω', latex:'\\Omega'},
+  ],
+  'sym-calculus': [
+    {sym:'∂', latex:'\\partial'},{sym:'∇', latex:'\\nabla'},{sym:'∞', latex:'\\infty'},{sym:'∫', latex:'\\int'},
+    {sym:'∮', latex:'\\oint'},{sym:'∑', latex:'\\sum'},{sym:'∏', latex:'\\prod'},{sym:'√', latex:'\\sqrt{}'},
+    {sym:'′', latex:'\\prime'},{sym:'∀', latex:'\\forall'},{sym:'∃', latex:'\\exists'},{sym:'∅', latex:'\\emptyset'},
+  ],
+  'sym-relations': [
+    {sym:'≤', latex:'\\leq'},{sym:'≥', latex:'\\geq'},{sym:'≠', latex:'\\neq'},{sym:'≡', latex:'\\equiv'},
+    {sym:'≈', latex:'\\approx'},{sym:'∼', latex:'\\sim'},{sym:'≃', latex:'\\simeq'},{sym:'≅', latex:'\\cong'},
+    {sym:'≪', latex:'\\ll'},{sym:'≫', latex:'\\gg'},{sym:'⊂', latex:'\\subset'},{sym:'⊃', latex:'\\supset'},
+    {sym:'⊆', latex:'\\subseteq'},{sym:'⊇', latex:'\\supseteq'},{sym:'∈', latex:'\\in'},{sym:'∉', latex:'\\notin'},
+    {sym:'⊥', latex:'\\perp'},{sym:'∥', latex:'\\parallel'},{sym:'∝', latex:'\\propto'},{sym:'≐', latex:'\\doteq'},
+    {sym:'≺', latex:'\\prec'},{sym:'≻', latex:'\\succ'},{sym:'⊣', latex:'\\dashv'},{sym:'⊨', latex:'\\models'},
+  ],
+  'sym-operators': [
+    {sym:'±', latex:'\\pm'},{sym:'∓', latex:'\\mp'},{sym:'·', latex:'\\cdot'},{sym:'÷', latex:'\\div'},
+    {sym:'×', latex:'\\times'},{sym:'∪', latex:'\\cup'},{sym:'∩', latex:'\\cap'},{sym:'∨', latex:'\\vee'},
+    {sym:'∧', latex:'\\wedge'},{sym:'⊕', latex:'\\oplus'},{sym:'⊗', latex:'\\otimes'},{sym:'⊖', latex:'\\ominus'},
+    {sym:'★', latex:'\\star'},{sym:'∗', latex:'\\ast'},{sym:'∘', latex:'\\circ'},{sym:'•', latex:'\\bullet'},
+    {sym:'△', latex:'\\bigtriangleup'},{sym:'▽', latex:'\\bigtriangledown'},{sym:'\\', latex:'\\setminus'},
+    {sym:'⊙', latex:'\\odot'},{sym:'⊘', latex:'\\oslash'},{sym:'♢', latex:'\\diamond'},
+  ],
+  'sym-bigops': [
+    {sym:'∑', latex:'\\sum'},{sym:'∏', latex:'\\prod'},{sym:'∐', latex:'\\coprod'},{sym:'∫', latex:'\\int'},
+    {sym:'⋃', latex:'\\bigcup'},{sym:'⋂', latex:'\\bigcap'},{sym:'⋁', latex:'\\bigvee'},{sym:'⋀', latex:'\\bigwedge'},
+    {sym:'⊕', latex:'\\bigoplus'},{sym:'⊗', latex:'\\bigotimes'},{sym:'⊙', latex:'\\bigodot'},{sym:'⊎', latex:'\\biguplus'},
+  ],
+  'sym-arrows': [
+    {sym:'←', latex:'\\leftarrow'},{sym:'→', latex:'\\rightarrow'},{sym:'↑', latex:'\\uparrow'},{sym:'↓', latex:'\\downarrow'},
+    {sym:'↔', latex:'\\leftrightarrow'},{sym:'⇐', latex:'\\Leftarrow'},{sym:'⇒', latex:'\\Rightarrow'},{sym:'⇔', latex:'\\Leftrightarrow'},
+    {sym:'⟵', latex:'\\longleftarrow'},{sym:'⟶', latex:'\\longrightarrow'},{sym:'↦', latex:'\\mapsto'},{sym:'↗', latex:'\\nearrow'},
+    {sym:'↘', latex:'\\searrow'},{sym:'↙', latex:'\\swarrow'},{sym:'↖', latex:'\\nwarrow'},{sym:'⇑', latex:'\\Uparrow'},
+    {sym:'⇓', latex:'\\Downarrow'},{sym:'↕', latex:'\\updownarrow'},{sym:'⇕', latex:'\\Updownarrow'},
+  ],
+  'sym-delimiters': [
+    {sym:'(', latex:'('},{sym:')', latex:')'},{sym:'[', latex:'['},{sym:']', latex:']'},
+    {sym:'{', latex:'\\{'},{sym:'}', latex:'\\}'},{sym:'⟨', latex:'\\langle'},{sym:'⟩', latex:'\\rangle'},
+    {sym:'⌊', latex:'\\lfloor'},{sym:'⌋', latex:'\\rfloor'},{sym:'⌈', latex:'\\lceil'},{sym:'⌉', latex:'\\rceil'},
+    {sym:'|', latex:'\\vert'},{sym:'‖', latex:'\\Vert'},
+  ],
+  'sym-misc': [
+    {sym:'…', latex:'\\dots'},{sym:'⋯', latex:'\\cdots'},{sym:'ℏ', latex:'\\hbar'},{sym:'ℓ', latex:'\\ell'},
+    {sym:'ℜ', latex:'\\Re'},{sym:'ℑ', latex:'\\Im'},{sym:'ℵ', latex:'\\aleph'},{sym:'⊤', latex:'\\top'},
+    {sym:'⊥', latex:'\\bot'},{sym:'∠', latex:'\\angle'},{sym:'△', latex:'\\triangle'},{sym:'□', latex:'\\Box'},
+    {sym:'∞', latex:'\\infty'},{sym:'♠', latex:'\\spadesuit'},{sym:'♣', latex:'\\clubsuit'},{sym:'♥', latex:'\\heartsuit'},
+    {sym:'♦', latex:'\\diamondsuit'},{sym:'¬', latex:'\\neg'},{sym:'†', latex:'\\dagger'},{sym:'‡', latex:'\\ddagger'},
+  ],
+  'sym-accents': [
+    {sym:'â', latex:'\\hat{a}'},{sym:'ǎ', latex:'\\check{a}'},{sym:'ã', latex:'\\tilde{a}'},{sym:'á', latex:'\\acute{a}'},
+    {sym:'à', latex:'\\grave{a}'},{sym:'ȧ', latex:'\\dot{a}'},{sym:'ä', latex:'\\ddot{a}'},{sym:'ā', latex:'\\bar{a}'},
+    {sym:'⃗a', latex:'\\vec{a}'},{sym:'Â', latex:'\\widehat{A}'},{sym:'Ã', latex:'\\widetilde{A}'},
+  ],
+};
+
+// ── Build Symbol Buttons ───────────────────────────────────────────────────
+Object.entries(SYMBOLS).forEach(([gridId, syms]) => {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  syms.forEach(({sym, latex}) => {
+    const btn = document.createElement('button');
+    btn.className = 'sym-btn';
+    btn.title = latex;
+    btn.dataset.latex = latex;
+    btn.dataset.name = sym + ' ' + latex;
+    btn.innerHTML = `<span class="sym-rendered">${sym}</span><span class="sym-latex">${latex.replace(/\\/g,'\\')}</span>`;
+    btn.onclick = () => insertSymbol(latex);
+    grid.appendChild(btn);
+  });
+});
+
+// ── Load Saved Formulas from localStorage ────────────────────────────────
+function loadSavedFormulas() {
+  const saved = JSON.parse(localStorage.getItem('ag_saved_formulas') || '[]');
+  const list = document.getElementById('saved-formulas-list');
+  const empty = document.getElementById('saved-empty');
+  list.innerHTML = '';
+  if (saved.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  saved.forEach((f, idx) => {
+    const row = document.createElement('div');
+    row.style = 'display:flex;align-items:center;gap:6px;margin-bottom:6px;';
+    
+    const btnSnippet = document.createElement('button');
+    btnSnippet.className = 'snippet-btn';
+    btnSnippet.style.flex = '1';
+    
+    const snippetCodeStr = f.latex.substring(0,40).replace(/</g, '&lt;') + (f.latex.length > 40 ? '...' : '');
+    btnSnippet.innerHTML = `<div><div class="snip-title">${f.name.replace(/</g, '&lt;')}</div><span class="snippet-code">${snippetCodeStr}</span></div>`;
+    btnSnippet.onclick = () => insertSnippet(f.latex);
+    
+    const btnDel = document.createElement('button');
+    btnDel.className = 'snip-del';
+    btnDel.title = 'Delete';
+    btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+    btnDel.onclick = () => deleteSaved(idx);
+    
+    row.appendChild(btnSnippet);
+    row.appendChild(btnDel);
+    list.appendChild(row);
+  });
+}
+
+function saveSelectedFormula() {
+  const name = document.getElementById('formula-name').value.trim();
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  
+  let selected = '';
+  if (start !== end) {
+    selected = editor.value.substring(start, end).trim();
+  }
+  
+  // Fallback: If no text is selected, just save the entire editor content
+  if (!selected) {
+    selected = editor.value.trim();
+  }
+  
+  if (!name) { alert('Please enter a name for this formula!'); return; }
+  if (!selected) { alert('The editor is empty. Please write a formula to save!'); return; }
+  
+  const saved = JSON.parse(localStorage.getItem('ag_saved_formulas') || '[]');
+  saved.unshift({ name, latex: selected });
+  localStorage.setItem('ag_saved_formulas', JSON.stringify(saved));
+  
+  document.getElementById('formula-name').value = '';
+  loadSavedFormulas();
+  switchTab('saved');
+}
+
+function deleteSaved(idx) {
+  const saved = JSON.parse(localStorage.getItem('ag_saved_formulas') || '[]');
+  saved.splice(idx, 1);
+  localStorage.setItem('ag_saved_formulas', JSON.stringify(saved));
+  loadSavedFormulas();
+}
+
+loadSavedFormulas();
+
+// ── Tab Switching ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  ['symbols','formulas','saved'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`tab-content-${t}`).style.display = t === tab ? 'flex' : 'none';
+  });
+  document.getElementById('tab-content-' + tab).style.flexDirection = 'column';
+  document.getElementById('vault-search').value = '';
+  filterVault();
+}
+
+// ── Search / Filter ───────────────────────────────────────────────────────
+function filterVault() {
+  const q = document.getElementById('vault-search').value.toLowerCase();
+  if (currentTab === 'symbols') {
+    document.querySelectorAll('.sym-btn').forEach(btn => {
+      const match = btn.dataset.name.toLowerCase().includes(q) || btn.dataset.latex.toLowerCase().includes(q);
+      btn.classList.toggle('hidden-item', !match);
+    });
+    document.querySelectorAll('.sym-category').forEach(cat => {
+      // Show category if it or any sibling sym-btn visible
+      const grid = cat.nextElementSibling;
+      if (!grid) return;
+      const anyVisible = [...grid.querySelectorAll('.sym-btn')].some(b => !b.classList.contains('hidden-item'));
+      cat.style.display = q ? (anyVisible ? '' : 'none') : '';
+      grid.style.display = q ? (anyVisible ? '' : 'none') : '';
+    });
+  } else {
+    document.querySelectorAll('.snippet-btn').forEach(btn => {
+      const text = btn.innerText.toLowerCase();
+      btn.classList.toggle('hidden-item', !text.includes(q));
+    });
+  }
+}
+
+// ── Insert at Cursor ──────────────────────────────────────────────────────
+function insertSymbol(latex) {
+  const pos = editor.selectionStart;
+  const before = editor.value.substring(0, pos);
+  const after  = editor.value.substring(editor.selectionEnd);
+  editor.value = before + latex + after;
+  editor.selectionStart = editor.selectionEnd = pos + latex.length;
+  editor.focus();
+  queueRender();
+  queueSave();
+}
+
+function insertSnippet(snippet) {
+  const pos = editor.selectionStart;
+  const before = editor.value.substring(0, pos);
+  const after  = editor.value.substring(editor.selectionEnd);
+  editor.value = before + snippet + '\n' + after;
+  editor.selectionStart = editor.selectionEnd = pos + snippet.length + 1;
+  editor.focus();
+  queueRender();
+  queueSave();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function queueRender() {
+  clearTimeout(renderTimeout);
+  renderTimeout = setTimeout(renderMath, 450);
+}
+
+function renderMath() {
+  let text = editor.value;
+  // Escape HTML entities except math delimiters
+  text = text
+    .replace(/&/g, '&amp;')
+    .replace(/<(?!\$|\/\$)/g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+  preview.innerHTML = text;
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    MathJax.typesetPromise([preview]).catch(() => {});
+  }
+}
+
+// ── Save ─────────────────────────────────────────────────────────────────
+function queueSave() {
+  statusEl.innerText = 'Unsaved...';
+  statusEl.style.color = 'var(--amber)';
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(forceSave, 1800);
+}
+
+async function forceSave() {
+  try {
+    await fetch('/api/exam/save', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ content: editor.value })
+    });
+    statusEl.innerText = 'Saved ✓';
+    statusEl.style.color = 'var(--green)';
+    setTimeout(() => { statusEl.innerText = 'All changes saved'; statusEl.style.color = 'var(--text3)'; }, 2000);
+  } catch(e) {
+    statusEl.innerText = 'Save failed!';
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch('/api/exam/load');
+    const data = await res.json();
+    if (data.content) { editor.value = data.content; renderMath(); }
+  } catch(e) {}
+}
+loadData();
+
+editor.addEventListener('input', () => { queueRender(); queueSave(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Mind OS (CBT, Meditation & Radar)</title>
+<meta name="description" content="Manage automatic negative thoughts, track rumination, practice box breathing, stream meditation tracks, and model relationship trust.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+
+.mind-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  background: #060818; flex-shrink: 0;
+  padding: 16px 28px 0;
+}
+.mind-tab {
+  padding: 10px 22px; font-size: 13px; font-weight: 600;
+  border: 1px solid transparent; border-bottom: none;
+  border-radius: 8px 8px 0 0; cursor: pointer;
+  font-family: var(--ff-body); color: var(--text3);
+  background: transparent; transition: all .18s; position: relative; bottom: -1px;
+  display: flex; align-items: center; gap: 8px;
+}
+.mind-tab:hover { color: var(--text1); background: var(--bg-hover); }
+.mind-tab.active {
+  color: var(--text1); background: var(--bg-card);
+  border-color: var(--border); border-bottom-color: var(--bg-card);
+}
+
+.mind-pane { display: none; flex: 1; overflow-y: auto; padding: 24px 28px; }
+.mind-pane.active { display: flex; flex-direction: column; gap: 20px; }
+
+.mind-header {
+  padding: 20px 28px 0; flex-shrink: 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+/* ── CBT & Grid layout ── */
+.mind-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; }
+.mind-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; position: relative; overflow: hidden;
+}
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.full { grid-column: 1 / -1; }
+
+/* ── Distortion tags ── */
+.distortion-list {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;
+}
+.distortion-checkbox { display: none; }
+.distortion-label {
+  padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border);
+  font-size: 11px; cursor: pointer; color: var(--text2); background: #060818;
+  transition: all .15s; font-family: var(--ff-mono);
+}
+.distortion-checkbox:checked + .distortion-label {
+  background: rgba(139,92,246,0.15); border-color: var(--purple); color: #c084fc;
+}
+
+/* ── Breathing & Meditation relaxing theme ── */
+@keyframes calm-glow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.meditation-zone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 30px; text-align: center; border-radius: var(--radius);
+  border: 1px solid rgba(6,182,212,0.25);
+  background: linear-gradient(-45deg, #091a24, #0e0d29, #140d24, #081a21);
+  background-size: 400% 400%; transition: all 1.5s ease-in-out;
+  position: relative;
+}
+.meditation-zone.relax-playing {
+  animation: calm-glow 15s ease infinite;
+  box-shadow: 0 0 30px rgba(6,182,212,0.15);
+}
+
+.breath-circle-wrap {
+  width: 180px; height: 180px; position: relative; margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.timer-svg {
+  width: 100%; height: 100%; position: absolute; transform: rotate(-90deg);
+}
+.timer-svg circle {
+  fill: none; stroke-width: 4;
+}
+.timer-svg .track { stroke: rgba(255,255,255,0.06); }
+.timer-svg .prog {
+  stroke: var(--cyan); stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.timer-svg .prog.pulse-glow {
+  stroke: var(--purple);
+}
+
+.breath-circle {
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(6,182,212,0.2) 0%, rgba(6,182,212,0.02) 70%);
+  border: 2px dashed rgba(6,182,212,0.3); display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: var(--ff-brand); font-weight: 800; font-size: 16px; color: var(--text1);
+  transition: transform 4s ease-in-out, background-color 4s ease-in-out;
+}
+.breath-circle.inhale {
+  transform: scale(1.25);
+  background-color: rgba(6,182,212,0.35);
+  border-color: var(--cyan);
+  border-style: solid;
+}
+.breath-circle.hold {
+  transform: scale(1.25);
+  background-color: rgba(245,158,11,0.25);
+  border-color: var(--amber);
+  border-style: solid;
+}
+.breath-circle.exhale {
+  transform: scale(1.0);
+  background-color: rgba(139,92,246,0.15);
+  border-color: var(--purple);
+  border-style: dashed;
+}
+
+/* ── Audio controls panel ── */
+.audio-player-card {
+  width: 100%; max-width: 320px; background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px;
+  display: flex; flex-direction: column; gap: 10px; text-align: left;
+}
+.audio-info { font-size: 12px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; }
+.audio-title { font-weight: bold; color: var(--cyan); }
+.audio-controls { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.audio-btn {
+  background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; transition: color .15s;
+}
+.audio-btn:hover { color: var(--text1); }
+.audio-btn.active { color: var(--cyan); text-shadow: 0 0 10px rgba(6,182,212,0.5); }
+.volume-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); }
+
+/* ── Metrics grid ── */
+.stats-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 10px; }
+.stat-mini {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px; text-align: center;
+}
+.stat-val { font-family: var(--ff-brand); font-size: 24px; font-weight: 800; color: var(--purple); }
+.stat-lbl { font-size: 9px; font-family: var(--ff-mono); color: var(--text3); margin-top: 4px; letter-spacing: .08em; }
+
+/* ── Relationship Radar Alerts ── */
+.radar-warnings {
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;
+}
+.radar-warning-card {
+  background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+}
+.warning-icon { font-size: 20px; color: var(--red); }
+.warning-text { font-size: 12px; color: #fca5a5; line-height: 1.4; }
+
+.history-list {
+  display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto;
+}
+.history-item {
+  background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.history-header {
+  display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-family: var(--ff-mono); color: var(--text3);
+}
+.distortion-tag {
+  background: rgba(139,92,246,0.1); color: #c084fc; padding: 2px 6px; border-radius: 4px; font-size: 9px;
+}
+.relationship-badge {
+  padding: 3px 8px; border-radius: 20px; font-size: 10px; font-family: var(--ff-mono); font-weight: 600;
+}
+.relationship-badge.active { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+.relationship-badge.cutoff { background: rgba(239,68,68,0.15); color: #fca5a5; }
+.relationship-badge.paused { background: rgba(245,158,11,0.15); color: #fcd34d; }
+
+.slider-group {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.slider-info {
+  display: flex; justify-content: space-between; font-size: 11px; font-family: var(--ff-mono); color: var(--text2);
+}
+.slider-info span.value { font-weight: bold; color: var(--indigo); }
+.slider-control {
+  width: 100%; accent-color: var(--indigo); cursor: pointer;
+}
+
+/* Collapsible Guide Card */
+.guide-card {
+  border: 1px dashed var(--border-hi); border-radius: var(--radius);
+  background: rgba(139,92,246,0.02); padding: 18px; margin-bottom: 20px;
+}
+.guide-title { font-family: var(--ff-brand); font-size: 14px; color: var(--purple); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.guide-content { font-size: 12px; color: var(--text2); margin-top: 12px; line-height: 1.6; display: none; }
+.guide-content.open { display: block; }
+.guide-term { font-weight: bold; color: var(--cyan); margin-top: 8px; font-family: var(--ff-mono); }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav" id="sidebar-nav">
+      <!-- Populated via script or standard links -->
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="mind-header">
+      <div>
+        <div class="page-title"><i class="fa-solid fa-brain" style="color:var(--purple)"></i> Mind OS</div>
+        <div class="page-sub">CBT Reality Checks, Somatic Meditation Guides &amp; Relationship Radar</div>
+      </div>
+      <div class="hdr-stats">
+        <div class="hdr-stat">Level <span id="hdr-lvl">1</span></div>
+        <div class="hdr-stat">XP <span id="hdr-xp">0</span></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="mind-tabs">
+      <button class="mind-tab active" id="tab-cbt" onclick="switchPane('cbt')">
+        <i class="fa-solid fa-scale-balanced"></i> Reality Check (CBT)
+      </button>
+      <button class="mind-tab" id="tab-meditation" onclick="switchPane('meditation')">
+        <i class="fa-solid fa-peace"></i> Somatic Meditation &amp; Grounder
+      </button>
+      <button class="mind-tab" id="tab-relationships" onclick="switchPane('relationships')">
+        <i class="fa-solid fa-tower-broadcast"></i> Relationship Radar
+      </button>
+    </div>
+
+    <!-- PANE 1: REALITY CHECK (CBT) -->
+    <div class="mind-pane active" id="pane-cbt">
+      <!-- Collapsible Terms Guide -->
+      <div class="guide-card">
+        <div class="guide-title" onclick="toggleGuide()">
+          <span><i class="fa-solid fa-circle-question"></i> Mind OS Guide: What do these terms mean?</span>
+          <i class="fa-solid fa-chevron-down" id="guide-chevron"></i>
+        </div>
+        <div class="guide-content" id="guide-content">
+          <p>This operating system is designed to bypass emotional defense mechanisms and train structured, rational alignment.</p>
+          
+          <div class="guide-term">1. Reality Check (CBT Experiment)</div>
+          <div>When you feel a sudden surge of suspicion, paranoia, or defensive reaction: write down the triggering event and your automatic negative thought. Force yourself to identify <strong>Cognitive Distortions</strong>, evaluate physical evidence, and rewrite a logical alternative. Finally, log physical verified outcomes to prove your brain wrong.</div>
+
+          <div class="guide-term">2. Common Cognitive Distortions</div>
+          <ul>
+            <li><strong>Mind Reading:</strong> Assuming you know what others are thinking without proof (e.g., "They laughed, so they hate me").</li>
+            <li><strong>Personalization:</strong> Believing everything others do is a direct reaction to you (e.g., "She didn't text back because I did something wrong").</li>
+            <li><strong>Catastrophizing:</strong> Expecting the worst-case scenario (e.g., "They are going to betray me and ruin my life").</li>
+            <li><strong>Black &amp; White Thinking:</strong> Viewing people as entirely good or entirely bad with no middle ground.</li>
+          </ul>
+
+          <div class="guide-term">3. Preemptive Cutoff Risk (Relationship Radar)</div>
+          <div>Your baseline personality defense system is designed to run away (cutoff connections) to avoid betrayal. The Radar warns you if your **Leave Urge** exceeds verified, action-based **Trust**. When this alert triggers, you are in a defensive delusion. Do not act. Run a Reality Check.</div>
+
+          <div class="guide-term">4. Leadership Personality Transition</div>
+          <div>Leaders do not hide or run away. They communicate boundaries, ask clarifying questions instead of mind-reading, verify facts before concluding, and ground their nervous systems. This page is designed to systematically transition your mind from a defensive, isolated specialist to a secure, resilient, high-influence Leader.</div>
+        </div>
+      </div>
+
+      <div class="stats-grid-4">
+        <div class="stat-mini"><div class="stat-val" id="mini-total-rc">0</div><div class="stat-lbl">REALITY CHECKS</div></div>
+        <div class="stat-mini"><div class="stat-val" id="mini-pending-rc" style="color:var(--amber)">0</div><div class="stat-lbl">PENDING OUTCOMES</div></div>
+        <div class="stat-mini"><div class="stat-val" id="mini-distortions" style="color:var(--red)">—</div><div class="stat-lbl">PRIMARY DISTORTION</div></div>
+        <div class="stat-mini"><div class="stat-val" id="mini-total-meditations" style="color:var(--cyan)">0</div><div class="stat-lbl">MEDITATIONS</div></div>
+      </div>
+
+      <div class="mind-grid">
+        <div class="mind-card">
+          <h3 style="margin-bottom:16px; font-family:var(--ff-brand); color:var(--text1)">Record Thought Experiment</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>The Triggering Event <span style="color:var(--red)">*</span></label>
+              <input type="text" id="rc-trigger" placeholder="e.g. Someone laughed when I walked into the room..." class="form-input" style="width:100%;">
+            </div>
+            <div class="field">
+              <label>My Immediate Automatic Interpretation <span style="color:var(--red)">*</span></label>
+              <textarea id="rc-interpretation" rows="2" placeholder="e.g. They are talking about me and laughing at my expense..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+            </div>
+            
+            <div class="field">
+              <label>Select Identified Cognitive Distortions</label>
+              <div class="distortion-list">
+                <input type="checkbox" id="dist-mindread" class="distortion-checkbox" value="Mind Reading">
+                <label for="dist-mindread" class="distortion-label">Mind Reading</label>
+
+                <input type="checkbox" id="dist-personal" class="distortion-checkbox" value="Personalization">
+                <label for="dist-personal" class="distortion-label">Personalization</label>
+
+                <input type="checkbox" id="dist-catastrophe" class="distortion-checkbox" value="Catastrophizing">
+                <label for="dist-catastrophe" class="distortion-label">Catastrophizing</label>
+
+                <input type="checkbox" id="dist-reasoning" class="distortion-checkbox" value="Emotional Reasoning">
+                <label for="dist-reasoning" class="distortion-label">Emotional Reasoning</label>
+
+                <input type="checkbox" id="dist-blackwhite" class="distortion-checkbox" value="Black & White Thinking">
+                <label for="dist-blackwhite" class="distortion-label">Black & White Thinking</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label>Evidence Supporting My Thought</label>
+                <textarea id="rc-evidence-for" rows="2" placeholder="Verified physical facts only..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+              </div>
+              <div class="field">
+                <label>Evidence Rejecting/Against My Thought</label>
+                <textarea id="rc-evidence-against" rows="2" placeholder="Alternative realities, likelihoods..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Logical Alternative Explanation <span style="color:var(--red)">*</span></label>
+              <textarea id="rc-alternative" rows="2" placeholder="e.g. They laughed at a joke or phone notification completely unrelated to me." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+            </div>
+
+            <button class="btn btn-primary mt-2" onclick="submitRealityCheck()" style="background:linear-gradient(135deg,var(--purple),var(--indigo)); width:100%; padding:10px;">
+              <i class="fa-solid fa-shield-halved"></i> Log Reality Check (+15 XP)
+            </button>
+          </div>
+        </div>
+
+        <div class="mind-card">
+          <h3 style="margin-bottom:16px; font-family:var(--ff-brand); color:var(--text1)">Past Reframings</h3>
+          <div class="history-list" id="rc-history">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE 2: MEDITATION & GROUNDING -->
+    <div class="mind-pane" id="pane-meditation">
+      <div class="stats-grid-4">
+        <div class="stat-mini"><div class="stat-val" id="mini-med-total">0</div><div class="stat-lbl">SESSIONS COMPLETED</div></div>
+        <div class="stat-mini"><div class="stat-val" id="mini-med-minutes" style="color:var(--cyan)">0m</div><div class="stat-lbl">TOTAL MINUTES</div></div>
+        <div class="stat-mini"><div class="stat-val" id="mini-rum-distress-2" style="color:var(--amber)">0.0</div><div class="stat-lbl">AVG DISTRESS (1-10)</div></div>
+        <div class="stat-mini"><div class="stat-val" id="mini-rum-duration">0.0m</div><div class="stat-lbl">AVG RUM. DURATION</div></div>
+      </div>
+
+      <!-- Hidden HTML5 Audio Element -->
+      <audio id="meditation-audio" loop></audio>
+
+      <div class="mind-grid">
+        <div class="mind-card meditation-zone" id="meditation-zone">
+          <h3 style="margin-bottom:10px; font-family:var(--ff-brand); color:var(--text1);">Meditation Space</h3>
+          <p class="text-muted" style="font-size:11.5px; margin-bottom:24px; max-width:340px;">
+            Select a soundscape, choose your duration, and let your breathing align. 
+            Completing a session awards <strong style="color:var(--cyan)">+20 XP, +2 STC, +1 WIL</strong>.
+          </p>
+
+          <div class="breath-circle-wrap">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+              <circle class="track" cx="50" cy="50" r="46"></circle>
+              <circle class="prog" id="timer-prog-ring" cx="50" cy="50" r="46" stroke-dasharray="289.02" stroke-dashoffset="289.02"></circle>
+            </svg>
+            <div id="breath-circle" class="breath-circle">Ready</div>
+          </div>
+
+          <div style="font-size:14px; font-family:var(--ff-mono); font-weight:700; color:var(--text1); margin-bottom:18px;" id="timer-display">05:00</div>
+
+          <div style="display:flex; gap:10px; justify-content:center; width:100%; max-width:320px; margin-bottom:16px;">
+            <div class="field" style="flex:1; text-align:left;">
+              <label style="font-size:10px;">Select Track</label>
+              <select id="med-track-select" class="form-input" style="width:100%; padding:8px;" onchange="loadAudioTrack()">
+                <option value="/static/assets/audio/rain.mp3">🌧️ Relaxing Rain (Local)</option>
+                <option value="/static/assets/audio/forest.mp3">🌳 Deep Forest Birds (Local)</option>
+                <option value="/static/assets/audio/wind.mp3">💨 Whistling Wind (Local)</option>
+                <option value="/static/assets/audio/river.mp3">💧 Flowing River (Local)</option>
+                <option value="/static/assets/audio/campfire.mp3">🔥 Crackling Campfire (Local)</option>
+              </select>
+            </div>
+            <div class="field" style="width:100px; text-align:left;">
+              <label style="font-size:10px;">Duration</label>
+              <select id="med-duration-select" class="form-input" style="width:100%; padding:8px;" onchange="updateTimerSettings()">
+                <option value="1">1 Min</option>
+                <option value="2">2 Min</option>
+                <option value="5" selected>5 Min</option>
+                <option value="10">10 Min</option>
+                <option value="15">15 Min</option>
+                <option value="20">20 Min</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; width:100%; max-width:320px;">
+            <button class="btn btn-primary" id="btn-med-start" onclick="toggleMeditationSession()" style="flex:2; background:var(--cyan); border-color:var(--cyan); color:#07091a; font-weight:bold;">
+              <i class="fa-solid fa-play"></i> Start Session
+            </button>
+            <button class="btn btn-secondary" onclick="resetMeditationSession()" style="flex:1;">
+              <i class="fa-solid fa-rotate-right"></i> Reset
+            </button>
+          </div>
+
+          <!-- Quick Audio player control card -->
+          <div class="audio-player-card">
+            <div class="audio-info">
+              <span class="audio-title" id="player-track-name">Zen Ambient</span>
+              <span id="player-audio-time">0:00 / 0:00</span>
+            </div>
+            <div class="audio-controls">
+              <button class="audio-btn" id="audio-mute-btn" onclick="toggleMute()"><i class="fa-solid fa-volume-high"></i></button>
+              <input type="range" id="audio-volume-slider" min="0" max="1" step="0.05" value="0.5" style="width:100px; accent-color:var(--cyan);" oninput="setAudioVolume(this.value)">
+              <button class="audio-btn" id="audio-loop-btn" onclick="toggleLoop()" title="Loop Track"><i class="fa-solid fa-repeat active"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mind-card">
+          <h3 style="margin-bottom:16px; font-family:var(--ff-brand);">Log Rumination Cycle</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>Replaying Conversation/Topic <span style="color:var(--red)">*</span></label>
+              <input type="text" id="rum-convo" placeholder="e.g. My manager saying 'You are not mature'..." class="form-input" style="width:100%;">
+            </div>
+            
+            <div class="form-row">
+              <div class="slider-group">
+                <div class="slider-info">
+                  <label>Initial Distress</label>
+                  <span class="value" id="val-rum-initial">5</span>
+                </div>
+                <input type="range" id="rum-initial" min="1" max="10" value="5" class="slider-control" oninput="document.getElementById('val-rum-initial').innerText=this.value">
+              </div>
+              <div class="slider-group">
+                <div class="slider-info">
+                  <label>Final Distress</label>
+                  <span class="value" id="val-rum-final">3</span>
+                </div>
+                <input type="range" id="rum-final" min="1" max="10" value="3" class="slider-control" oninput="document.getElementById('val-rum-final').innerText=this.value">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label>Estimated Rumination Time (mins)</label>
+                <input type="number" id="rum-duration-inp" value="15" class="form-input" style="width:100%;">
+              </div>
+              <div class="field">
+                <label>Somatic Grounding Completed?</label>
+                <select id="rum-grounded-select" class="form-input" style="width:100%;">
+                  <option value="0">No</option>
+                  <option value="1">Yes (Finished Meditation/Breathing)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Grounded Rational Thought</label>
+              <textarea id="rum-thought" rows="2" placeholder="e.g. The comment is feedback on one event, not a summary of my entire value as a person." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="submitRumination()" style="background:linear-gradient(135deg,var(--cyan),var(--indigo)); width:100%; padding:10px;">
+              <i class="fa-solid fa-floppy-disk"></i> Log Grounding (+10 XP, +2 STC)
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mind-card">
+        <h3 style="margin-bottom:16px; font-family:var(--ff-brand);">Meditation &amp; Rumination Log History</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div>
+            <h4 style="font-family:var(--ff-mono); font-size:11px; color:var(--cyan); margin-bottom:8px;">MEDITATION SESSIONS</h4>
+            <div class="history-list" id="med-history">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
+          <div>
+            <h4 style="font-family:var(--ff-mono); font-size:11px; color:var(--purple); margin-bottom:8px;">RUMINATION COGNITIVE REFLEXES</h4>
+            <div class="history-list" id="rum-history">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE 3: RELATIONSHIP RADAR -->
+    <div class="mind-pane" id="pane-relationships">
+      <!-- Radar Warnings Section -->
+      <div class="radar-warnings" id="radar-warnings-container">
+        <!-- populated dynamically if Leave Urge >= Trust -->
+      </div>
+
+      <div class="mind-grid">
+        <div class="mind-card">
+          <h3 style="margin-bottom:16px; font-family:var(--ff-brand);">Configure Connection Profile</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>Person's Name <span style="color:var(--red)">*</span></label>
+              <input type="text" id="rel-name" placeholder="Name or alias..." class="form-input" style="width:100%;">
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-info">
+                <label>Trust Level (Actions-based verification)</label>
+                <span class="value" id="val-rel-trust" style="color:var(--green)">5</span>
+              </div>
+              <input type="range" id="rel-trust" min="1" max="10" value="5" class="slider-control" style="accent-color:var(--green);" oninput="document.getElementById('val-rel-trust').innerText=this.value">
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-info">
+                <label>Preemptive "Leave Urge" Intensity</label>
+                <span class="value" id="val-rel-leave" style="color:var(--red)">0</span>
+              </div>
+              <input type="range" id="rel-leave" min="0" max="10" value="0" class="slider-control" style="accent-color:var(--red);" oninput="document.getElementById('val-rel-leave').innerText=this.value">
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-info">
+                <label>Relationship Closeness / Importance</label>
+                <span class="value" id="val-rel-closeness" style="color:var(--indigo)">5</span>
+              </div>
+              <input type="range" id="rel-closeness" min="1" max="10" value="5" class="slider-control" oninput="document.getElementById('val-rel-closeness').innerText=this.value">
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label>Last Connection / Interaction Date</label>
+                <input type="date" id="rel-date" class="form-input" style="width:100%;">
+              </div>
+              <div class="field">
+                <label>Current Status</label>
+                <select id="rel-status" class="form-input" style="width:100%;">
+                  <option value="Active">Active Connection</option>
+                  <option value="Paused">Paused (Intentionally Cooling)</option>
+                  <option value="Cutoff">Cutoff (Disappeared)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Alignment Notes (Reflect on safety vs threat triggers)</label>
+              <textarea id="rel-notes" rows="2" placeholder="e.g. Brain wants to cutoff because of the hallway laughter event. Reminding myself she is a good person." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:9px 13px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="submitRelationship()" style="background:linear-gradient(135deg,var(--green),var(--indigo)); width:100%; padding:10px;">
+              <i class="fa-solid fa-floppy-disk"></i> Update Connection Profile
+            </button>
+          </div>
+        </div>
+
+        <div class="mind-card">
+          <h3 style="margin-bottom:16px; font-family:var(--ff-brand);">Tracked Interpersonal Profiles</h3>
+          <div class="history-list" id="rel-list">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js"></script>
+<script>
+// Toggle collapsible guide
+function toggleGuide() {
+  const content = document.getElementById("guide-content");
+  const chevron = document.getElementById("guide-chevron");
+  const isOpen = content.classList.contains("open");
+  
+  if (isOpen) {
+    content.classList.remove("open");
+    chevron.className = "fa-solid fa-chevron-down";
+  } else {
+    content.classList.add("open");
+    chevron.className = "fa-solid fa-chevron-up";
+  }
+}
+
+// Build Sidebar navigation
+function renderSidebar() {
+  const currentPath = window.location.pathname;
+  const navItems = [
+    { href: "/", icon: "fa-gauge-high", text: "Dashboard" },
+    { href: "/syllabus", icon: "fa-book-open", text: "Study Path" },
+    { href: "/gym", icon: "fa-dumbbell", text: "Gym Tracker" },
+    { href: "/ai", icon: "fa-robot", text: "AI Coach" },
+    { href: "/journal", icon: "fa-pen-to-square", text: "Study Journal" },
+    { href: "/logs", icon: "fa-list-check", text: "Activity Logs" },
+    { href: "/badlog", icon: "fa-fire-flame-curved", text: "Rage Fuel", style: "color:#ef4444" },
+    { href: "/exam", icon: "fa-square-root-variable", text: "Exam Editor" },
+    { href: "/news", icon: "fa-newspaper", text: "Tech Affairs" },
+    { href: "/human", icon: "fa-heart", text: "Human Journal", style: "color:var(--rose)" },
+    { href: "/teach", icon: "fa-chalkboard-user", text: "Teaching Log", style: "color:#818cf8" },
+    { href: "/teacher", icon: "fa-graduation-cap", text: "AI Teacher", style: "color:#10b981" },
+    { href: "/stoic", icon: "fa-crown", text: "Stoic Log", style: "color:var(--amber)" },
+    { href: "/english", icon: "fa-language", text: "English Booster", style: "color:var(--cyan)" },
+    { href: "/mind-os", icon: "fa-brain", text: "Mind OS", style: "color:var(--purple)", badge: "CBT", active: true }
+  ];
+
+  const sidebarNav = document.getElementById("sidebar-nav");
+  sidebarNav.innerHTML = navItems.map(item => {
+    const activeClass = item.active || item.href === currentPath ? "class=\"active\"" : "";
+    const styleAttr = item.style ? `style="${item.style}"` : "";
+    const badgeHtml = item.badge ? `<span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">${item.badge}</span>` : "";
+    return `<li><a href="${item.href}" ${activeClass}><i class="fa-solid ${item.icon}" ${styleAttr}></i><span>${item.text}</span>${badgeHtml}</a></li>`;
+  }).join("");
+}
+
+// Global State
+let userState = {};
+
+async function fetchStats() {
+  try {
+    const res = await fetch("/stats");
+    if (res.ok) {
+      userState = await res.json();
+      document.getElementById("hdr-lvl").innerText = userState.level || 1;
+      document.getElementById("hdr-xp").innerText = `${userState.xp || 0} / ${userState.xp_required || 100}`;
+    }
+  } catch (err) {
+    console.error("Error loading stats:", err);
+  }
+}
+
+// Switching Tab Panes
+function switchPane(paneId) {
+  document.querySelectorAll(".mind-tab").forEach(tab => tab.classList.remove("active"));
+  document.querySelectorAll(".mind-pane").forEach(pane => pane.classList.remove("active"));
+  
+  document.getElementById(`tab-${paneId}`).classList.add("active");
+  document.getElementById(`pane-${paneId}`).classList.add("active");
+  
+  if (paneId === 'cbt') {
+    loadRealityChecks();
+  } else if (paneId === 'meditation') {
+    loadMeditationData();
+  } else if (paneId === 'relationships') {
+    loadRelationships();
+  }
+  loadMindSummary();
+}
+
+async function loadMindSummary() {
+  try {
+    const res = await fetch("/api/mind_os/summary");
+    if (res.ok) {
+      const summary = await res.json();
+      document.getElementById("mini-total-rc").innerText = summary.total_reality_checks;
+      document.getElementById("mini-pending-rc").innerText = summary.pending_reality_checks;
+      document.getElementById("mini-rum-distress").innerText = summary.avg_rumination_distress;
+      document.getElementById("mini-rum-distress-2").innerText = summary.avg_rumination_distress;
+      document.getElementById("mini-rum-duration").innerText = `${summary.avg_rumination_duration}m`;
+      document.getElementById("mini-total-meditations").innerText = summary.total_meditations || 0;
+      document.getElementById("mini-med-total").innerText = summary.total_meditations || 0;
+      document.getElementById("mini-med-minutes").innerText = `${summary.total_meditation_minutes || 0}m`;
+    }
+  } catch (e) {
+    console.error("Failed to load summary stats:", e);
+  }
+}
+
+// ──────────────────────────────────────────
+// CBT Reality Check Features
+// ──────────────────────────────────────────
+async function submitRealityCheck() {
+  const trigger = document.getElementById("rc-trigger").value.trim();
+  const interpretation = document.getElementById("rc-interpretation").value.trim();
+  const evidenceFor = document.getElementById("rc-evidence-for").value.trim();
+  const evidenceAgainst = document.getElementById("rc-evidence-against").value.trim();
+  const alternative = document.getElementById("rc-alternative").value.trim();
+  
+  if (!trigger || !interpretation || !alternative) {
+    toast("Trigger, Interpretation, and Alternative explanation are required.", "err");
+    return;
+  }
+  
+  const distortions = Array.from(document.querySelectorAll(".distortion-checkbox:checked"))
+    .map(cb => cb.value)
+    .join(", ");
+    
+  try {
+    const res = await fetch("/api/mind_os/reality_check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trigger_event: trigger,
+        my_interpretation: interpretation,
+        evidence_for: evidenceFor,
+        evidence_against: evidenceAgainst,
+        alternative_explanation: alternative,
+        distortions: distortions,
+        verified_outcome: "Pending"
+      })
+    });
+    if (res.ok) {
+      toast("Reality check logged! +15 XP awarded.", "ok");
+      document.getElementById("rc-trigger").value = "";
+      document.getElementById("rc-interpretation").value = "";
+      document.getElementById("rc-evidence-for").value = "";
+      document.getElementById("rc-evidence-against").value = "";
+      document.getElementById("rc-alternative").value = "";
+      document.querySelectorAll(".distortion-checkbox").forEach(cb => cb.checked = false);
+      
+      loadRealityChecks();
+      loadMindSummary();
+      fetchStats();
+    } else {
+      toast("Error logging reality check.", "err");
+    }
+  } catch (err) {
+    console.error(err);
+    toast("Connection error.", "err");
+  }
+}
+
+async function loadRealityChecks() {
+  const listEl = document.getElementById("rc-history");
+  listEl.innerHTML = "<div class='text-center p-3 text-muted'>Loading past logs...</div>";
+  try {
+    const res = await fetch("/api/mind_os/reality_checks");
+    if (res.ok) {
+      const logs = await res.json();
+      if (logs.length === 0) {
+        listEl.innerHTML = "<div class='text-center p-3 text-muted'>No reality checks logged yet.</div>";
+        return;
+      }
+      
+      const counts = {};
+      logs.forEach(l => {
+        if (l.distortions) {
+          l.distortions.split(", ").forEach(d => {
+            counts[d] = (counts[d] || 0) + 1;
+          });
+        }
+      });
+      let primaryDist = "None";
+      let maxCount = 0;
+      for (const k in counts) {
+        if (counts[k] > maxCount) {
+          maxCount = counts[k];
+          primaryDist = k;
+        }
+      }
+      document.getElementById("mini-distortions").innerText = primaryDist;
+
+      listEl.innerHTML = logs.map(l => {
+        const distortionsHtml = l.distortions ? l.distortions.split(", ").map(d => `<span class='distortion-tag'>${d}</span>`).join(" ") : "";
+        const isPending = l.verified_outcome === 'Pending';
+        const outcomeHtml = isPending ? 
+          `<div class='mt-2' style='display:flex;gap:6px;'>
+             <input type='text' id='verify-input-${l.id}' placeholder='Verified physical outcome...' class='form-input' style='padding:4px 8px;font-size:11px;flex:1;'>
+             <button class='btn btn-primary btn-sm' onclick='verifyRC(${l.id})' style='font-size:10px;padding:4px 8px;'>Verify</button>
+           </div>` : 
+          `<div class='mt-1' style='font-size:11.5px;color:var(--green);font-style:italic;'><strong>Outcome:</strong> ${l.verified_outcome}</div>`;
+
+        return `
+          <div class="history-item">
+            <div class="history-header">
+              <span>${l.timestamp}</span>
+              <span style="color:${isPending ? 'var(--amber)' : 'var(--green)'}; font-weight:bold;">${l.verified_outcome}</span>
+            </div>
+            <div style="font-weight:700; font-size:13px; margin-top:2px;">Trigger: "${l.trigger_event}"</div>
+            <div style="font-size:12.5px; color:var(--text2); margin-top:4px;"><strong>Interpretation:</strong> "${l.my_interpretation}"</div>
+            <div style="margin-top:4px;">${distortionsHtml}</div>
+            <div style="font-size:12.5px; color:var(--indigo); font-weight:500; margin-top:6px;"><strong>Alternative Reframe:</strong> "${l.alternative_explanation}"</div>
+            ${outcomeHtml}
+          </div>
+        `;
+      }).join("");
+    }
+  } catch (e) {
+    listEl.innerHTML = "<div class='text-center p-3 text-red'>Error loading past logs.</div>";
+  }
+}
+
+async function verifyRC(id) {
+  const inp = document.getElementById(`verify-input-${id}`);
+  const outcome = inp.value.trim();
+  if (!outcome) {
+    toast("Outcome cannot be empty.", "err");
+    return;
+  }
+  try {
+    const res = await fetch("/api/mind_os/reality_check/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ check_id: id, verified_outcome: outcome })
+    });
+    if (res.ok) {
+      toast("Reality check verified!", "ok");
+      loadRealityChecks();
+      loadMindSummary();
+    }
+  } catch (e) {
+    toast("Failed to verify.", "err");
+  }
+}
+
+// ──────────────────────────────────────────
+// Somatic Meditation & Grounding Timer
+// ──────────────────────────────────────────
+let audioPlayer = document.getElementById("meditation-audio");
+let meditationTimer = null;
+let secondsRemaining = 300; // 5 mins default
+let totalDurationSeconds = 300;
+let isMeditationActive = false;
+let breathingInterval = null;
+let breathCycleState = 0; // 0=Inhale, 1=Hold, 2=Exhale
+
+// Load audio URL from select menu
+function loadAudioTrack() {
+  const select = document.getElementById("med-track-select");
+  const trackName = select.options[select.selectedIndex].text;
+  document.getElementById("player-track-name").innerText = trackName;
+  
+  const isPlaying = !audioPlayer.paused;
+  audioPlayer.src = select.value;
+  audioPlayer.load();
+  if (isPlaying || isMeditationActive) {
+    audioPlayer.play().catch(e => console.log("Play failed: ", e));
+  }
+}
+
+function updateTimerSettings() {
+  const select = document.getElementById("med-duration-select");
+  const mins = parseInt(select.value);
+  secondsRemaining = mins * 60;
+  totalDurationSeconds = mins * 60;
+  updateTimerDisplay();
+  updateProgressRing();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(secondsRemaining / 60).toString().padStart(2, '0');
+  const s = (secondsRemaining % 60).toString().padStart(2, '0');
+  document.getElementById("timer-display").innerText = `${m}:${s}`;
+}
+
+function updateProgressRing() {
+  const ring = document.getElementById("timer-prog-ring");
+  const circumference = 2 * Math.PI * 46; // 289.02
+  const fraction = secondsRemaining / totalDurationSeconds;
+  ring.style.strokeDashoffset = circumference - (fraction * circumference);
+}
+
+// Audio Control Functions
+function setAudioVolume(val) {
+  audioPlayer.volume = val;
+}
+function toggleMute() {
+  const btn = document.getElementById("audio-mute-btn");
+  if (audioPlayer.muted) {
+    audioPlayer.muted = false;
+    btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+  } else {
+    audioPlayer.muted = true;
+    btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+  }
+}
+function toggleLoop() {
+  const btn = document.getElementById("audio-loop-btn");
+  if (audioPlayer.loop) {
+    audioPlayer.loop = false;
+    btn.classList.remove("active");
+  } else {
+    audioPlayer.loop = true;
+    btn.classList.add("active");
+  }
+}
+
+// Start/Pause meditation session
+function toggleMeditationSession() {
+  const btn = document.getElementById("btn-med-start");
+  const zone = document.getElementById("meditation-zone");
+  const ring = document.getElementById("timer-prog-ring");
+  const circle = document.getElementById("breath-circle");
+  
+  if (isMeditationActive) {
+    // Pause Session
+    isMeditationActive = false;
+    clearInterval(meditationTimer);
+    clearInterval(breathingInterval);
+    audioPlayer.pause();
+    btn.innerHTML = '<i class="fa-solid fa-play"></i> Resume Session';
+    zone.classList.remove("relax-playing");
+    ring.classList.remove("pulse-glow");
+    circle.className = "breath-circle";
+    circle.innerText = "Paused";
+  } else {
+    // Start Session
+    isMeditationActive = true;
+    zone.classList.add("relax-playing");
+    ring.classList.add("pulse-glow");
+    btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pause Session';
+    
+    // Ensure audio source is loaded
+    if (!audioPlayer.src) {
+      loadAudioTrack();
+    }
+    audioPlayer.play().catch(e => toast("Audio stream pending user interaction.", "info"));
+    
+    // Start timer countdown
+    meditationTimer = setInterval(() => {
+      if (secondsRemaining > 0) {
+        secondsRemaining--;
+        updateTimerDisplay();
+        updateProgressRing();
+      } else {
+        completeMeditationSession();
+      }
+    }, 1000);
+    
+    // Start Somatic box breathing guide: 4s inhale, 4s hold, 4s exhale, 4s hold
+    circle.className = "breath-circle inhale";
+    circle.innerText = "Inhale...";
+    breathCycleState = 0;
+    
+    breathingInterval = setInterval(() => {
+      breathCycleState = (breathCycleState + 1) % 4;
+      if (breathCycleState === 0) {
+        circle.className = "breath-circle inhale";
+        circle.innerText = "Inhale...";
+      } else if (breathCycleState === 1) {
+        circle.className = "breath-circle hold";
+        circle.innerText = "Hold...";
+      } else if (breathCycleState === 2) {
+        circle.className = "breath-circle exhale";
+        circle.innerText = "Exhale...";
+      } else if (breathCycleState === 3) {
+        circle.className = "breath-circle hold";
+        circle.innerText = "Hold...";
+      }
+    }, 4000);
+  }
+}
+
+function resetMeditationSession() {
+  isMeditationActive = false;
+  clearInterval(meditationTimer);
+  clearInterval(breathingInterval);
+  audioPlayer.pause();
+  audioPlayer.currentTime = 0;
+  
+  const btn = document.getElementById("btn-med-start");
+  btn.innerHTML = '<i class="fa-solid fa-play"></i> Start Session';
+  
+  const zone = document.getElementById("meditation-zone");
+  zone.classList.remove("relax-playing");
+  
+  const ring = document.getElementById("timer-prog-ring");
+  ring.classList.remove("pulse-glow");
+  
+  const circle = document.getElementById("breath-circle");
+  circle.className = "breath-circle";
+  circle.innerText = "Ready";
+  
+  updateTimerSettings();
+}
+
+async function completeMeditationSession() {
+  resetMeditationSession();
+  const select = document.getElementById("med-track-select");
+  const trackName = select.options[select.selectedIndex].text;
+  const durationMins = parseInt(document.getElementById("med-duration-select").value);
+  
+  toast("Meditation complete! Discipline reinforced.", "ok");
+  
+  try {
+    const res = await fetch("/api/mind_os/meditation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ duration_mins: durationMins, track_name: trackName })
+    });
+    if (res.ok) {
+      toast("Earned +20 XP, +2 STC, +1 WIL!", "ok");
+      
+      // Auto toggle Somatic Grounding in the Rumination form
+      document.getElementById("rum-grounded-select").value = "1";
+      document.getElementById("rum-duration-inp").value = durationMins;
+      
+      loadMeditationData();
+      loadMindSummary();
+      fetchStats();
+    }
+  } catch (e) {
+    console.error("Failed to log meditation:", e);
+  }
+}
+
+// Rumination Submits
+async function submitRumination() {
+  const trigger = document.getElementById("rum-convo").value.trim();
+  const intensity = parseInt(document.getElementById("rum-initial").value);
+  const duration = parseInt(document.getElementById("rum-duration-inp").value);
+  const distress = parseInt(document.getElementById("rum-final").value);
+  const grounded = parseInt(document.getElementById("rum-grounded-select").value);
+  const alternative = document.getElementById("rum-thought").value.trim();
+  
+  if (!trigger) {
+    toast("Triggering conversation or topic is required.", "err");
+    return;
+  }
+  
+  try {
+    const res = await fetch("/api/mind_os/rumination", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trigger_convo: trigger,
+        intensity: intensity,
+        duration_mins: duration,
+        distress_score: distress,
+        grounding_used: grounded,
+        alternative_thought: alternative
+      })
+    });
+    if (res.ok) {
+      toast("Rumination logged! +10 XP, +2 STC awarded.", "ok");
+      document.getElementById("rum-convo").value = "";
+      document.getElementById("rum-thought").value = "";
+      document.getElementById("rum-initial").value = 5;
+      document.getElementById("val-rum-initial").innerText = 5;
+      document.getElementById("rum-final").value = 3;
+      document.getElementById("val-rum-final").innerText = 3;
+      document.getElementById("rum-grounded-select").value = "0";
+      
+      loadMeditationData();
+      loadMindSummary();
+      fetchStats();
+    }
+  } catch (e) {
+    toast("Failed to log rumination.", "err");
+  }
+}
+
+async function loadMeditationData() {
+  // Load rumination logs
+  const rumList = document.getElementById("rum-history");
+  rumList.innerHTML = "<div class='text-center p-2 text-muted'>Loading...</div>";
+  try {
+    const res = await fetch("/api/mind_os/rumination_logs");
+    if (res.ok) {
+      const logs = await res.json();
+      if (logs.length === 0) {
+        rumList.innerHTML = "<div class='text-center p-2 text-muted'>No entries.</div>";
+      } else {
+        rumList.innerHTML = logs.map(l => `
+          <div class="history-item" style="padding: 10px;">
+            <div class="history-header">
+              <span>${l.timestamp}</span>
+              <span class="distortion-tag" style="font-size:8.5px;">${l.grounding_used ? '🧘 Grounded' : 'No Somatic'}</span>
+            </div>
+            <div style="font-weight:700; font-size:12px;">"${l.trigger_convo}"</div>
+            <div style="font-size:11px; color:var(--text3);">Initial: ${l.intensity} | Final: ${l.distress_score}</div>
+          </div>
+        `).join("");
+      }
+    }
+  } catch (e) {
+    rumList.innerHTML = "<div class='text-red'>Error.</div>";
+  }
+
+  // Load meditation logs
+  const medList = document.getElementById("med-history");
+  medList.innerHTML = "<div class='text-center p-2 text-muted'>Loading...</div>";
+  try {
+    const res = await fetch("/api/mind_os/meditation_logs");
+    if (res.ok) {
+      const logs = await res.json();
+      if (logs.length === 0) {
+        medList.innerHTML = "<div class='text-center p-2 text-muted'>No entries.</div>";
+      } else {
+        medList.innerHTML = logs.map(l => `
+          <div class="history-item" style="padding: 10px; border-color: rgba(6,182,212,0.15); background: rgba(6,182,212,0.01);">
+            <div class="history-header">
+              <span style="color:var(--cyan); font-weight:700;">🧘 ${l.duration_mins} Min Session</span>
+              <span style="font-size:10px; color:var(--text3);">${l.timestamp.split(" ")[0]}</span>
+            </div>
+            <div style="font-size:11px; color:var(--text2); margin-top:2px;">Track: ${l.track_name.split(" (")[0]}</div>
+          </div>
+        `).join("");
+      }
+    }
+  } catch (e) {
+    medList.innerHTML = "<div class='text-red'>Error.</div>";
+  }
+}
+
+// Audio Player Time Tracker
+audioPlayer.addEventListener("timeupdate", () => {
+  const current = Math.floor(audioPlayer.currentTime);
+  const duration = Math.floor(audioPlayer.duration) || 0;
+  const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  document.getElementById("player-audio-time").innerText = `${formatTime(current)} / ${formatTime(duration)}`;
+});
+
+// ──────────────────────────────────────────
+// Relationship Radar & Trust Features
+// ──────────────────────────────────────────
+async function submitRelationship() {
+  const name = document.getElementById("rel-name").value.trim();
+  const trust = parseInt(document.getElementById("rel-trust").value);
+  const leave = parseInt(document.getElementById("rel-leave").value);
+  const closeness = parseInt(document.getElementById("rel-closeness").value);
+  const dateStr = document.getElementById("rel-date").value;
+  const status = document.getElementById("rel-status").value;
+  const notes = document.getElementById("rel-notes").value.trim();
+  
+  if (!name) {
+    toast("Person's name is required.", "err");
+    return;
+  }
+  
+  try {
+    const res = await fetch("/api/mind_os/relationship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        person_name: name,
+        trust_score: trust,
+        leave_urge: leave,
+        closeness: closeness,
+        last_interaction_date: dateStr,
+        status: status,
+        notes: notes
+      })
+    });
+    if (res.ok) {
+      toast(`Connection updated for ${name}!`, "ok");
+      document.getElementById("rel-name").value = "";
+      document.getElementById("rel-notes").value = "";
+      document.getElementById("rel-trust").value = 5;
+      document.getElementById("val-rel-trust").innerText = 5;
+      document.getElementById("rel-leave").value = 0;
+      document.getElementById("val-rel-leave").innerText = 0;
+      document.getElementById("rel-closeness").value = 5;
+      document.getElementById("val-rel-closeness").innerText = 5;
+      document.getElementById("rel-date").value = "";
+      document.getElementById("rel-status").value = "Active";
+      
+      loadRelationships();
+      loadMindSummary();
+    }
+  } catch (e) {
+    toast("Failed to update relationship profile.", "err");
+  }
+}
+
+async function loadRelationships() {
+  const listEl = document.getElementById("rel-list");
+  const warningsEl = document.getElementById("radar-warnings-container");
+  
+  listEl.innerHTML = "<div class='text-center p-3 text-muted'>Loading...</div>";
+  warningsEl.innerHTML = "";
+  
+  try {
+    const res = await fetch("/api/mind_os/relationships");
+    if (res.ok) {
+      const rels = await res.json();
+      if (rels.length === 0) {
+        listEl.innerHTML = "<div class='text-center p-3 text-muted'>No profiles tracked.</div>";
+        return;
+      }
+      
+      const warnings = rels.filter(r => r.leave_urge >= r.trust_score && r.status === 'Active');
+      if (warnings.length > 0) {
+        warningsEl.innerHTML = warnings.map(w => `
+          <div class="radar-warning-card">
+            <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="warning-text">
+              <strong>PREEMPTIVE ABANDONMENT WARNING:</strong> Your leave urge for <strong>${escHTML(w.person_name)}</strong> (Score: ${w.leave_urge}/10) is greater than or equal to trust level (Score: ${w.trust_score}/10). You are at risk of an automatic cutoff. Run a <strong>Reality Check</strong> before making a decision.
+            </div>
+          </div>
+        `).join("");
+      }
+
+      listEl.innerHTML = rels.map(r => {
+        let badgeClass = "active";
+        if (r.status === "Cutoff") badgeClass = "cutoff";
+        if (r.status === "Paused") badgeClass = "paused";
+        
+        return `
+          <div class="history-item">
+            <div class="history-header">
+              <span style="font-weight:bold; font-size:13px; color:var(--text1);">${escHTML(r.person_name)}</span>
+              <span class="relationship-badge ${badgeClass}">${r.status}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text2); margin-top:4px;">
+              <span>Trust: <strong style="color:var(--green)">${r.trust_score}/10</strong></span> &middot;
+              <span>Leave Urge: <strong style="color:var(--red)">${r.leave_urge}/10</strong></span> &middot;
+              <span>Closeness: <strong style="color:var(--indigo)">${r.closeness}/10</strong></span>
+            </div>
+            ${r.last_interaction_date ? `<div style="font-size:11px; color:var(--text3); font-family:var(--ff-mono); margin-top:4px;">Last: ${r.last_interaction_date}</div>` : ''}
+            ${r.notes ? `<div style="font-size:12px; color:var(--text2); font-style:italic; margin-top:6px; background:#060818; padding:6px 10px; border-radius:4px; border-left:2px solid var(--border-hi);">"${escHTML(r.notes)}"</div>` : ''}
+            <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+              <button class="btn btn-secondary btn-sm" onclick="editRelationshipInForm(${JSON.stringify(r).replace(/"/g, '&quot;')})" style="font-size:10px; padding:3px 8px;">Edit Profile</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  } catch (e) {
+    listEl.innerHTML = "<div class='text-center p-3 text-red'>Error loading profiles.</div>";
+  }
+}
+
+function editRelationshipInForm(r) {
+  document.getElementById("rel-name").value = r.person_name;
+  document.getElementById("rel-trust").value = r.trust_score;
+  document.getElementById("val-rel-trust").innerText = r.trust_score;
+  document.getElementById("rel-leave").value = r.leave_urge;
+  document.getElementById("val-rel-leave").innerText = r.leave_urge;
+  document.getElementById("rel-closeness").value = r.closeness;
+  document.getElementById("val-rel-closeness").innerText = r.closeness;
+  document.getElementById("rel-date").value = r.last_interaction_date || "";
+  document.getElementById("rel-status").value = r.status;
+  document.getElementById("rel-notes").value = r.notes || "";
+  toast(`Loaded profile for ${r.person_name} into form.`, "info");
+}
+
+// Initial Setup
+renderSidebar();
+fetchStats();
+loadRealityChecks();
+loadMindSummary();
+
+</script>
+</body>
+</html>

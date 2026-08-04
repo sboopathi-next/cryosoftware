@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Stoic Mindset</title>
+<meta name="description" content="Log daily reflections, consult with Napoleon Hill & Marcus Aurelius AI, score daily mindset, and review stoic history.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+<script src="/static/vendor/katex/katex.min.js"></script>
+<script src="/static/vendor/katex/marked.min.js"></script>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+.stoic-container { display: flex; flex: 1; min-height: 0; overflow: hidden; background: #060818; }
+.input-pane { width: 480px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: rgba(99,102,241,0.01); flex-shrink: 0; min-height: 0; }
+.tab-headers { display: flex; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); flex-shrink: 0; }
+.tab-hdr { flex: 1; text-align: center; padding: 14px; font-family: var(--ff-mono); font-size: 11px; text-transform: uppercase; color: var(--text3); border-bottom: 2px solid transparent; cursor: pointer; transition: all .15s; }
+.tab-hdr.active { color: var(--amber); border-bottom-color: var(--amber); background: rgba(245,158,11,0.03); }
+.tab-hdr:hover:not(.active) { color: var(--text2); background: rgba(255,255,255,0.01); }
+.tab-pane-content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; font-family: var(--ff-mono); color: var(--text3); text-transform: uppercase; letter-spacing: .05em; }
+.form-input { background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: var(--text1); padding: 10px 14px; font-size: 13px; outline: none; transition: border-color .15s; }
+.form-input:focus { border-color: var(--amber); }
+.slider-wrap { display: flex; align-items: center; gap: 12px; }
+.pma-slider { flex: 1; accent-color: var(--amber); cursor: pointer; }
+.pma-val { font-family: var(--ff-mono); font-size: 14px; font-weight: 700; color: var(--amber); width: 24px; text-align: right; }
+.history-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; transition: all .15s; }
+.history-card:hover { border-color: rgba(245,158,11,0.3); background: var(--bg-hover); }
+.card-hdr { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-family: var(--ff-mono); }
+.card-date { color: var(--text3); }
+.card-score { color: var(--amber); font-weight: 700; }
+.card-reflection { font-size: 12.5px; color: var(--text2); line-height: 1.5; white-space: pre-wrap; }
+.card-lesson { font-size: 11.5px; color: var(--cyan); border-left: 2px solid var(--cyan); padding-left: 8px; font-style: italic; }
+.chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e; }
+.chat-scroll { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+.bubble { display: flex; gap: 14px; max-width: 85%; margin-bottom: 4px; }
+.bubble.user { align-self: flex-end; flex-direction: row-reverse; }
+.bubble.ai { align-self: flex-start; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+.bubble.user .avatar { background: #3b82f6; color: white; }
+.bubble.ai .avatar { background: linear-gradient(135deg, #d97706, #b45309); color: white; }
+.bubble-body { border-radius: 12px; padding: 12px 16px; font-size: 13.5px; line-height: 1.6; color: var(--text1); word-break: break-word; }
+.bubble.user .bubble-body { background: #1e293b; border: 1px solid rgba(255,255,255,0.06); }
+.bubble.ai .bubble-body { background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.18); }
+.bubble-body table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+.bubble-body th, .bubble-body td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+.bubble-body th { background: rgba(255,255,255,0.05); font-weight: 600; color: var(--amber); }
+.bubble-body code { background: rgba(255,255,255,0.08); padding: 2px 4px; border-radius: 4px; font-family: var(--ff-mono); font-size: 11.5px; color: var(--amber); }
+.chat-footer { padding: 16px 28px; border-top: 1px solid var(--border); background: #060818; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; }
+.chat-input { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: var(--text1); padding: 10px 14px; font-size: 13.5px; outline: none; transition: border-color .15s; }
+.chat-input:focus { border-color: var(--amber); }
+.review-btn { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; border-radius: 8px; padding: 0 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
+.review-btn:hover { opacity: 0.9; }
+.score-badge { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: rgba(245,158,11,0.15); border: 1px solid var(--amber); color: var(--amber); font-weight: 700; font-family: var(--ff-mono); }
+.speak-bubble-btn { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 11px; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; transition: color .15s; }
+.speak-bubble-btn:hover { color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic" class="active"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="stoic-container">
+      <div class="input-pane">
+        <div class="tab-headers">
+          <div class="tab-hdr active" id="hdr-log" onclick="switchPane('log')">Log Reflection</div>
+          <div class="tab-hdr" id="hdr-history" onclick="switchPane('history')">Reflection History</div>
+        </div>
+        <div class="tab-pane-content" id="pane-log">
+          <span class="header-meta" style="color:var(--amber);">Daily Stoic Journal</span>
+          <div style="font-size:12px; color:var(--text3); margin-top:-8px; line-height:1.4;">
+            "You have power over your mind - not outside events. Realize this, and you will find strength." — Marcus Aurelius
+          </div>
+          <div class="form-group">
+            <label class="form-label">Positive Mental Attitude (PMA) Score</label>
+            <div class="slider-wrap">
+              <input type="range" id="pma-score" class="pma-slider" min="1" max="10" value="8" oninput="updatePmaVal(this.value)">
+              <span id="pma-val-lbl" class="pma-val">8</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Today's Stoic Reflection</label>
+            <textarea id="reflection-inp" class="form-input" rows="5" placeholder="What happened today? Did you control your impulses? Did you display Stoic calm under pressure?"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lesson Applied Today</label>
+            <input type="text" id="lesson-inp" class="form-input" placeholder="e.g. Focus only on what is in my control.">
+          </div>
+          <button class="btn btn-primary" onclick="submitStoicLog()" style="background:linear-gradient(135deg, #d97706, #b45309); font-weight:700; margin-top:8px;">
+            <i class="fa-solid fa-floppy-disk"></i> Save Reflection &amp; Gain +2 STC
+          </button>
+        </div>
+        <div class="tab-pane-content" id="pane-history" style="display:none;">
+          <span class="header-meta" style="color:var(--amber);">Past reflections</span>
+          <div class="checklist-scroll" id="stoic-history-list"></div>
+        </div>
+      </div>
+      <div class="chat-pane">
+        <div style="padding:16px 28px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:15px; font-weight:700; color:var(--text1); display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-crown" style="color:var(--amber);"></i> Napoleon-Aurelius AI
+            </div>
+            <div style="font-size:11px; color:var(--text3); margin-top:2px;">Stoic wisdom &middot; Positive mental attitude review &middot; Daily mindset scoring</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearStoicChat()"><i class="fa-solid fa-trash-can"></i> Clear Chat</button>
+          <span id="daily-score-badge" class="score-badge" style="display:none;">[SCORE: 0/10]</span>
+        </div>
+        <div class="chat-scroll" id="chat-scroll">
+          <div class="bubble ai">
+            <div class="avatar" style="background:linear-gradient(135deg,#d97706,#b45309);"><i class="fa-solid fa-crown"></i></div>
+            <div class="bubble-body">
+              Welcome, Boopathi. I am your hybrid guide combining the Minds of <strong>Marcus Aurelius</strong> and <strong>Napoleon Hill</strong>. 🏛️✨<br><br>
+              Every evening, complete your Stoic Reflection on the left. Then, click <strong>"Review My Day"</strong> below. 
+              I will analyze your reflections, study logs, and gym activities, evaluate your Definiteness of Purpose and Emotional Control, score your day out of 10, and give you Stoic mindset training.
+            </div>
+          </div>
+        </div>
+        <div class="chat-footer">
+          <div class="input-row">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Ask Napoleon & Marcus for mindset advice..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); sendStoicMessage(); }">
+            <button class="btn btn-primary" onclick="sendStoicMessage()" id="send-btn" style="background:linear-gradient(135deg, #d97706, #b45309);"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="review-btn" onclick="reviewMyDay()"><i class="fa-solid fa-clipboard-check"></i> Review My Day &amp; Score</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="settings-modal" class="modal-mask hidden"></div>
+<script src="/static/shared.js?v=teach3"></script>
+<script>
+let currentPane = 'log';
+let stoicHistory = [];
+
+function escH(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+updatePmaVal = (val) => {
+  document.getElementById('pma-val-lbl').textContent = val;
+};
+
+function switchPane(p) {
+  currentPane = p;
+  document.getElementById('hdr-log').classList.toggle('active', p === 'log');
+  document.getElementById('hdr-history').classList.toggle('active', p === 'history');
+  document.getElementById('pane-log').style.display = p === 'log' ? 'flex' : 'none';
+  document.getElementById('pane-history').style.display = p === 'history' ? 'flex' : 'none';
+  if (p === 'history') {
+    loadStoicHistory();
+  }
+}
+
+// Submit Stoic Reflection
+async function submitStoicLog() {
+  const score = parseInt(document.getElementById('pma-score').value, 10);
+  const ref = document.getElementById('reflection-inp').value.trim();
+  const les = document.getElementById('lesson-inp').value.trim();
+
+  if (!ref) {
+    toast('Reflection cannot be empty!', 'err');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/stoic', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ reflection: ref, attitude_score: score, stoic_lesson: les })
+    });
+    const data = await res.json();
+    if (res.status === 200) {
+      toast('🏆 Stoic Reflection saved! Gained +2 STC!', 'ok');
+      document.getElementById('reflection-inp').value = '';
+      document.getElementById('lesson-inp').value = '';
+      
+      if (typeof updateHeaderStats === 'function') updateHeaderStats(data.state);
+      reviewMyDay(ref, score, les);
+    } else {
+      toast("Error: " + (data.detail || 'Could not save'), 'err');
+    }
+  } catch(e) {
+    toast('Network error saving reflection', 'err');
+  }
+}
+
+// Load Stoic History
+async function loadStoicHistory() {
+  try {
+    const res = await fetch('/api/stoic');
+    const data = await res.json();
+    stoicHistory = data.reflections || [];
+    renderHistory();
+  } catch(e) {}
+}
+
+function renderHistory() {
+  const container = document.getElementById('stoic-history-list');
+  if (!stoicHistory.length) {
+    container.innerHTML = '<div style="color:var(--text3);text-align:center;padding:30px;font-size:12px;">No past reflections logged yet.</div>';
+    return;
+  }
+  container.innerHTML = stoicHistory.map(h => `
+    <div class="history-card">
+      <div class="card-hdr">
+        <span class="card-date">${h.date}</span>
+        <span class="card-score">PMA: ${h.attitude_score}/10</span>
+      </div>
+      <div class="card-reflection">${escH(h.reflection)}</div>
+      ` + (h.stoic_lesson ? `<div class="card-lesson">Applied: ${escH(h.stoic_lesson)}</div>` : '') + `
+    </div>
+  `).join('');
+}
+
+// Review My Day
+function reviewMyDay(reflectionText = "", pmaScore = 0, lesson = "") {
+  let prompt = "Teacher, let's review my day!";
+  if (reflectionText) {
+    prompt = "Teacher, here is my daily Stoic reflection for review:\n\n" +
+             "- Reflection: \\\"" + reflectionText + "\\\"\n" +
+             "- PMA Self-Score: " + pmaScore + "/10\n" +
+             "- Applied Lesson: \\\"" + (lesson || 'None') + "\\\"\n\n" +
+             "Please review this alongside my recent activity logs, score my day, and guide me.";
+  }
+  sendStoicMessage(prompt);
+}
+
+// Send Message to Napoleon-Aurelius AI
+async function sendStoicMessage(customPrompt = null) {
+  const input = document.getElementById('chat-input');
+  const text = customPrompt || input.value.trim();
+  if (!text) return;
+  if (!customPrompt) input.value = '';
+
+  appendBubble(text, 'user');
+
+  const tid = 'think-' + Date.now();
+  appendBubble('Consulting Napoleon Hill and Marcus Aurelius...', 'ai', tid, true);
+
+  const currentKey = localStorage.getItem('groq_key') || localStorage.getItem('gemini_key') || '';
+  const currentModel = window.getSanitizedGroqModel ? getSanitizedGroqModel() : (localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile');
+
+  const payload = {
+    message: text,
+    provider: 'groq',
+    api_key: currentKey,
+    groq_model: currentModel,
+    history: []
+  };
+
+  try {
+    const r = await fetch('/api/ai/stoic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    document.getElementById(tid)?.remove();
+    if (r.status !== 200) { appendBubble("⚠️ Error: " + (data.detail || 'Failed to connect.'), 'ai'); return; }
+
+    const reply = data.reply;
+    appendBubble(reply, 'ai');
+
+    // Speak response using voice engine (male voice)
+    if (typeof speakAIResponse === 'function') {
+      speakAIResponse(reply, { warmth: 8, pitch: 0.75, rate: 0.86, gender: 'male' });
+    }
+
+    // Try to extract score tag: [SCORE: X/10]
+    const scoreMatch = reply.match(/\[SCORE:\s*(.*?)\]/i);
+    if (scoreMatch) {
+      const scoreBadge = document.getElementById('daily-score-badge');
+      scoreBadge.textContent = "[SCORE: " + scoreMatch[1].trim() + "]";
+      scoreBadge.style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById(tid)?.remove();
+    appendBubble('⚠️ Network error connecting to Napoleon-Aurelius.', 'ai');
+  }
+}
+
+function speakBubbleText(btn) {
+  const bubble = btn.closest('.bubble');
+  if (!bubble) return;
+  const textEl = bubble.querySelector('.bubble-body');
+  if (textEl && typeof speakVoice === 'function') {
+    speakVoice(textEl.innerText, true, { warmth: 8, pitch: 0.75, rate: 0.86, gender: 'male' });
+  }
+}
+
+function appendBubble(text, role, id = '', isThinking = false) {
+  const container = document.getElementById('chat-scroll');
+  const b = document.createElement('div');
+  b.className = "bubble " + role;
+  if (id) b.id = id;
+  const icon = role === 'user' ? 'fa-user' : 'fa-crown';
+
+  let formatted = (role === 'ai' && !isThinking)
+    ? renderMarkdownWithMath(text)
+    : (isThinking ? text : escH(text));
+
+  const speakBtn = (role === 'ai' && !isThinking)
+    ? '<br><button class="speak-bubble-btn" onclick="speakBubbleText(this)"><i class="fa-solid fa-volume-high"></i> Speak</button>'
+    : '';
+
+  b.innerHTML = '<div class="avatar" style="' + (role === 'user' ? 'background:#3b82f6;' : 'background:linear-gradient(135deg,#d97706,#b45309);') + '"><i class="fa-solid ' + icon + '"></i></div><div class="bubble-body">' + formatted + speakBtn + '</div>';
+  container.appendChild(b);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Markdown formatting (KaTeX)
+function renderMarkdownWithMath(text) {
+  const placeholders = [];
+  let placeholderCounter = 0;
+  let processedText = text;
+
+  processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+    const id = "MATHDISPLAYPLACEHOLDER" + placeholderCounter + "XYZ";
+    placeholderCounter++;
+    placeholders.push({ id: id, math: math, display: true });
+    return id;
+  });
+
+  processedText = processedText.replace(/\\\[([\s\S]*?)\\\]/g, (match, math) => {
+    const id = "MATHDISPLAYPLACEHOLDER" + placeholderCounter + "XYZ";
+    placeholderCounter++;
+    placeholders.push({ id: id, math: math, display: true });
+    return id;
+  });
+
+  processedText = processedText.replace(/\$([^\$\n]+?)\$/g, (match, math) => {
+    const id = "MATHINLINEPLACEHOLDER" + placeholderCounter + "XYZ";
+    placeholderCounter++;
+    placeholders.push({ id: id, math: math, display: false });
+    return id;
+  });
+
+  processedText = processedText.replace(/\\\(([\s\S]*?)\\\)/g, (match, math) => {
+    const id = "MATHINLINEPLACEHOLDER" + placeholderCounter + "XYZ";
+    placeholderCounter++;
+    placeholders.push({ id: id, math: math, display: false });
+    return id;
+  });
+
+  let html = "";
+  if (typeof marked !== 'undefined') {
+    html = marked.parse(processedText);
+  } else {
+    html = processedText.replace(/\n/g, '<br>');
+  }
+
+  placeholders.forEach(({ id, math, display }) => {
+    let renderedMath = id;
+    if (typeof katex !== 'undefined') {
+      try {
+        renderedMath = katex.renderToString(math, { displayMode: display, throwOnError: false });
+      } catch (err) {
+        renderedMath = '<span class="katex-error">' + escH(math) + '</span>';
+      }
+    } else {
+      renderedMath = escH(display ? "$$" + math + "$$" : "$" + math + "$");
+    }
+    html = html.split(id).join(renderedMath);
+  });
+
+  return html;
+}
+
+// Clear chat function
+async function clearStoicChat() {
+  try {
+    await fetch('/api/ai/clear/stoic', { method: 'POST' });
+    document.getElementById('chat-scroll').innerHTML = `
+      <div class="bubble ai"><div class="avatar" style="background:linear-gradient(135deg,#d97706,#b45309);"><i class="fa-solid fa-crown"></i></div><div class="bubble-body">Chat history cleared. Ready to review your mindset!</div></div>
+    `;
+    toast('Chat cleared', 'ok');
+  } catch(e) {
+    toast('Failed to clear history', 'err');
+  }
+}
+
+// Modify clear chat button in header to call this
+const clearBtn = document.querySelector('.chat-pane button');
+if (clearBtn) {
+  clearBtn.onclick = clearStoicChat;
+}
+
+async function loadChatHistory() {
+  try {
+    const res = await fetch('/api/ai/history/stoic');
+    const data = await res.json();
+    if (data.messages && data.messages.length) {
+      document.getElementById('chat-scroll').innerHTML = '';
+      data.messages.forEach(h => appendBubble(h.message, h.role === 'user' ? 'user' : 'ai'));
+    }
+  } catch(e) {}
+}
+
+loadChatHistory();
+</script>
+</body>
+</html>

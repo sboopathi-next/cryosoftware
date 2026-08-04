@@ -1,0 +1,146 @@
+Timestamp,Category,Workout,Variations,Sets,Duration_Minutes
+2026-07-01T22:55:22.924930,Abs,Bicycle Crunch,,Set 1: 0kg x 30 reps (slowly I did ),0
+2026-07-01T22:56:37.148213,Abs,Crunch,,Set 1: kg x 30 reps (with one dumble at leg); Set 2: kg x 30 reps (with 2 dumble); Set 3: kg x 30 reps (with dumbel),0
+2026-07-01T23:00:10.303784,Abs,Toe Touches,,Set 1: kg x 30 reps (I did with speaks); Set 2: kg x 30 reps (I did with spaks),3
+2026-07-02T12:53:55.079958,Back,Deadlift,,Set 1: 30kg x 10 reps; Set 2: 20kg x 10 reps; Set 3: 35kg x 10 reps,5
+2026-07-02T12:54:52.929786,Back,Pull-up,,Set 1: 64kg x 10 reps; Set 2: 64kg x 10 reps; Set 3: 64kg x 7 reps,0
+2026-07-02T12:55:45.858218,Back,T-Bar Row,,Set 1: 15kg x 10 reps; Set 2: 25kg x 10 reps; Set 3: 25kg x 10 reps,0
+2026-07-02T12:56:44.575355,Back,Straight-arm Pulldown,,Set 1: 30kg x 10 reps; Set 2: 30kg x 10 reps; Set 3: 30kg x 10 reps,10
+2026-07-02T12:57:42.437076,Back,Barbell Row,,Set 1: 30kg x 15 reps; Set 2: 30kg x 15 reps; Set 3: 30kg x 15 reps,10
+2026-07-03T10:27:11.912255,Shoulders,Overhead Press (Dumbbell),,Set 1: 15kg x 15 reps (front); Set 2: 15kg x 15 reps (front); Set 3: 15kg x 15 reps (front),10
+2026-07-03T10:27:14.120679,Shoulders,Overhead Press (Dumbbell),,Set 1: 15kg x 15 reps (front); Set 2: 15kg x 15 reps (front); Set 3: 15kg x 15 reps (front),10
+2026-07-03T10:27:15.920544,Shoulders,Overhead Press (Dumbbell),,Set 1: 15kg x 15 reps (front); Set 2: 15kg x 15 reps (front); Set 3: 15kg x 15 reps (front),10
+2026-07-03T10:27:33.023319,Shoulders,Overhead Press (Dumbbell),,Set 1: 15kg x 15 reps (front); Set 2: 15kg x 15 reps (front); Set 3: 15kg x 15 reps (front),10
+2026-07-03T16:33:43.171316,Abs,Crunch,,Set 1: kg x 30 reps,3
+2026-07-03T17:50:38.204983,Abs,Crunch,,Set 1: 20kg x 30 reps,6
+2026-07-03T20:22:57.181541,Shoulders,Overhead Press (Barbell),,Set 1: 7.5kg x 15 reps; Set 2: 7.5kg x 15 reps; Set 3: 10kg x 10 reps,5
+2026-07-03T20:51:03.763904,Shoulders,Machine Shoulder Press,,Set 1: 30kg x 30 reps; Set 2: 30kg x 30 reps; Set 3: 30kg x 30 reps,3
+2026-07-03T20:51:14.466214,Abs,Crunch,,Set 1: 20kg x 30 reps,10
+2026-07-03T21:09:33.518151,Yoga,Sakrasanam,,No sets recorded,1
+2026-07-03T23:26:12.312097,Shoulders,Lateral Raise,,Set 1: 7.5kg x 15 reps; Set 2: 5kg x 15 reps; Set 3: 5kg x 15 reps,5
+2026-07-03T23:37:55.506327,Yoga,Child pose,,No sets recorded,2
+2026-07-03T23:38:36.962841,Full Body,Farmer's Walk,,No sets recorded,30
+2026-07-03T23:40:42.437899,Abs,Plank,,No sets recorded,1
+2026-07-04T20:47:45.582226,Legs,Standing Calf Raise,,Set 1: 30kg x 20 reps; Set 2: 30kg x 20 reps; Set 3: 40kg x 25 reps,10
+2026-07-04T20:49:07.667633,Legs,Leg Curl (Seated),,Set 1: 20kg x 10 reps; Set 2: 20kg x 15 reps; Set 3: 20kg x 20 reps,0
+2026-07-04T20:54:15.179170,Legs,Walking Lunges,,Set 1: 35kg x 20 reps; Set 2: 40kg x 20 reps; Set 3: 30kg x 20 reps,0
+2026-07-04T20:56:24.569600,Legs,Sumo Deadlift,,Set 1: 50kg x 13 reps; Set 2: 50kg x 15 reps; Set 3: 30kg x 15 reps,10
+2026-07-04T21:02:13.650091,Legs,Leg Curl (Seated),,Set 1: 30kg x 20 reps; Set 2: 30kg x 20 reps; Set 3: 30kg x 20 reps,10
+2026-07-04T21:03:29.207374,Legs,Leg Press,,Set 1: 100kg x 24 reps; Set 2: 100kg x 25 reps,10
+2026-07-05T14:23:32.199033,Chest,Push-up,,Set 1: 30kg x 30 reps,2
+2026-07-05T14:23:50.622757,Full Body,Farmer's Walk,,No sets recorded,30
+2026-07-06T14:31:30.202788,Chest,Incline Bench Press,,Set 1: 20kg x 15 reps; Set 2: 30kg x 10 reps; Set 3: 30kg x 13 reps,15
+2026-07-06T14:32:22.101536,Chest,Decline Bench Press,,Set 1: 15kg x 15 reps; Set 2: 20kg x 10 reps; Set 3: 20kg x 12 reps,15
+2026-07-06T14:37:45.964524,Chest,Barbell Bench Press,,Set 1: 30kg x 10 reps; Set 2: 40kg x 15 reps; Set 3: 40kg x 15 reps,15
+2026-07-06T14:38:54.809871,Chest,Push-up,,Set 1: 65kg x 51 reps; Set 2: 65kg x 50 reps; Set 3: 65kg x 20 reps; Set 4: 65kg x 40 reps,15
+2026-07-06T14:41:25.165588,Chest,Machine Fly,,Set 1: 10kg x 20 reps; Set 2: 12kg x 15 reps; Set 3: 14kg x 15 reps,10
+2026-07-06T14:42:39.389124,Chest,Machine Press,,Set 1: 30kg x 15 reps; Set 2: 32kg x 15 reps; Set 3: 34kg x 15 reps,12
+2026-07-06T14:43:41.240581,Yoga,Child pose,,No sets recorded,10
+2026-07-07T00:14:25.803163,Chest,Push-up,,Set 1: 65kg x 50 reps,10
+2026-07-07T00:33:23.451681,Chest,Push-up,,Set 1: 65kg x 50 reps; Set 2: 65kg x 10 reps,2
+2026-07-07T00:37:43.220077,Abs,Bicycle Crunch,,Set 1: kg x 15 reps; Set 2: kg x 15 reps; Set 3: kg x 15 reps,5
+2026-07-07T00:42:50.145647,Abs,Plank,,Set 1: 65kg x 1 reps,3
+2026-07-07T10:13:16.935339,Back,Pull-up,,Set 1: 65kg x 10 reps (Easy ); Set 2: 65kg x 10 reps (OK); Set 3: 65kg x 7 reps (Tough); Set 4: 65kg x 5 reps (Ok),10
+2026-07-07T10:16:04.212018,Back,Lat Pulldown,,Set 1: 2kg x 15 reps; Set 2: 3kg x 10 reps; Set 3: 3kg x 10 reps,10
+2026-07-07T10:16:43.640888,Back,Seated Cable Row,,Set 1: 2kg x 15 reps; Set 2: 2kg x 15 reps; Set 3: 3kg x 10 reps,10
+2026-07-07T10:17:52.855871,Back,Straight-arm Pulldown,,Set 1: 40kg x 10 reps; Set 2: 30kg x 15 reps; Set 3: 25kg x 15 reps; Set 4: 20kg x 15 reps,10
+2026-07-07T10:20:21.094274,Back,Lat Pulldown,,Set 1: 10kg x 15 reps; Set 2: 10kg x 15 reps; Set 3: 10kg x 15 reps,10
+2026-07-07T10:21:03.373458,Full Body,Farmer's Walk,,Set 1: kg x 15 reps,15
+2026-07-08T19:02:39.085610,Full Body,Farmer's Walk,,Set 1: 65kg x 1 reps; Set 2: 65kg x 1 reps; Set 3: 65kg x 1 reps,45
+2026-07-08T19:04:03.432788,Biceps,Barbell Curl,,Set 1: 7.5kg x 30 reps; Set 2: 10kg x 20 reps; Set 3: 10kg x 20 reps,10
+2026-07-08T19:04:43.625541,Biceps,Hammer Curl,,Set 1: 7.5kg x 30 reps; Set 2: 10kg x 20 reps; Set 3: 10kg x 20 reps,10
+2026-07-08T19:05:22.759206,Biceps,Incline Dumbbell Curl,,Set 1: 7.5kg x 10 reps; Set 2: 7.5kg x 10 reps; Set 3: 10kg x 10 reps,10
+2026-07-08T19:06:30.190948,Biceps,Dumbbell Curl,,Set 1: 10kg x 10 reps; Set 2: 20kg x 7 reps; Set 3: 25kg x 5 reps,10
+2026-07-09T17:33:37.386068,Shoulders,Overhead Press (Barbell),,Set 1: 7.5kg x 30 reps; Set 2: 7.5kg x 20 reps; Set 3: 10kg x 20 reps,10
+2026-07-09T17:34:24.790481,Shoulders,Lateral Raise,,Set 1: 5kg x  reps; Set 2: 7.5kg x  reps; Set 3: 7.5kg x  reps,20
+2026-07-09T17:35:34.560143,Shoulders,Overhead Press (Dumbbell),,Set 1: 20kg x 15 reps; Set 2: 25kg x 15 reps; Set 3: 30kg x 15 reps,20
+2026-07-09T17:37:23.891091,Shoulders,Machine Shoulder Press,,Set 1: 30kg x 15 reps (front); Set 2: 35kg x 15 reps (front); Set 3: 40kg x 15 reps (front); Set 4: 35kg x 10 reps (back ); Set 5: 30kg x 10 reps (back); Set 6: 25kg x 15 reps (back),20
+2026-07-10T13:53:26.842727,Full Body,Farmer's Walk,,Set 1: 65kg x 2 reps (7km),60
+2026-07-10T23:05:11.071220,Chest,Push-up,,No sets recorded,10
+2026-07-11T20:51:15.629587,Full Body,Rest,,No sets recorded,100
+2026-07-11T20:51:43.237100,Full Body,Farmer's Walk,,Set 1: 0kg x 100 reps,60
+2026-07-12T20:15:24.511116,Full Body,Rest,,No sets recorded,10
+2026-07-13T21:43:11.884666,Chest,Push-up,,Set 1: 65kg x 50 reps; Set 2: 65kg x 30 reps; Set 3: 65kg x 20 reps; Set 4: 65kg x 20 reps,15
+2026-07-13T21:44:07.528433,Chest,Incline Bench Press,,Set 1: 10kg x 15 reps; Set 2: 15kg x 10 reps; Set 3: 15kg x 13 reps,20
+2026-07-13T21:44:42.218246,Chest,Decline Bench Press,,Set 1: 15kg x 15 reps; Set 2: 20kg x 10 reps; Set 3: 22.5kg x 10 reps,20
+2026-07-13T21:45:36.493566,Chest,Machine Press,,Set 1: 15kg x 15 reps; Set 2: 20kg x 15 reps; Set 3: 20kg x 10 reps,20
+2026-07-13T21:46:15.500168,Chest,Machine Fly,,Set 1: 15kg x 10 reps; Set 2: 20kg x 10 reps; Set 3: 25kg x 10 reps,20
+2026-07-14T12:57:20.707167,Abs,Bird Dog,,Set 1: kg x 20 reps,10
+2026-07-14T12:58:09.686171,Abs,Side Plank,,Set 1: 65kg x 1 reps; Set 2: 65kg x 1 reps,20
+2026-07-14T13:01:22.328107,Abs,The McGill Curl-Up,,Set 1: 65kg x 1 reps,2
+2026-07-14T13:04:12.084323,Triceps,Triceps Pushdown (Rope),,Set 1: 10kg x 15 reps; Set 2: 10kg x 16 reps; Set 3: 10kg x 12 reps,10
+2026-07-14T13:05:13.823392,Triceps,Kickbacks,,Set 1: 5kg x 15 reps (EACH SIDE); Set 2: 7.5kg x 10 reps (each side); Set 3: 10kg x 5 reps (each side),10
+2026-07-14T13:07:52.025270,Triceps,Diamond Push-up,,Set 1: 65kg x 50 reps; Set 2: 65kg x 15 reps; Set 3: 65kg x 10 reps; Set 4: 65kg x 15 reps; Set 5: 65kg x 10 reps,20
+2026-07-14T13:09:25.577841,Triceps,Overhead Triceps Extension,,Set 1: 10kg x 20 reps; Set 2: 15kg x 20 reps; Set 3: 20kg x 15 reps; Set 4: 25kg x 10 reps,10
+2026-07-15T11:18:18.475078,Abs,Crunch,,Set 1: 15kg x  reps; Set 2: 10kg x  reps,10
+2026-07-15T11:18:43.609203,Back,Pull-up,,Set 1: 9kg x  reps; Set 2: 8kg x  reps; Set 3: 7kg x  reps,10
+2026-07-15T11:19:14.279483,Back,T-Bar Row,,Set 1: 35kg x 15 reps; Set 2: 35kg x  reps,10
+2026-07-16T22:14:45.712951,Biceps,Dumbbell Curl,,Set 1: 7.5kg x 20 reps; Set 2: 10kg x 15 reps; Set 3: 10kg x 15 reps,10
+2026-07-16T22:16:58.427238,Biceps,Hammer Curl,,Set 1: 12.5kg x 10 reps; Set 2: 10kg x 15 reps; Set 3: 15kg x 10 reps,10
+2026-07-16T22:20:03.072052,Biceps,Incline Dumbbell Curl,,Set 1: 15kg x 15 reps; Set 2: 10kg x 12 reps; Set 3: 7.5kg x 10 reps,10
+2026-07-16T22:21:33.675560,Biceps,Barbell Curl,,Set 1: 15kg x 20 reps; Set 2: 10kg x 20 reps; Set 3: 10kg x 20 reps,10
+2026-07-16T22:23:33.978756,Biceps,Cable Curl,,Set 1: 10kg x 15 reps; Set 2: 10kg x 12 reps; Set 3: 10kg x 11 reps,10
+2026-07-17T10:32:49.352184,Shoulders,Machine Shoulder Press,,Set 1: 20kg x 12 reps; Set 2: 25kg x 13 reps; Set 3: 30kg x 10 reps,10
+2026-07-17T10:33:58.761294,Shoulders,Machine Shoulder Press,,Set 1: 20kg x 10 reps; Set 2: 30kg x 15 reps; Set 3: 30kg x 20 reps,20
+2026-07-17T10:34:53.403505,Shoulders,Lateral Raise,,Set 1: 10kg x 10 reps; Set 2: 7.5kg x 30 reps; Set 3: 10kg x 10 reps,10
+2026-07-17T10:35:55.365692,Shoulders,Upright Row,,Set 1: 10kg x 10 reps; Set 2: 15kg x 10 reps; Set 3: 20kg x 10 reps,10
+2026-07-18T21:45:58.797546,Legs,Leg Press,,Set 1: 80kg x 12 reps; Set 2: 110kg x 12 reps; Set 3: 80kg x 12 reps; Set 4: 110kg x 12 reps,10
+2026-07-18T21:46:48.329100,Legs,Standing Calf Raise,,Set 1: 1kg x 10 reps; Set 2: 1kg x 12 reps,10
+2026-07-18T21:48:33.938383,Legs,Walking Lunges,,Set 1: 25kg x 10 reps; Set 2: 30kg x 10 reps; Set 3: 35kg x 10 reps,20
+2026-07-18T21:49:20.172219,Legs,Back Squat,,Set 1: 20kg x 12 reps; Set 2: 30kg x 17 reps; Set 3: 40kg x 15 reps,20
+2026-07-18T21:49:58.360989,Legs,Leg Curl (Seated),,Set 1: 15kg x 15 reps; Set 2: 20kg x 15 reps,10
+2026-07-19T23:00:40.351117,Full Body,Rest,,No sets recorded,10
+2026-07-20T12:23:25.992645,Chest,Incline Bench Press,,Set 1: 30kg x 10 reps; Set 2: 40kg x 15 reps; Set 3: 40kg x 15 reps,10
+2026-07-20T12:24:19.941240,Chest,Decline Bench Press,,Set 1: 30kg x 20 reps; Set 2: 50kg x 20 reps; Set 3: 50kg x 20 reps,10
+2026-07-20T12:25:49.963807,Chest,Machine Press,,Set 1: 20kg x 15 reps; Set 2: 25kg x 12 reps; Set 3: 30kg x 10 reps,20
+2026-07-20T12:26:59.758273,Chest,Barbell Bench Press,,Set 1: 30kg x 15 reps; Set 2: 50kg x 20 reps; Set 3: 20kg x 25 reps,10
+2026-07-21T21:51:35.957507,Abs,Crunch,,No sets recorded,10
+2026-07-21T21:52:05.766776,Abs,Side Plank,,Set 1: 10kg x 1 reps; Set 2: 10kg x 1 reps,10
+2026-07-21T21:52:35.917706,Abs,Hanging Leg Raise,,Set 1: 1kg x 1 reps; Set 2: 1kg x 1 reps,10
+2026-07-21T21:53:56.319645,Triceps,Triceps Pushdown (Rope),,Set 1: 10kg x 15 reps; Set 2: 14kg x 14 reps; Set 3: 18kg x 13 reps; Set 4: 22kg x 15 reps; Set 5: 26kg x 14 reps; Set 6: 25kg x 14 reps; Set 7: 25kg x 10 reps; Set 8: 25kg x 14 reps,20
+2026-07-21T21:54:36.636390,Triceps,Triceps Pushdown (Bar),,Set 1: 10kg x 14 reps; Set 2: 10kg x 13 reps; Set 3: 10kg x 15 reps,13
+2026-07-21T21:55:15.632852,Triceps,Kickbacks,,Set 1: 10kg x 7.5 reps; Set 2: 15kg x 5 reps; Set 3: 12kg x 7.5 reps,10
+2026-07-22T19:46:39.781327,Back,Seated Cable Row,,Set 1: 10kg x 15 reps; Set 2: 10kg x 15 reps; Set 3: 10kg x 10 reps; Set 4: 20kg x 10 reps; Set 5: 30kg x 14 reps; Set 6: 25kg x 14 reps; Set 7: 25kg x 10 reps; Set 8: 25kg x 14 reps; Set 9: 20kg x 14 reps,10
+2026-07-22T19:47:42.532270,Back,Barbell Row,,Set 1: 20kg x 30 reps; Set 2: 20kg x 30 reps; Set 3: 20kg x 30 reps,20
+2026-07-22T22:46:10.037217,Back,Deadlift,,Set 1: 10kg x 34 reps; Set 2: 10kg x 30 reps; Set 3: 15kg x 30 reps,15
+2026-07-23T21:34:02.814132,Biceps,Hammer Curl,,Set 1: 10kg x 15 reps; Set 2: 10kg x 20 reps; Set 3: 7.5kg x 25 reps,10
+2026-07-23T21:35:22.841186,Biceps,Dumbbell Curl,,Set 1: 5kg x 20 reps; Set 2: 10kg x 25 reps; Set 3: 7.5kg x 24 reps,10
+2026-07-24T00:13:55.583446,Biceps,Machine Curl,,Set 1: 10kg x 12 reps; Set 2: 10kg x 13 reps; Set 3: 10kg x 15 reps,10
+2026-07-24T00:14:50.851527,Triceps,Diamond Push-up,,Set 1: 10kg x 12 reps; Set 2: 10kg x 14 reps; Set 3: 10kg x 15 reps,10
+2026-07-24T00:23:57.037693,Biceps,Dumbbell Curl,,Set 1: 20kg x 20 reps; Set 2: 30kg x 20 reps; Set 3: 30kg x 20 reps,10
+2026-07-24T12:28:49.166147,Shoulders,Overhead Press (Dumbbell),,Set 1: 10kg x 15 reps; Set 2: 10kg x 14 reps; Set 3: 10kg x 12 reps,10
+2026-07-24T12:29:31.084000,Shoulders,Lateral Raise,,Set 1: 10kg x 15 reps; Set 2: 7.5kg x 15 reps; Set 3: 5kg x 20 reps,10
+2026-07-24T12:30:59.344653,Shoulders,Front Raise,I did with 10 I couldn't do,Set 1: 10kg x 15 reps; Set 2: 10kg x 15 reps; Set 3: 7.5kg x 15 reps,10
+2026-07-24T12:32:22.998570,Shoulders,Upright Row,,Set 1: 20kg x 14 reps; Set 2: 17.5kg x 15 reps,10
+2026-07-24T12:33:09.520159,Shoulders,Overhead Press (Barbell),,Set 1: 30kg x 20 reps; Set 2: 20kg x 15 reps; Set 3: 30kg x 15 reps,10
+2026-07-24T12:33:35.670354,Shoulders,Machine Shoulder Press,,Set 1: 15kg x 12 reps; Set 2: 20kg x 14 reps; Set 3: 25kg x 16 reps,10
+2026-07-25T07:34:08.056132,Chest,Push-up,,Set 1: 65kg x 40 reps; Set 2: 65kg x 25 reps,10
+2026-07-27T22:24:26.630609,Chest,Incline Bench Press,,Set 1: 20kg x 15 reps; Set 2: 30kg x 15 reps; Set 3: 30kg x 15 reps,10
+2026-07-27T23:02:33.870951,Chest,Cable Fly,,Set 1: 30kg x 15 reps; Set 2: 30kg x 15 reps; Set 3: 30kg x 15 reps; Set 4: 20kg x 15 reps; Set 5: 20kg x 15 reps; Set 6: 20kg x 15 reps,25
+2026-07-27T23:03:51.650248,Chest,Push-up,,Set 1: 65kg x 30 reps; Set 2: 65kg x 15 reps; Set 3: 65kg x 15 reps; Set 4: 65kg x 20 reps; Set 5: 65kg x 10 reps,10
+2026-07-27T23:04:26.357955,Chest,Machine Fly,,Set 1: 50kg x 15 reps; Set 2: 60kg x 15 reps,10
+2026-07-27T23:04:53.740130,Chest,Decline Bench Press,,Set 1: 30kg x 15 reps,10
+2026-07-27T23:06:03.769451,Chest,Machine Press,,Set 1: 50kg x 25 reps; Set 2: 60kg x 15 reps; Set 3: 60kg x 20 reps,10
+2026-07-28T23:27:51.064043,Triceps,Kickbacks,,Set 1: 20kg x 15 reps; Set 2: 30kg x 15 reps; Set 3: 25kg x 15 reps,10
+2026-07-28T23:28:38.505344,Triceps,Diamond Push-up,,Set 1: 65kg x 49 reps; Set 2: 65kg x 20 reps; Set 3: 65kg x 15 reps; Set 4: 65kg x 10 reps,10
+2026-07-28T23:30:45.262066,Triceps,Triceps Pushdown (Rope),,Set 1: 20kg x 15 reps; Set 2: 30kg x 15 reps; Set 3: 30kg x 15 reps,10
+2026-07-28T23:32:18.474144,Triceps,Triceps Pushdown (Rope),,Set 1: 15kg x 15 reps; Set 2: 15kg x 15 reps; Set 3: 15kg x 15 reps,10
+2026-07-29T22:25:39.534447,Back,Pull-up,,Set 1: 65kg x 10 reps; Set 2: 65kg x 10 reps; Set 3: 65kg x 9 reps,10
+2026-07-29T22:26:18.464956,Back,Face Pull,,Set 1: 10kg x 30 reps; Set 2: 15kg x 30 reps; Set 3: 20kg x 30 reps,10
+2026-07-29T23:29:38.974056,Back,Seated Cable Row,,Set 1: 30kg x 15 reps; Set 2: 30kg x 15 reps; Set 3: 30kg x 15 reps,10
+2026-07-29T23:30:22.278038,Back,Face Pull,,Set 1: 65kg x 12 reps; Set 2: 65kg x 14 reps; Set 3: 65kg x 12 reps,10
+2026-07-29T23:31:35.497140,Back,Barbell Row,,Set 1: 20kg x 15 reps; Set 2: 30kg x 10 reps; Set 3: 30kg x 10 reps,10
+2026-07-29T23:31:35.592620,Back,Barbell Row,,Set 1: 20kg x 15 reps; Set 2: 30kg x 10 reps; Set 3: 30kg x 10 reps,10
+2026-07-30T21:46:47.488304,Shoulders,Arnold Press,,Set 1: 12.5kg x 10 reps; Set 2: 12.5kg x 9 reps; Set 3: 12.5kg x 9 reps,10
+2026-07-30T21:46:49.290497,Shoulders,Arnold Press,,Set 1: 12.5kg x 10 reps; Set 2: 12.5kg x 9 reps; Set 3: 12.5kg x 9 reps,10
+2026-07-30T21:48:25.367810,Shoulders,Lateral Raise,,Set 1: 7.5kg x 15 reps; Set 2: 5kg x 20 reps; Set 3: 7.5kg x 15 reps,10
+2026-07-30T21:48:26.895835,Shoulders,Lateral Raise,,Set 1: 7.5kg x 15 reps; Set 2: 5kg x 20 reps; Set 3: 7.5kg x 15 reps,10
+2026-07-30T21:50:02.190829,Shoulders,Overhead Press (Dumbbell),,Set 1: 12.5kg x 15 reps; Set 2: 12kg x 10 reps; Set 3: 10kg x 10 reps,10
+2026-07-31T12:29:10.158533,Triceps,Overhead Triceps Extension,,Set 1: 20kg x 14 reps; Set 2: 20kg x 10 reps; Set 3: 30kg x 10 reps,10
+2026-07-31T12:31:35.697707,Triceps,Kickbacks,,Set 1: 10kg x 15 reps (both); Set 2: 12.5kg x 15 reps (both); Set 3: 10kg x 15 reps (both),10
+2026-07-31T12:32:40.164399,Triceps,Overhead Triceps Extension,,Set 1: 10kg x 15 reps; Set 2: 15kg x 15 reps; Set 3: 15kg x 10 reps,10
+2026-07-31T12:33:35.733672,Forearms,Wrist Curl,,Set 1: 10kg x 20 reps; Set 2: 20kg x 20 reps; Set 3: 20kg x 20 reps,10
+2026-07-31T12:34:36.731391,Triceps,Triceps Pushdown (Rope),,Set 1: 20kg x 15 reps; Set 2: 20kg x 15 reps; Set 3: 20kg x 15 reps,10
+2026-08-02T23:45:12.925583,Chest,Push-up,,Set 1: 65kg x 50 reps; Set 2: 65kg x 35 reps; Set 3: 65kg x 20 reps,10
+2026-08-02T23:46:01.103585,Legs,Back Squat,,Set 1: 5kg x 20 reps; Set 2: 5kg x 20 reps; Set 3: 5kg x 20 reps,10
+2026-08-03T23:32:13.509009,Full Body,Rest,,No sets recorded,10

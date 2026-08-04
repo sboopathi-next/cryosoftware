@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Study Path</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* Course selector strip */
+.course-strip {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.course-tab {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--text2);
+  background: var(--bg-card); cursor: pointer;
+  transition: all .18s; white-space: nowrap;
+}
+.course-tab:hover { border-color: var(--border-hi); color: var(--text1); }
+.course-tab.active {
+  background: linear-gradient(135deg, rgba(99,102,241,.2), rgba(59,130,246,.15));
+  border-color: rgba(99,102,241,.4);
+  color: #a5b4fc;
+}
+
+/* Course header */
+.course-header {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.course-name { font-family: var(--ff-brand); font-weight: 800; font-size: 20px; color: var(--text1); margin-bottom: 4px; }
+.course-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+
+/* Pagination bar */
+.pag-bar {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 10px 0;
+}
+.pag-dots { display: flex; gap: 5px; }
+.pag-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,.12); cursor: pointer; transition: all .2s;
+}
+.pag-dot.on { width: 22px; border-radius: 4px; background: linear-gradient(90deg, var(--indigo), var(--blue)); }
+.pag-lbl { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); }
+
+/* Week group */
+.week-block { margin-bottom: 24px; }
+.week-title {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--ff-brand); font-size: 13px; font-weight: 700;
+  color: var(--cyan); padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.week-title::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: linear-gradient(180deg, var(--cyan), var(--indigo));
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.week-range { font-family: var(--ff-mono); font-size: 9px; color: var(--text3); margin-left: auto; }
+
+/* Lecture item */
+.lec-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 12px;
+  background: #0a0d1e; border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 5px;
+  transition: all .18s; cursor: default;
+}
+.lec-item:hover { border-color: var(--border-hi); background: var(--bg-hover); }
+.lec-item.done { opacity: .55; border-left: 3px solid var(--green); }
+.lec-check {
+  width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .18s; color: transparent; font-size: 9px;
+  margin-top: 1px;
+}
+.lec-item.done .lec-check { background: var(--green); border-color: var(--green); color: #fff; }
+.lec-check:hover { border-color: var(--green); color: var(--green); }
+.lec-name { font-size: 12px; color: var(--text1); line-height: 1.4; flex: 1; }
+.lec-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+/* Completed-at */
+.done-at { font-family: var(--ff-mono); font-size: 10px; color: var(--green); margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Study Path</div>
+        <div class="page-sub">GATE 2028 DA — 12 Courses · 66 Weeks · 568 Items</div>
+      </div>
+    </div>
+
+    <!-- Course selector tabs -->
+    <div id="course-strip" class="course-strip">
+      <div style="color:var(--text3);font-size:12px;padding:6px">Loading courses...</div>
+    </div>
+
+    <!-- Course progress header -->
+    <div class="course-header">
+      <div class="course-name" id="c-name">–</div>
+      <div class="course-meta">
+        <span class="badge badge-indigo" id="c-weeks-badge">0 weeks</span>
+        <span class="badge badge-amber" id="c-items-badge">0 items</span>
+        <span class="badge badge-green" id="c-done-badge">0 completed</span>
+        <span style="font-family:var(--ff-brand);font-weight:800;font-size:16px;margin-left:auto" id="c-pct-label">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="c-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Pagination top -->
+    <div class="pag-bar">
+      <button id="btn-prev" class="btn btn-ghost btn-sm" onclick="prevPage()" disabled>
+        <i class="fa-solid fa-chevron-left"></i> Prev
+      </button>
+      <div id="pag-dots" class="pag-dots"></div>
+      <button id="btn-next" class="btn btn-ghost btn-sm" onclick="nextPage()">
+        Next <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Weeks content -->
+    <div id="weeks-container"></div>
+
+    <!-- Pagination bottom -->
+    <div class="pag-bar" style="margin-top:20px">
+      <button class="btn btn-ghost btn-sm" onclick="prevPage()"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+      <span id="pag-lbl-bot" class="pag-lbl">Page 1 of 1</span>
+      <button class="btn btn-ghost btn-sm" onclick="nextPage()">Next <i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+  </main>
+</div>
+
+<div id="settings-modal" class="modal-mask hidden">
+  <div class="modal">
+    <div class="modal-hd"><span>API Key</span><button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Groq API Key</label><input type="password" id="api-key-inp" placeholder="gsk_..."></div>
+      <button class="btn btn-primary btn-full" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/shared.js?v=voice1"></script>
+<script>
+const WEEKS_PER_PAGE = 4;
+let syllabus = {};
+let activeCourse = '';
+let currentPage = 0;
+
+const COURSE_DISPLAY = {
+  Calculus_Optimization: 'Calculus & Optimization',
+  Python_Data_Science: 'Python Programming',
+  Linear_Algebra: 'Linear Algebra',
+  Probability_Stats: 'Probability & Statistics',
+  Statistical_Inference: 'Statistical Inference',
+  EDA: 'Exploratory Data Analysis',
+  Database_Systems: 'Database Systems',
+  Data_Mining_Forecasting: 'Data Mining',
+  Advanced_Forecasting: 'Adv. Forecasting',
+  DSA_LeetCode: 'DSA & LeetCode',
+  AI_Agents: 'Artificial Intelligence',
+  Machine_Learning: 'Machine Learning'
+};
+
+const GATE_TAG = {
+  Calculus_Optimization: '⚡ GATE Core',
+  Probability_Stats: '🎯 GATE Core',
+  Linear_Algebra: '🎯 GATE Core',
+  Statistical_Inference: '🎯 GATE Core',
+  Database_Systems: '🎯 GATE Core',
+  Machine_Learning: '🎯 GATE Core',
+  AI_Agents: '🎯 GATE Core',
+  DSA_LeetCode: '🎯 GATE Core',
+  Python_Data_Science: '📘 Foundation',
+  EDA: '📊 Applied',
+  Data_Mining_Forecasting: '📊 Applied',
+  Advanced_Forecasting: '📊 Applied'
+};
+
+async function loadSyllabus() {
+  try {
+    const r = await fetch('/api/syllabus');
+    syllabus = await r.json();
+    buildCourseStrip();
+    // Set first course
+    const firstId = Object.keys(syllabus.courses)[0];
+    if (firstId) selectCourse(firstId);
+  } catch(e) { console.error(e); }
+}
+
+function buildCourseStrip() {
+  const strip = document.getElementById('course-strip');
+  strip.innerHTML = '';
+  Object.entries(syllabus.courses || {}).forEach(([cid, course]) => {
+    const tab = document.createElement('button');
+    tab.className = 'course-tab';
+    tab.id = `ctab-${cid}`;
+    tab.textContent = COURSE_DISPLAY[cid] || course.name;
+    tab.onclick = () => selectCourse(cid);
+    strip.appendChild(tab);
+  });
+}
+
+async function selectCourse(cid) {
+  activeCourse = cid;
+  currentPage = 0;
+
+  // Highlight tab
+  document.querySelectorAll('.course-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById(`ctab-${cid}`);
+  if (tab) { tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'}); }
+
+  // Set active on backend
+  try {
+    await fetch('/api/syllabus/active', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({subject_id: cid})});
+  } catch(_) {}
+
+  renderCourse();
+}
+
+function renderCourse() {
+  const course = syllabus.courses?.[activeCourse];
+  if (!course) return;
+
+  const weeks = course.weeks || [];
+  let total = 0, done = 0;
+  weeks.forEach(w => w.items.forEach(item => { total++; if(item.completed) done++; }));
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+  document.getElementById('c-name').textContent = course.name;
+  document.getElementById('c-weeks-badge').textContent = `${weeks.length} weeks`;
+  document.getElementById('c-items-badge').textContent = `${total} items`;
+  document.getElementById('c-done-badge').textContent = `${done} completed`;
+  document.getElementById('c-pct-label').textContent = `${pct}%`;
+  document.getElementById('c-progress-fill').style.width = `${pct}%`;
+
+  const totalPages = Math.ceil(weeks.length / WEEKS_PER_PAGE);
+  if (currentPage >= totalPages) currentPage = Math.max(0, totalPages - 1);
+
+  // Dots
+  const dots = document.getElementById('pag-dots');
+  dots.innerHTML = '';
+  for (let i = 0; i < totalPages; i++) {
+    const d = document.createElement('div');
+    d.className = `pag-dot${i === currentPage ? ' on' : ''}`;
+    d.onclick = () => { currentPage = i; renderCourse(); };
+    dots.appendChild(d);
+  }
+
+  document.getElementById('btn-prev').disabled = currentPage === 0;
+  document.getElementById('btn-next').disabled = currentPage >= totalPages - 1;
+  document.getElementById('pag-lbl-bot').textContent = `Page ${currentPage + 1} of ${totalPages}`;
+
+  // Render weeks for this page
+  const container = document.getElementById('weeks-container');
+  container.innerHTML = '';
+  const pageWeeks = weeks.slice(currentPage * WEEKS_PER_PAGE, (currentPage + 1) * WEEKS_PER_PAGE);
+
+  pageWeeks.forEach(week => {
+    const block = document.createElement('div');
+    block.className = 'week-block';
+
+    const range = week.start_date && week.end_date
+      ? `${week.start_date} → ${week.end_date}`
+      : `Week ${week.week}`;
+
+    block.innerHTML = `
+      <div class="week-title">
+        Week ${week.week}: ${week.title}
+        <span class="week-range">${range}</span>
+      </div>`;
+
+    week.items.forEach(item => {
+      const lec = document.createElement('div');
+      lec.className = `lec-item${item.completed ? ' done' : ''}`;
+      lec.innerHTML = `
+        <div class="lec-check" onclick="toggleItem('${activeCourse}','${item.id}',${!item.completed})">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div style="flex:1">
+          <div class="lec-name">${item.name}</div>
+          <div class="lec-tags">
+            <span class="badge badge-blue"><i class="fa-solid fa-lock" style="font-size:8px"></i> Lvl ${item.level || 1}</span>
+            <span class="badge badge-amber">⭐ +${item.xp} XP</span>
+            ${item.type === 'quiz' ? '<span class="badge badge-red">ASSESSMENT</span>' : ''}
+            ${item.completed_at ? `<span class="badge badge-green">✓ ${item.completed_at.split('T')[0]}</span>` : ''}
+          </div>
+        </div>`;
+      block.appendChild(lec);
+    });
+
+    container.appendChild(block);
+  });
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function toggleItem(courseId, itemId, completed) {
+  try {
+    const r = await fetch('/api/syllabus/toggle', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({subject_id: courseId, item_id: itemId, completed})
+    });
+    if (!r.ok) { const e = await r.json(); toast(e.detail, 'err'); return; }
+    toast(completed ? '✓ Completed! XP earned' : 'Unmarked', completed ? 'ok' : 'info');
+    // Re-fetch syllabus to get fresh completion data
+    const r2 = await fetch('/api/syllabus');
+    syllabus = await r2.json();
+    renderCourse();
+  } catch(e) { console.error(e); }
+}
+
+function prevPage() { if (currentPage > 0) { currentPage--; renderCourse(); } }
+function nextPage() {
+  const course = syllabus.courses?.[activeCourse];
+  if (!course) return;
+  const total = Math.ceil((course.weeks || []).length / WEEKS_PER_PAGE);
+  if (currentPage < total - 1) { currentPage++; renderCourse(); }
+}
+
+loadSyllabus();
+</script>
+</body>
+</html>

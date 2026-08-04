@@ -1,0 +1,18 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  src: url('/static/vendor/fonts/inter-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 600 900;
+  src: local('Outfit'), local('Arial Black');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  src: local('Courier New');
+}
