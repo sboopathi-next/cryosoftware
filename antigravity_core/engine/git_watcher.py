@@ -10,9 +10,10 @@ from watchdog.events import FileSystemEventHandler
 
 from engine.database import get_db_connection, get_state, save_state, add_xp, log_activity_file
 
-# Base watch directory - will watch projects folder
-WATCH_DIR = r"c:\Users\sboopathi\projects"
+# Base watch directory - will watch projects folder if exists
+WATCH_DIR = os.getenv("WATCH_DIR", r"c:\Users\sboopathi\projects" if os.path.exists(r"c:\Users\sboopathi\projects") else os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 MATRICES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "course_matrices")
+
 
 def load_all_course_modules() -> list:
     """Loads all course modules from the exported CSV files."""

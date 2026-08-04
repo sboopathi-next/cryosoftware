@@ -21,7 +21,15 @@ RSS_FEEDS = [
     {"name": "Wired",         "url": "https://www.wired.com/feed/rss", "icon": "⚫"},
 ]
 
-DB_PATH = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\antigravity.db"
+CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if os.environ.get("VERCEL") or not os.access(CORE_DIR, os.W_OK):
+    DATA_DIR = "/tmp/antigravity_data"
+else:
+    DATA_DIR = os.path.join(CORE_DIR, "data")
+
+os.makedirs(DATA_DIR, exist_ok=True)
+DB_PATH = os.path.join(DATA_DIR, "antigravity.db")
+
 
 
 def get_db():

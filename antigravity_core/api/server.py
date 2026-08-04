@@ -58,15 +58,29 @@ class SpeechEvaluationPayload(BaseModel):
 app = FastAPI(title="Antigravity Workstation Daemon API", version="2.0")
 
 # Paths
-STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
-SYLLABUS_PATH = r"c:\Users\sboopathi\projects\CryoSoftWare\syllabus.json"
-ACTIVITY_LOG_PATH = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\activity_log.md"
-GYM_WORKOUTS_CSV = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "gym_workouts_by_category.csv")
-WORKOUT_LOG_CSV = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\workout_log.csv"
+CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(CORE_DIR)
+
+STATIC_DIR = os.path.join(CORE_DIR, "static")
+SYLLABUS_PATH = os.path.join(ROOT_DIR, "syllabus.json")
+
+# On Vercel or read-only environment, write data files to /tmp/antigravity_data
+if os.environ.get("VERCEL") or not os.access(CORE_DIR, os.W_OK):
+    DATA_DIR = "/tmp/antigravity_data"
+else:
+    DATA_DIR = os.path.join(CORE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+ACTIVITY_LOG_PATH = os.path.join(DATA_DIR, "activity_log.md")
+GYM_WORKOUTS_CSV = os.path.join(CORE_DIR, "gym_workouts_by_category.csv")
+WORKOUT_LOG_CSV = os.path.join(DATA_DIR, "workout_log.csv")
+EXAM_SCRATCHPAD_PATH = os.path.join(DATA_DIR, "exam_scratchpad.md")
+ANTIGRAVITY_DB_PATH = os.path.join(DATA_DIR, "antigravity.db")
 
 # Mount static folder
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 
 # ─── Pydantic Models ────────────────────────────────────────────────────────
@@ -542,18 +556,16 @@ def check_date_transition(state: dict) -> dict:
 
 @app.get("/api/exam/load")
 def load_exam_scratchpad():
-    exam_scratchpad_path = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\exam_scratchpad.md"
-    if os.path.exists(exam_scratchpad_path):
-        with open(exam_scratchpad_path, "r", encoding="utf-8") as f:
+    if os.path.exists(EXAM_SCRATCHPAD_PATH):
+        with open(EXAM_SCRATCHPAD_PATH, "r", encoding="utf-8") as f:
             return {"status": "success", "content": f.read()}
     return {"status": "success", "content": ""}
 
 @app.post("/api/exam/save")
 def save_exam_scratchpad(payload: ExamSavePayload):
-    exam_scratchpad_path = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\exam_scratchpad.md"
     try:
-        os.makedirs(os.path.dirname(exam_scratchpad_path), exist_ok=True)
-        with open(exam_scratchpad_path, "w", encoding="utf-8") as f:
+        os.makedirs(os.path.dirname(EXAM_SCRATCHPAD_PATH), exist_ok=True)
+        with open(EXAM_SCRATCHPAD_PATH, "w", encoding="utf-8") as f:
             f.write(payload.content)
         return {"status": "success"}
     except Exception as e:
@@ -564,7 +576,9 @@ def save_exam_scratchpad(payload: ExamSavePayload):
 @app.get("/api/news")
 def get_tech_news():
     try:
-        conn = sqlite3.connect(r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\antigravity.db")
+        if not os.path.exists(ANTIGRAVITY_DB_PATH):
+            return {"status": "success", "news": {}}
+        conn = sqlite3.connect(ANTIGRAVITY_DB_PATH)
         conn.row_factory = sqlite3.Row
         # Get latest 7 days of news, grouped by date
         cutoff = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
@@ -573,6 +587,7 @@ def get_tech_news():
             (cutoff,)
         ).fetchall()
         conn.close()
+
         
         # Group by date
         grouped = {}
@@ -1419,11 +1434,11 @@ async def ai_governance_chat(payload: AIChatPayload):
         state = get_state()
         
         # Load the latest content from the Exam Editor / Math Sandbox
-        exam_scratchpad_path = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\exam_scratchpad.md"
         exam_content = "[No content in Exam Editor]"
-        if os.path.exists(exam_scratchpad_path):
+        if os.path.exists(EXAM_SCRATCHPAD_PATH):
             try:
-                with open(exam_scratchpad_path, "r", encoding="utf-8") as f:
+                with open(EXAM_SCRATCHPAD_PATH, "r", encoding="utf-8") as f:
+
                     content_raw = f.read().strip()
                     if content_raw:
                         # Limit to last 15,000 characters to prevent token overflow while sending substantial details

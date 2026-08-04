@@ -558,3 +558,45 @@ select, input, textarea { font-family: var(--ff-body); }
   background: rgba(6, 182, 212, 0.25);
   transform: scale(1.04);
 }
+
+/* ── MOBILE RESPONSIVE ADAPTATIONS ────────────────────────────── */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column !important;
+  }
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    position: relative !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding-bottom: 8px !important;
+  }
+  .nav {
+    display: flex !important;
+    overflow-x: auto !important;
+    padding: 6px 12px !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .nav a {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    flex-shrink: 0 !important;
+  }
+  .main-content, .content, .container, main {
+    padding: 16px 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .grid, .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .card, .modal {
+    padding: 16px !important;
+  }
+}
+

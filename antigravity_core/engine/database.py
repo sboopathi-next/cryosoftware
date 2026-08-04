@@ -3,12 +3,21 @@ import sqlite3
 import threading
 from datetime import date
 
-DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if os.environ.get("VERCEL") or not os.access(CORE_DIR, os.W_OK):
+    DB_DIR = "/tmp/antigravity_data"
+else:
+    DB_DIR = os.path.join(CORE_DIR, "data")
+
+os.makedirs(DB_DIR, exist_ok=True)
 DB_PATH = os.path.join(DB_DIR, "system_solo.db")
+ACTIVITY_LOG_PATH = os.path.join(DB_DIR, "activity_log.md")
+EXAM_SCRATCHPAD_PATH = os.path.join(DB_DIR, "exam_scratchpad.md")
 
 # Global write lock — SQLite in WAL mode supports concurrent reads,
 # but writes must be serialized in a multi-threaded process.
 _DB_WRITE_LOCK = threading.Lock()
+
 
 def init_db():
     os.makedirs(DB_DIR, exist_ok=True)
@@ -600,16 +609,15 @@ def clear_chat_history(bot_type: str = "coach"):
 
 def log_activity_file(doing: str, accomplished: str):
     import datetime
-    # Define absolute path to avoid import/relative path issues
-    log_path = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\activity_log.md"
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     entry = f"\n## {timestamp} Log\n- **Current Activity**: {doing}\n- **Accomplished**: {accomplished}\n"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    os.makedirs(os.path.dirname(ACTIVITY_LOG_PATH), exist_ok=True)
     try:
-        with open(log_path, "a", encoding="utf-8") as f:
+        with open(ACTIVITY_LOG_PATH, "a", encoding="utf-8") as f:
             f.write(entry)
     except Exception as e:
         print(f"[Activity Log] Error appending to log: {e}")
+
 
 # init_db is called explicitly by main.py and tests, not at import time.
 
@@ -763,24 +771,25 @@ def get_recent_offline_logs(limit: int = 3) -> str:
     conn.close()
     
     # 4. Activity Log
-    activity_log_path = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\activity_log.md"
     try:
-        with open(activity_log_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            if lines:
-                logs.append("RECENT ACTIVITY LOGS:\n" + "".join(lines[-15:]))
+        if os.path.exists(ACTIVITY_LOG_PATH):
+            with open(ACTIVITY_LOG_PATH, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                if lines:
+                    logs.append("RECENT ACTIVITY LOGS:\n" + "".join(lines[-15:]))
     except Exception:
         pass
         
     # 5. Exam Scratchpad
-    exam_scratchpad_path = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\exam_scratchpad.md"
     try:
-        with open(exam_scratchpad_path, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-            if content:
-                logs.append("EXAM SCRATCHPAD (Current Work):\n" + content)
+        if os.path.exists(EXAM_SCRATCHPAD_PATH):
+            with open(EXAM_SCRATCHPAD_PATH, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content:
+                    logs.append("EXAM SCRATCHPAD (Current Work):\n" + content)
     except Exception:
         pass
+
         
     return "\n\n".join(logs)
 
