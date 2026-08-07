@@ -182,6 +182,7 @@ def load_state() -> dict:
         try:
             state = load_state_from_db()
             state = update_syllabus_quest(state)
+            state = check_date_transition(state)
             return state
         except Exception as e:
             print(f"[State] Serverless Neon load failed, using defaults: {e}")
@@ -198,6 +199,7 @@ def load_state() -> dict:
             state = DEFAULT_STATE.copy()
 
     state = update_syllabus_quest(state)
+    state = check_date_transition(state)
     return state
 
 _last_state_snapshot: dict = {}
@@ -230,7 +232,12 @@ def add_xp(state: dict, amount: int) -> dict:
         if state["xp"] >= req:
             state["xp"] -= req
             state["level"] += 1
+        elif state["xp"] < 0 and state["level"] > 1:
+            state["level"] -= 1
+            state["xp"] += calculate_xp_required(state["level"])
         else:
+            if state["xp"] < 0:
+                state["xp"] = 0
             break
     return state
 
@@ -281,16 +288,24 @@ def check_date_transition(state: dict) -> dict:
     today_str = date.today().isoformat()
     last_update_str = state.get("last_update", "")
     
-    if last_update_str != today_str:
-        # Reset checklist items
+    if last_update_str and last_update_str != today_str:
+        # Reset daily checklist items for the new day
         state["completed_quests_today"] = []
         state["gym_completed"] = False
+        state["study_completed"] = False
+        state["leetcode_completed"] = False
         state["cooking_completed"] = False
         state["nopmo_completed"] = False
+        state["reading_completed"] = False
+        state["english_completed"] = False
         state["daily_telemetry"] = {
             "study_hours": 0.0,
             "gym_hours": 0.0,
             "dopamine_rewards": 0
         }
         state["last_update"] = today_str
+        save_state_file(state)
+    elif not last_update_str:
+        state["last_update"] = today_str
+        save_state_file(state)
     return state

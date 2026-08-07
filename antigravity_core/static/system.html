@@ -173,7 +173,12 @@ body, .app { height: 100vh; overflow: hidden; }
     <div class="system-body">
       <div class="system-title-row">
         <div class="system-title-text"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i> SYSTEM OS</div>
-        <div class="system-status-badge" id="sys-title-badge">E-Rank Hunter</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn btn-sm" onclick="openSystemCheckinModal()" style="background:linear-gradient(135deg, #a855f7, #6b21a8);color:#fff;border:1px solid #c084fc;box-shadow:0 0 12px rgba(168,85,247,0.5);font-family:var(--ff-brand);font-weight:700;padding:6px 14px;border-radius:6px;cursor:pointer;">
+            <i class="fa-solid fa-list-check"></i> LOG CHECK-IN
+          </button>
+          <div class="system-status-badge" id="sys-title-badge">E-Rank Hunter</div>
+        </div>
       </div>
 
       <div class="sys-grid">
@@ -264,6 +269,36 @@ body, .app { height: 100vh; overflow: hidden; }
     <div class="sys-alert-bd" id="alert-body">A hidden quest has appeared! Complete it before the deadline or face the centipedes penalty zone.</div>
     <div class="sys-alert-ft">
       <button class="btn btn-primary btn-sm" onclick="closeSysAlert()">Acknowledge</button>
+    </div>
+  </div>
+</div>
+
+<!-- System Check-in Modal Overlay -->
+<div id="sys-checkin-overlay" class="sys-alert-overlay hidden">
+  <div class="sys-alert-box" style="max-width:480px;">
+    <div class="sys-alert-hd" style="background:linear-gradient(90deg, #7e22ce, #090815);display:flex;justify-content:space-between;align-items:center;">
+      <span id="checkin-modal-title"><i class="fa-solid fa-list-check"></i> SYSTEM QUEST: CHECK-IN</span>
+      <span style="cursor:pointer;font-size:18px;" onclick="closeSystemCheckinModal()">&times;</span>
+    </div>
+    <div class="sys-alert-bd" style="padding: 20px;">
+      <div style="margin-bottom:14px;text-align:left;">
+        <label style="display:block;font-size:12px;font-weight:700;color:#c084fc;margin-bottom:6px;font-family:var(--ff-brand);">
+          <i class="fa-solid fa-crosshairs"></i> What are you studying or doing right now?
+        </label>
+        <input type="text" id="checkin-doing-input" placeholder="e.g., Studying Machine Learning & GATE DA Calculus..." style="width:100%;padding:10px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.4);color:#fff;font-size:13px;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:18px;text-align:left;">
+        <label style="display:block;font-size:12px;font-weight:700;color:#c084fc;margin-bottom:6px;font-family:var(--ff-brand);">
+          <i class="fa-solid fa-trophy"></i> What did you accomplish in the last 3 hours?
+        </label>
+        <textarea id="checkin-did-input" rows="3" placeholder="e.g., Solved 3 LeetCode problems and reviewed eigenvalues..." style="width:100%;padding:10px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.4);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button onclick="closeSystemCheckinModal()" style="padding:8px 16px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#ccc;cursor:pointer;font-weight:600;">Cancel</button>
+        <button id="btn-submit-checkin" onclick="submitSystemCheckin()" style="padding:8px 20px;border-radius:6px;background:linear-gradient(135deg, #a855f7, #6b21a8);border:1px solid #c084fc;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 0 10px rgba(168,85,247,0.4);">
+          <i class="fa-solid fa-paper-plane"></i> Submit Check-in
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -420,6 +455,50 @@ function showSysAlert(title, text) {
 
 function closeSysAlert() {
   document.getElementById('sys-alert-overlay').classList.add('hidden');
+}
+
+// ── System Check-in Modal Logic ──────────────────────────────
+function openSystemCheckinModal() {
+  document.getElementById('checkin-doing-input').value = '';
+  document.getElementById('checkin-did-input').value = '';
+  document.getElementById('sys-checkin-overlay').classList.remove('hidden');
+}
+
+function closeSystemCheckinModal() {
+  document.getElementById('sys-checkin-overlay').classList.add('hidden');
+}
+
+async function submitSystemCheckin() {
+  const doing = document.getElementById('checkin-doing-input').value.trim();
+  const accomplished = document.getElementById('checkin-did-input').value.trim();
+  if (!doing || !accomplished) {
+    alert("Please fill in both fields before submitting.");
+    return;
+  }
+  const btn = document.getElementById('btn-submit-checkin');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+  try {
+    const res = await fetch('/api/log_checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doing, accomplished })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeSystemCheckinModal();
+      showSysAlert("QUEST COMPLETED", `<div style="text-align:center;"><i class="fa-solid fa-award" style="font-size:36px;color:#a855f7;margin-bottom:10px;"></i><br><strong>Check-in Logged Successfully!</strong><br><span style="color:#10b981;font-weight:700;">+15 XP · +10.0% Cognitive Energy</span></div>`);
+      loadSystemStats();
+      loadHeatmapCalendar();
+    } else {
+      alert(data.detail || "Failed to log check-in.");
+    }
+  } catch (e) {
+    alert("Error logging check-in: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Check-in';
+  }
 }
 
 function checkRandomSurprisePopup(d) {

@@ -838,13 +838,28 @@ function initJournalMobileTabs() {
 function injectDesktopSidebarNav() {
   const nav = document.querySelector('.nav');
   if (!nav) return;
-  if (nav.querySelector('a[href="/system"]')) return;
-  
-  const li = document.createElement('li');
   const pathname = window.location.pathname.replace(/\/$/, '') || '/';
-  const activeClass = pathname === '/system' || pathname === '/system.html' ? 'class="active"' : '';
-  li.innerHTML = `<a href="/system" ${activeClass}><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a>`;
-  nav.appendChild(li);
+
+  // 1. Inject Gym Pro right after Gym Tracker if missing
+  if (!nav.querySelector('a[href="/gym-pro"]')) {
+    const gymLi = nav.querySelector('a[href="/gym"]')?.closest('li');
+    const li = document.createElement('li');
+    const activeClass = (pathname === '/gym-pro' || pathname === '/gym_pro' || pathname === '/gym-pro.html' || pathname === '/gym_pro.html') ? 'class="active"' : '';
+    li.innerHTML = `<a href="/gym-pro" ${activeClass}><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">PRO</span></a>`;
+    if (gymLi && gymLi.nextSibling) {
+      nav.insertBefore(li, gymLi.nextSibling);
+    } else {
+      nav.appendChild(li);
+    }
+  }
+
+  // 2. Inject System OS if missing
+  if (!nav.querySelector('a[href="/system"]')) {
+    const li = document.createElement('li');
+    const activeClass = (pathname === '/system' || pathname === '/system.html') ? 'class="active"' : '';
+    li.innerHTML = `<a href="/system" ${activeClass}><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a>`;
+    nav.appendChild(li);
+  }
 }
 
 async function loadMiniStats() {

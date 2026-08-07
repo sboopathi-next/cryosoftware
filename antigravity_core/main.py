@@ -21,12 +21,24 @@ from api.server import app
 
 ACTIVITY_LOG_PATH = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\activity_log.md"
 
-def prompt_user_powershell(prompt_text: str, title: str = "Antigravity Check-in") -> str:
-    """Spawns a native Windows InputBox popup using PowerShell and returns the user's input."""
+def prompt_user_gui(prompt_text: str, title: str = "Antigravity Check-in") -> str:
+    """Spawns a native GUI dialog box using Python tkinter (non-PowerShell, cross-platform). Fallback to PowerShell if needed."""
+    try:
+        import tkinter as tk
+        from tkinter import simpledialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        res = simpledialog.askstring(title, prompt_text, parent=root)
+        root.destroy()
+        if res is not None:
+            return res.strip()
+    except Exception as e:
+        print(f"[Activity Tracker] Tkinter dialog fallback: {e}")
+
     escaped_prompt = prompt_text.replace('"', '`"')
     ps_cmd = f'[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic") | Out-Null; $res = [Microsoft.VisualBasic.Interaction]::InputBox("{escaped_prompt}", "{title}"); Write-Output $res'
     try:
-        # Run PowerShell in a subprocess to display the GUI dialog box on top
         proc = subprocess.run(
             ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_cmd],
             capture_output=True,
@@ -35,15 +47,15 @@ def prompt_user_powershell(prompt_text: str, title: str = "Antigravity Check-in"
         )
         return proc.stdout.strip()
     except Exception as e:
-        print(f"[Activity Tracker] Error spawning PowerShell prompt: {e}")
+        print(f"[Activity Tracker] Error spawning prompt: {e}")
         return ""
 
 def trigger_checkin_manual() -> bool:
     """Manually triggers the check-in and logs it."""
     print("[Activity Tracker] Manual check-in triggered.")
-    doing = prompt_user_powershell("What are you studying or doing right now?", "Antigravity - Current Activity")
+    doing = prompt_user_gui("What are you studying or doing right now?", "Antigravity - Current Activity")
     if doing:
-        did = prompt_user_powershell("What did you accomplish in the last 3 hours?", "Antigravity - Accomplished Tasks")
+        did = prompt_user_gui("What did you accomplish in the last 3 hours?", "Antigravity - Accomplished Tasks")
         if did:
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             entry = f"\n## {timestamp} Check-in\n- **Current Activity**: {doing}\n- **Accomplished**: {did}\n"

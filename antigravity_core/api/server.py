@@ -91,6 +91,10 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 class GymCheckPayload(BaseModel):
     completed: bool
 
+class CheckinPayload(BaseModel):
+    doing: str
+    accomplished: str
+
 class ChecklistTogglePayload(BaseModel):
     item: str
     value: bool
@@ -567,6 +571,25 @@ def check_date_transition(state: dict) -> dict:
         save_state(state)
         
     return state
+
+
+@app.post("/api/log_checkin")
+def api_log_checkin(payload: CheckinPayload):
+    if not payload.doing.strip() or not payload.accomplished.strip():
+        raise HTTPException(status_code=400, detail="Doing and Accomplished fields cannot be empty.")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    entry = f"\n## {timestamp} Check-in\n- **Current Activity**: {payload.doing.strip()}\n- **Accomplished**: {payload.accomplished.strip()}\n"
+    os.makedirs(os.path.dirname(ACTIVITY_LOG_PATH), exist_ok=True)
+    with open(ACTIVITY_LOG_PATH, "a", encoding="utf-8") as f:
+        f.write(entry)
+    
+    # Award +15 XP and replenish energy
+    state = get_state()
+    if state:
+        state["energy"] = min(100.0, state.get("energy", 100.0) + 10.0)
+        save_state(state)
+        add_xp(15)
+    return {"status": "success", "message": "Check-in logged successfully! Gained +15 XP & +10% Cognitive Energy."}
 
 
 # ─── Exam Editor / Scratchpad ─────────────────────────────────────────────────
