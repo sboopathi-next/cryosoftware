@@ -3,6 +3,11 @@ import sqlite3
 import threading
 from datetime import date
 
+try:
+    from config import IS_SERVERLESS
+except ImportError:
+    IS_SERVERLESS = False
+
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if os.environ.get("VERCEL") or not os.access(CORE_DIR, os.W_OK):
     DB_DIR = "/tmp/antigravity_data"
@@ -555,6 +560,10 @@ def update_stat(stat_name: str, amount: float) -> dict:
 def save_chat_message(role: str, message: str, bot_type: str = "coach"):
     """Persist a chat message (role='user' or 'ai') to the database with bot_type."""
     import datetime
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_chat_message
+        neon_save_chat_message(role, message, bot_type)
+        return
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
@@ -569,6 +578,9 @@ def save_chat_message(role: str, message: str, bot_type: str = "coach"):
 
 def get_chat_history(limit: int = 50, bot_type: str = "coach") -> list:
     """Fetch the last `limit` messages from ai_chat_history in chronological order filtered by bot_type."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_chat_history
+        return neon_get_chat_history(limit=limit, bot_type=bot_type)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -584,6 +596,10 @@ def get_chat_history(limit: int = 50, bot_type: str = "coach") -> list:
 
 def clear_chat_history(bot_type: str = "coach"):
     """Delete all chat history messages for a specific bot_type from the database."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_clear_chat_history
+        neon_clear_chat_history(bot_type)
+        return
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -609,6 +625,9 @@ def log_activity_file(doing: str, accomplished: str):
 
 def save_bad_experience(title: str, who: str, what_happened: str, my_lesson: str, intensity: int) -> dict:
     """Persist a bad experience / scold log entry and return the saved record."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_bad_experience
+        return neon_save_bad_experience(title, who, what_happened, my_lesson, intensity)
     import datetime
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -628,6 +647,9 @@ def save_bad_experience(title: str, who: str, what_happened: str, my_lesson: str
 
 def get_bad_experiences(date: str = None, limit: int = 100) -> list:
     """Fetch bad experience entries, optionally filtered by date."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_bad_experiences
+        return neon_get_bad_experiences(date_filter=date, limit=limit)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -645,11 +667,16 @@ def get_bad_experiences(date: str = None, limit: int = 100) -> list:
 
 def save_human_connection(person_name: str, context_meeting: str, what_happened: str, what_i_felt: str, emoji: str = "🤝") -> dict:
     """Save a human encounter/connection entry and award +1 HRT (Heart/Humanity)."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_human_connection
+        neon_save_human_connection(person_name, context_meeting, what_happened, what_i_felt, emoji)
+        new_state = update_stat("hrt", 1.0)
+        log_activity_file("Human Connection Logged", f"Met {person_name} ({emoji}) - {context_meeting}. +1 HRT awarded!")
+        return {"status": "success", "hrt_awarded": 1, "person_name": person_name, "current_hrt": new_state.get("heart", 10)}
     import datetime
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     today = date.today().isoformat()
-
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -659,19 +686,15 @@ def save_human_connection(person_name: str, context_meeting: str, what_happened:
         """, (person_name, context_meeting, what_happened, what_i_felt, emoji, timestamp, today))
         conn.commit()
         conn.close()
-
-    # Automatically award +1 HRT (Heart/Humanity)
     new_state = update_stat("hrt", 1.0)
     log_activity_file("Human Connection Logged", f"Met {person_name} ({emoji}) - {context_meeting}. +1 HRT awarded!")
-    return {
-        "status": "success",
-        "hrt_awarded": 1,
-        "person_name": person_name,
-        "current_hrt": new_state.get("heart", 10)
-    }
+    return {"status": "success", "hrt_awarded": 1, "person_name": person_name, "current_hrt": new_state.get("heart", 10)}
 
 def get_human_connections(limit: int = 50) -> list:
     """Fetch human connection entries for reflection and future emotional analysis."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_human_connections
+        return neon_get_human_connections(limit=limit)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -685,6 +708,9 @@ def save_human_context(name: str) -> dict:
     name = name.strip()
     if not name:
         return {"status": "error", "message": "Context name cannot be empty"}
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_human_context
+        return neon_save_human_context(name)
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -695,6 +721,9 @@ def save_human_context(name: str) -> dict:
 
 def get_human_contexts() -> list:
     """Fetch all saved human encounter contexts/locations."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_human_contexts
+        return neon_get_human_contexts()
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -705,6 +734,9 @@ def get_human_contexts() -> list:
 
 def get_unique_people() -> list:
     """Fetch distinct person names previously met for easy select dropdown."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_unique_people
+        return neon_get_unique_people()
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -782,11 +814,16 @@ def get_recent_offline_logs(limit: int = 3) -> str:
 def save_stoic_reflection(reflection: str, attitude_score: int, stoic_lesson: str) -> dict:
     """Save a daily stoic/mindset log and award +2 STC (Stoicism/Stoic) stat point."""
     from datetime import datetime
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_stoic_reflection
+        neon_save_stoic_reflection(reflection, attitude_score, stoic_lesson)
+        update_stat("STOIC", 2)
+        log_activity_file("Logged Stoic Reflection", f"Mindset score: {attitude_score}/10. Earned +2 STC.")
+        return {"status": "success", "message": "Stoic reflection logged successfully! Gained +2 STC.", "state": get_state()}
     conn = get_db_connection()
     cursor = conn.cursor()
     now_str = datetime.now().isoformat()
     today_str = datetime.now().date().isoformat()
-    
     with _DB_WRITE_LOCK:
         cursor.execute("""
         INSERT INTO stoic_logs (reflection, attitude_score, stoic_lesson, timestamp, date)
@@ -794,15 +831,15 @@ def save_stoic_reflection(reflection: str, attitude_score: int, stoic_lesson: st
         """, (reflection, attitude_score, stoic_lesson, now_str, today_str))
         conn.commit()
     conn.close()
-    
-    # Award +2 STC (Stoic) stat point for daily self-reflection!
     update_stat("STOIC", 2)
     log_activity_file("Logged Stoic Reflection", f"Mindset score: {attitude_score}/10. Earned +2 STC.")
-    
     return {"status": "success", "message": "Stoic reflection logged successfully! Gained +2 STC.", "state": get_state()}
 
 def get_stoic_reflections(limit: int = 50) -> list:
     """Fetch recent daily stoic reflections."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_stoic_reflections
+        return neon_get_stoic_reflections(limit=limit)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1036,11 +1073,16 @@ def save_english_speech_log(topic: str, transcript: str, duration_seconds: int, 
 # ─── Mind OS Helpers ─────────────────────────────────────────────────────────
 
 def save_reality_check(trigger_event: str, my_interpretation: str, evidence_for: str, evidence_against: str, alternative_explanation: str, verified_outcome: str, distortions: str) -> dict:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_reality_check
+        result = neon_save_reality_check(trigger_event, my_interpretation, evidence_for, evidence_against, alternative_explanation, verified_outcome, distortions)
+        update_stat("xp", 15)
+        log_activity_file("CBT Reality Check Completed", f"Reframed thought: '{my_interpretation}' -> '{alternative_explanation}'. Awarded +15 XP.")
+        return {"status": "success", "id": result["id"], "earned_xp": 15}
     from datetime import datetime
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     today = date.today().isoformat()
-    
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1051,13 +1093,14 @@ def save_reality_check(trigger_event: str, my_interpretation: str, evidence_for:
         conn.commit()
         new_id = cursor.lastrowid
         conn.close()
-    
-    # Award +15 XP for self-reflection & thought reframing
     update_stat("xp", 15)
     log_activity_file("CBT Reality Check Completed", f"Reframed thought: '{my_interpretation}' -> '{alternative_explanation}'. Awarded +15 XP.")
     return {"status": "success", "id": new_id, "earned_xp": 15}
 
 def get_reality_checks(limit: int = 50) -> list:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_reality_checks
+        return neon_get_reality_checks(limit=limit)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1076,11 +1119,17 @@ def verify_reality_check(check_id: int, verified_outcome: str) -> dict:
     return {"status": "success", "id": check_id}
 
 def save_rumination_log(trigger_convo: str, intensity: int, duration_mins: int, distress_score: int, grounding_used: int, alternative_thought: str) -> dict:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_rumination_log
+        result = neon_save_rumination_log(trigger_convo, intensity, duration_mins, distress_score, grounding_used, alternative_thought)
+        update_stat("stoic", 2)
+        update_stat("xp", 10)
+        log_activity_file("Rumination Grounded", f"Managed mental replay. Gained +2 STC, +10 XP.")
+        return {"status": "success", "id": result["id"], "earned_stc": 2, "earned_xp": 10}
     from datetime import datetime
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     today = date.today().isoformat()
-    
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1091,14 +1140,15 @@ def save_rumination_log(trigger_convo: str, intensity: int, duration_mins: int, 
         conn.commit()
         new_id = cursor.lastrowid
         conn.close()
-        
-    # Reward +2 STC (Stoic) for stopping/managing rumination, plus some XP
     update_stat("stoic", 2)
     update_stat("xp", 10)
     log_activity_file("Rumination Grounded", f"Managed mental replay from conversation: '{trigger_convo}'. Gained +2 STC, +10 XP.")
     return {"status": "success", "id": new_id, "earned_stc": 2, "earned_xp": 10}
 
 def get_rumination_logs(limit: int = 50) -> list:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_rumination_logs
+        return neon_get_rumination_logs(limit=limit)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1108,11 +1158,15 @@ def get_rumination_logs(limit: int = 50) -> list:
     return [dict(r) for r in rows]
 
 def save_relationship(person_name: str, trust_score: int, leave_urge: int, closeness: int, last_interaction_date: str, notes: str, status: str) -> dict:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_relationship
+        result = neon_save_relationship(person_name, trust_score, leave_urge, closeness, last_interaction_date, notes, status)
+        log_activity_file("Relationship Profile Updated", f"Updated alignment for {person_name}. Trust: {trust_score}/10.")
+        return {"status": "success", "person_name": person_name}
     from datetime import datetime
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     today = date.today().isoformat()
-    
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1122,12 +1176,13 @@ def save_relationship(person_name: str, trust_score: int, leave_urge: int, close
         """, (person_name.strip(), trust_score, leave_urge, closeness, last_interaction_date, notes, status, today, timestamp))
         conn.commit()
         conn.close()
-        
-    # Log connection maintenance in activity logs
     log_activity_file("Relationship Profile Updated", f"Updated alignment for {person_name}. Trust: {trust_score}/10, Leave Urge: {leave_urge}/10, Closeness: {closeness}/10.")
     return {"status": "success", "person_name": person_name}
 
 def get_relationships() -> list:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_relationships
+        return neon_get_relationships()
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1137,57 +1192,51 @@ def get_relationships() -> list:
     return [dict(r) for r in rows]
 
 def get_mind_summary() -> dict:
+    if IS_SERVERLESS:
+        # Query Neon pg_mind_* tables
+        try:
+            import psycopg2
+            from config import DATABASE_URL
+            with psycopg2.connect(DATABASE_URL) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT COUNT(*), SUM(CASE WHEN verified_outcome='Pending' THEN 1 ELSE 0 END) FROM pg_mind_reality_checks")
+                    rc = cur.fetchone(); total_rc = rc[0] or 0; pending_rc = rc[1] or 0
+                    cur.execute("SELECT AVG(CAST(distress_score AS FLOAT)), AVG(CAST(duration_mins AS FLOAT)), SUM(grounding_used) FROM pg_mind_rumination_logs")
+                    rl = cur.fetchone(); avg_distress = round(rl[0], 1) if rl[0] else 0.0; avg_duration = round(rl[1], 1) if rl[1] else 0.0; total_groundings = rl[2] or 0
+                    cur.execute("SELECT COUNT(*), SUM(CASE WHEN CAST(leave_urge AS INT) >= CAST(trust_score AS INT) AND status='Active' THEN 1 ELSE 0 END) FROM pg_mind_relationships")
+                    rel = cur.fetchone(); total_rels = rel[0] or 0; warning_rels = rel[1] or 0
+                    cur.execute("SELECT COUNT(*), SUM(CAST(duration_mins AS INT)) FROM pg_mind_meditation_logs")
+                    med = cur.fetchone(); total_med = med[0] or 0; total_med_mins = med[1] or 0
+            return {"total_reality_checks": total_rc, "pending_reality_checks": pending_rc, "avg_rumination_distress": avg_distress, "avg_rumination_duration": avg_duration, "total_groundings": total_groundings, "total_relationships": total_rels, "warning_relationships": warning_rels, "total_meditations": total_med, "total_meditation_minutes": total_med_mins}
+        except Exception as e:
+            print(f"[Mind OS] Neon summary failed: {e}")
+            return {"total_reality_checks": 0, "pending_reality_checks": 0, "avg_rumination_distress": 0.0, "avg_rumination_duration": 0.0, "total_groundings": 0, "total_relationships": 0, "warning_relationships": 0, "total_meditations": 0, "total_meditation_minutes": 0}
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # 1. Total and Pending Reality Checks
     cursor.execute("SELECT COUNT(*), SUM(CASE WHEN verified_outcome = 'Pending' THEN 1 ELSE 0 END) FROM mind_reality_checks")
-    rc_row = cursor.fetchone()
-    total_rc = rc_row[0] if rc_row else 0
-    pending_rc = rc_row[1] if rc_row and rc_row[1] is not None else 0
-        
-    # 2. Avg Rumination distress & duration
+    rc_row = cursor.fetchone(); total_rc = rc_row[0] if rc_row else 0; pending_rc = rc_row[1] if rc_row and rc_row[1] is not None else 0
     cursor.execute("SELECT AVG(distress_score), AVG(duration_mins), SUM(grounding_used) FROM mind_rumination_logs")
-    rl_row = cursor.fetchone()
-    avg_distress = round(rl_row[0], 1) if rl_row and rl_row[0] is not None else 0.0
-    avg_duration = round(rl_row[1], 1) if rl_row and rl_row[1] is not None else 0.0
-    total_groundings = rl_row[2] if rl_row and rl_row[2] is not None else 0
-    
-    # 3. Active relationships & warning count (leave_urge > trust_score)
-    cursor.execute("""
-    SELECT COUNT(*), SUM(CASE WHEN leave_urge >= trust_score AND status = 'Active' THEN 1 ELSE 0 END)
-    FROM mind_relationships
-    """)
-    rel_row = cursor.fetchone()
-    total_rels = rel_row[0] if rel_row else 0
-    warning_rels = rel_row[1] if rel_row and rel_row[1] is not None else 0
-    
-    # 4. Meditation Stats
+    rl_row = cursor.fetchone(); avg_distress = round(rl_row[0], 1) if rl_row and rl_row[0] is not None else 0.0; avg_duration = round(rl_row[1], 1) if rl_row and rl_row[1] is not None else 0.0; total_groundings = rl_row[2] if rl_row and rl_row[2] is not None else 0
+    cursor.execute("SELECT COUNT(*), SUM(CASE WHEN leave_urge >= trust_score AND status = 'Active' THEN 1 ELSE 0 END) FROM mind_relationships")
+    rel_row = cursor.fetchone(); total_rels = rel_row[0] if rel_row else 0; warning_rels = rel_row[1] if rel_row and rel_row[1] is not None else 0
     cursor.execute("SELECT COUNT(*), SUM(duration_mins) FROM mind_meditation_logs")
-    med_row = cursor.fetchone()
-    total_med = med_row[0] if med_row else 0
-    total_med_mins = med_row[1] if med_row and med_row[1] is not None else 0
-
+    med_row = cursor.fetchone(); total_med = med_row[0] if med_row else 0; total_med_mins = med_row[1] if med_row and med_row[1] is not None else 0
     conn.close()
-    
-    return {
-        "total_reality_checks": total_rc,
-        "pending_reality_checks": pending_rc,
-        "avg_rumination_distress": avg_distress,
-        "avg_rumination_duration": avg_duration,
-        "total_groundings": total_groundings,
-        "total_relationships": total_rels,
-        "warning_relationships": warning_rels,
-        "total_meditations": total_med,
-        "total_meditation_minutes": total_med_mins
-    }
+    return {"total_reality_checks": total_rc, "pending_reality_checks": pending_rc, "avg_rumination_distress": avg_distress, "avg_rumination_duration": avg_duration, "total_groundings": total_groundings, "total_relationships": total_rels, "warning_relationships": warning_rels, "total_meditations": total_med, "total_meditation_minutes": total_med_mins}
 
 def save_meditation_log(duration_mins: int, track_name: str) -> dict:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_meditation_log
+        result = neon_save_meditation_log(duration_mins, track_name)
+        update_stat("stoic", 2)
+        update_stat("wil", 1)
+        new_state = update_stat("xp", 20)
+        log_activity_file("Meditation Session Completed", f"Completed {duration_mins} mins. +20 XP, +2 STC, +1 WIL.")
+        return {"status": "success", "id": result["id"], "earned_xp": 20, "earned_stc": 2, "earned_wil": 1, "level": new_state.get("level", 1), "xp": new_state.get("xp", 0)}
     from datetime import datetime, date
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     today = date.today().isoformat()
-    
     with _DB_WRITE_LOCK:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1198,27 +1247,16 @@ def save_meditation_log(duration_mins: int, track_name: str) -> dict:
         conn.commit()
         new_id = cursor.lastrowid
         conn.close()
-        
-    # Award stats: +2 STC (Stoic), +1 WIL (Willpower), and +20 XP
     update_stat("stoic", 2)
     update_stat("wil", 1)
     new_state = update_stat("xp", 20)
-    
-    log_activity_file(
-        doing="Meditation Session Completed",
-        accomplished=f"Completed {duration_mins} minutes of focused meditation listening to '{track_name}'. Awarded +20 XP, +2 STC, +1 WIL."
-    )
-    return {
-        "status": "success", 
-        "id": new_id, 
-        "earned_xp": 20, 
-        "earned_stc": 2, 
-        "earned_wil": 1,
-        "level": new_state.get("level", 1),
-        "xp": new_state.get("xp", 0)
-    }
+    log_activity_file("Meditation Session Completed", f"Completed {duration_mins} minutes of focused meditation listening to '{track_name}'. Awarded +20 XP, +2 STC, +1 WIL.")
+    return {"status": "success", "id": new_id, "earned_xp": 20, "earned_stc": 2, "earned_wil": 1, "level": new_state.get("level", 1), "xp": new_state.get("xp", 0)}
 
 def get_meditation_logs(limit: int = 50) -> list:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_meditation_logs
+        return neon_get_meditation_logs(limit=limit)
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()

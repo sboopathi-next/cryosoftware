@@ -21,6 +21,7 @@ except ImportError:
     pass
 
 from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs
+from config import IS_SERVERLESS, DATABASE_URL
 from engine.fatigue_governor import update_daily_energy
 
 # ─── Auth configuration ────────────────────────────────────────────────────
@@ -621,18 +622,22 @@ def save_workstation_settings(payload: SettingsSavePayload):
     Groq without needing the browser to be open.
     """
     try:
+        if IS_SERVERLESS:
+            import psycopg2
+            conn = psycopg2.connect(DATABASE_URL)
+            with conn.cursor() as cur:
+                if payload.groq_api_key:
+                    cur.execute("INSERT INTO pg_settings (key, value) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value", ("groq_api_key", payload.groq_api_key.strip()))
+                if payload.groq_model:
+                    cur.execute("INSERT INTO pg_settings (key, value) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value", ("groq_model", payload.groq_model.strip()))
+            conn.commit(); conn.close()
+            return {"status": "success", "message": "Settings synced to Neon DB."}
         conn = get_db_connection()
         with _DB_WRITE_LOCK:
             if payload.groq_api_key:
-                conn.execute(
-                    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-                    ("groq_api_key", payload.groq_api_key.strip())
-                )
+                conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", ("groq_api_key", payload.groq_api_key.strip()))
             if payload.groq_model:
-                conn.execute(
-                    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-                    ("groq_model", payload.groq_model.strip())
-                )
+                conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", ("groq_model", payload.groq_model.strip()))
             conn.commit()
         conn.close()
         return {"status": "success", "message": "Settings synced to DB for background daemons."}
@@ -809,31 +814,43 @@ def submit_telemetry(study_hours: float = 0.0, gym_hours: float = 0.0, dopamine_
 
 @app.get("/api/syllabus")
 def get_syllabus():
-    """Loads syllabus items and embeds completion status from SQLite."""
+    """Loads syllabus items and embeds completion status from SQLite or Neon."""
     if not os.path.exists(SYLLABUS_PATH):
         raise HTTPException(status_code=404, detail="Syllabus template file missing.")
-        
     try:
         with open(SYLLABUS_PATH, "r", encoding="utf-8") as f:
             syllabus = json.load(f)
-            
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT module_name, course, completed_at FROM completed_modules")
-        rows = cursor.fetchall()
-        conn.close()
-        
-        completed_map = {}
-        for row in rows:
-            completed_map[row[0]] = row[2]
-            
-        for course_id, course in syllabus.get("courses", {}).items():
-            for week in course.get("weeks", []):
-                for item in week.get("items", []):
-                    full_key = f"{item['id']}: {item['name']}"
-                    item["completed"] = (full_key in completed_map) or (item["name"] in completed_map)
-                    item["completed_at"] = completed_map.get(full_key, completed_map.get(item["name"]))
-                    
+
+        if IS_SERVERLESS:
+            # Use completed_syllabus_items from the JSON state in Neon
+            state = get_state()
+            completed_items = state.get("completed_syllabus_items", {})
+            # Flatten all completed item keys from all courses
+            all_completed = set()
+            for course_items in completed_items.values():
+                if isinstance(course_items, list):
+                    all_completed.update(course_items)
+            for course_id, course in syllabus.get("courses", {}).items():
+                for week in course.get("weeks", []):
+                    for item in week.get("items", []):
+                        full_key = f"{item['id']}: {item['name']}"
+                        item["completed"] = any(full_key in c or item['name'] in c or item['id'] in c for c in all_completed)
+                        item["completed_at"] = None
+        else:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT module_name, course, completed_at FROM completed_modules")
+            rows = cursor.fetchall()
+            conn.close()
+            completed_map = {}
+            for row in rows:
+                completed_map[row[0]] = row[2]
+            for course_id, course in syllabus.get("courses", {}).items():
+                for week in course.get("weeks", []):
+                    for item in week.get("items", []):
+                        full_key = f"{item['id']}: {item['name']}"
+                        item["completed"] = (full_key in completed_map) or (item["name"] in completed_map)
+                        item["completed_at"] = completed_map.get(full_key, completed_map.get(item["name"]))
         return syllabus
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading syllabus: {e}")
@@ -884,26 +901,38 @@ def toggle_syllabus_item(payload: SyllabusTogglePayload):
     if early_bird_bonus:
         print(f"[Early Bird] Completing '{target_item['id']}' at level {player_level} (req: {lvl_req}) — Early Bird mode.")
         
-    conn = get_db_connection()
-    already_completed = False
-    with _DB_WRITE_LOCK:
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM completed_modules WHERE module_name = ?", (full_module_name,))
-        already_completed = cursor.fetchone()[0] > 0
-
-        if payload.completed:
-            if not already_completed:
-                cursor.execute(
-                    "INSERT INTO completed_modules (module_name, course, xp_earned, completed_at) VALUES (?, ?, ?, ?)",
-                    (full_module_name, payload.subject_id, xp_value, datetime.datetime.now().isoformat())
-                )
-                conn.commit()
-        else:
-            if already_completed:
-                cursor.execute("DELETE FROM completed_modules WHERE module_name = ?", (full_module_name,))
-                conn.commit()
-
-    conn.close()
+    if IS_SERVERLESS:
+        # Use completed_syllabus_items in state JSON on Neon
+        completed_items = state.get("completed_syllabus_items", {})
+        course_completed = completed_items.get(payload.subject_id, [])
+        already_completed = full_module_name in course_completed
+        if payload.completed and not already_completed:
+            course_completed.append(full_module_name)
+            completed_items[payload.subject_id] = course_completed
+            state["completed_syllabus_items"] = completed_items
+        elif not payload.completed and already_completed:
+            course_completed = [c for c in course_completed if c != full_module_name]
+            completed_items[payload.subject_id] = course_completed
+            state["completed_syllabus_items"] = completed_items
+    else:
+        conn = get_db_connection()
+        already_completed = False
+        with _DB_WRITE_LOCK:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM completed_modules WHERE module_name = ?", (full_module_name,))
+            already_completed = cursor.fetchone()[0] > 0
+            if payload.completed:
+                if not already_completed:
+                    cursor.execute(
+                        "INSERT INTO completed_modules (module_name, course, xp_earned, completed_at) VALUES (?, ?, ?, ?)",
+                        (full_module_name, payload.subject_id, xp_value, datetime.datetime.now().isoformat())
+                    )
+                    conn.commit()
+            else:
+                if already_completed:
+                    cursor.execute("DELETE FROM completed_modules WHERE module_name = ?", (full_module_name,))
+                    conn.commit()
+        conn.close()
 
     if payload.completed and not already_completed:
         state["int"] = state.get("int", 10) + 1
@@ -1014,32 +1043,26 @@ def save_study_journal(payload: StudyJournalPayload):
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     date_str = now.strftime("%Y-%m-%d")
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    with _DB_WRITE_LOCK:
-        cursor.execute(
-            "INSERT INTO study_journal (topic, notes, subject_id, item_id, mood, timestamp, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (
-                payload.topic.strip(),
-                payload.notes or "",
-                payload.subject_id or "",
-                payload.item_id or "",
-                payload.mood or "focused",
-                timestamp,
-                date_str
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_study_journal
+        neon_save_study_journal(payload.topic.strip(), payload.notes or "", payload.subject_id or "", payload.item_id or "", payload.mood or "focused")
+    else:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        with _DB_WRITE_LOCK:
+            cursor.execute(
+                "INSERT INTO study_journal (topic, notes, subject_id, item_id, mood, timestamp, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (payload.topic.strip(), payload.notes or "", payload.subject_id or "", payload.item_id or "", payload.mood or "focused", timestamp, date_str)
             )
-        )
-        conn.commit()
-    conn.close()
+            conn.commit()
+        conn.close()
 
-    # Award XP and mark study as done
     state = get_state()
     state["study_completed"] = 1
     state["int"] = state.get("int", 10) + 1
     save_state(state)
     add_xp(10)
 
-    # Log to activity file
     log_activity_file(
         doing=f"Study Session: {payload.topic}",
         accomplished=f"Mood: {payload.mood} | Notes: {(payload.notes or 'N/A')[:80]}"
@@ -1059,21 +1082,19 @@ def get_study_journal(date: Optional[str] = None, limit: int = 30):
     If date is provided (YYYY-MM-DD), returns entries for that day.
     Otherwise returns the last `limit` entries.
     """
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_study_journal
+        entries = neon_get_study_journal(limit=limit)
+        if date:
+            entries = [e for e in entries if e.get("date") == date]
+        return {"entries": entries}
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-
     if date:
-        cursor.execute(
-            "SELECT * FROM study_journal WHERE date = ? ORDER BY id DESC",
-            (date,)
-        )
+        cursor.execute("SELECT * FROM study_journal WHERE date = ? ORDER BY id DESC", (date,))
     else:
-        cursor.execute(
-            "SELECT * FROM study_journal ORDER BY id DESC LIMIT ?",
-            (limit,)
-        )
-
+        cursor.execute("SELECT * FROM study_journal ORDER BY id DESC LIMIT ?", (limit,))
     rows = cursor.fetchall()
     conn.close()
     return {"entries": [dict(r) for r in reversed(rows)]}
@@ -1326,6 +1347,9 @@ def save_reading_book(payload: ReadingBookPayload):
 @app.get("/api/reading/books")
 def get_saved_books():
     try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_get_saved_books
+            return {"status": "success", "books": neon_get_saved_books()}
         conn = get_db_connection()
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT * FROM saved_books ORDER BY title ASC").fetchall()
@@ -1337,6 +1361,9 @@ def get_saved_books():
 @app.post("/api/reading/books")
 def save_saved_book(payload: SavedBookPayload):
     try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_save_book
+            return neon_save_book(payload.title)
         conn = get_db_connection()
         conn.execute("INSERT OR IGNORE INTO saved_books (title) VALUES (?)", (payload.title.strip(),))
         conn.commit()
@@ -1348,6 +1375,9 @@ def save_saved_book(payload: SavedBookPayload):
 @app.get("/api/reading/logs")
 def get_reading_logs():
     try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_get_reading_logs
+            return {"status": "success", "logs": neon_get_reading_logs()}
         conn = get_db_connection()
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT * FROM reading_logs ORDER BY id DESC").fetchall()
@@ -1367,13 +1397,17 @@ def log_reading_session(payload: LogReadingPayload):
         curr_date = datetime.date.today().isoformat()
         
         # Log to DB
-        conn = get_db_connection()
-        conn.execute(
-            "INSERT INTO reading_logs (book_title, page_from, page_to, pages_read, timestamp, date) VALUES (?,?,?,?,?,?)",
-            (payload.book_title, payload.page_from, payload.page_to, pages_read, timestamp, curr_date)
-        )
-        conn.commit()
-        conn.close()
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_save_reading_log
+            neon_save_reading_log(payload.book_title, payload.page_from, payload.page_to, pages_read)
+        else:
+            conn = get_db_connection()
+            conn.execute(
+                "INSERT INTO reading_logs (book_title, page_from, page_to, pages_read, timestamp, date) VALUES (?,?,?,?,?,?)",
+                (payload.book_title, payload.page_from, payload.page_to, pages_read, timestamp, curr_date)
+            )
+            conn.commit()
+            conn.close()
         
         # Mark as completed in state, reward XP & INT
         state = get_state()
@@ -1389,7 +1423,6 @@ def log_reading_session(payload: LogReadingPayload):
             xp_earned = 10
             int_earned = 1
             
-        # Log to activity log file
         log_activity_file(
             doing=f"Logged Reading: {payload.book_title}",
             accomplished=f"Read pages {payload.page_from} to {payload.page_to} ({pages_read} pages). Earned {xp_earned} XP, {int_earned} INT."
