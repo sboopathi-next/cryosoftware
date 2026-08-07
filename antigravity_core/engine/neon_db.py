@@ -424,3 +424,52 @@ def neon_get_teaching_sessions() -> list:
             cur.execute("SELECT * FROM pg_teaching_sessions ORDER BY id ASC")
             return [dict(r) for r in cur.fetchall()]
 
+
+# ─── Body Metrics ──────────────────────────────────────────────────────────────
+
+def neon_save_body_metrics(timestamp: str, weight_kg: float, body_fat_pct: float,
+                            waist_cm: float, chest_cm: float, arms_cm: float,
+                            thigh_cm: float, notes: str) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS pg_body_metrics (
+                    id SERIAL PRIMARY KEY,
+                    timestamp TEXT NOT NULL,
+                    weight_kg REAL,
+                    body_fat_pct REAL,
+                    waist_cm REAL,
+                    chest_cm REAL,
+                    arms_cm REAL,
+                    thigh_cm REAL,
+                    notes TEXT
+                );
+            """)
+            cur.execute(
+                "INSERT INTO pg_body_metrics (timestamp, weight_kg, body_fat_pct, waist_cm, chest_cm, arms_cm, thigh_cm, notes) VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                (timestamp, weight_kg, body_fat_pct, waist_cm, chest_cm, arms_cm, thigh_cm, notes)
+            )
+            new_id = cur.fetchone()[0]
+    return {"id": new_id, "timestamp": timestamp}
+
+
+def neon_get_body_metrics() -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS pg_body_metrics (
+                    id SERIAL PRIMARY KEY,
+                    timestamp TEXT NOT NULL,
+                    weight_kg REAL,
+                    body_fat_pct REAL,
+                    waist_cm REAL,
+                    chest_cm REAL,
+                    arms_cm REAL,
+                    thigh_cm REAL,
+                    notes TEXT
+                );
+            """)
+            cur.execute("SELECT * FROM pg_body_metrics ORDER BY id DESC")
+            return [dict(r) for r in cur.fetchall()]
+
+

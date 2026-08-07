@@ -177,6 +177,16 @@ class StoicReflectionPayload(BaseModel):
     stoic_lesson: Optional[str] = ""
 
 
+class BodyMetricsPayload(BaseModel):
+    weight_kg: Optional[float] = None
+    body_fat_pct: Optional[float] = None
+    waist_cm: Optional[float] = None
+    chest_cm: Optional[float] = None
+    arms_cm: Optional[float] = None
+    thigh_cm: Optional[float] = None
+    notes: Optional[str] = ""
+
+
 class LogReadingPayload(BaseModel):
     book_title: str
     page_from: int
@@ -1420,7 +1430,190 @@ def delete_workout_entry(payload: WorkoutDeletePayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ─── Checklist Toggle API ─────────────────────────────────────────────────────
+# ─── Gym Pro Page ─────────────────────────────────────────────────────────────
+
+@app.get("/gym-pro")
+def get_gym_pro_page():
+    return FileResponse(os.path.join(STATIC_DIR, "gym_pro.html"))
+
+
+# ─── Workout Analytics API ────────────────────────────────────────────────────
+
+def _parse_sets_string(sets_str: str) -> list:
+    """Parse 'Set 1: 60kg x 8 reps; Set 2: 65kg x 6 reps' into list of {weight, reps}."""
+    import re
+    result = []
+    if not sets_str:
+        return result
+    parts = sets_str.split(";")
+    for part in parts:
+        part = part.strip()
+        m = re.search(r"([\d.]+)\s*kg\s*x\s*([\d]+)\s*rep", part, re.IGNORECASE)
+        if m:
+            result.append({"weight": float(m.group(1)), "reps": int(m.group(2))})
+    return result
+
+
+@app.get("/api/workouts/analytics")
+def get_workout_analytics():
+    """Compute PRs, 1RM, volume, weekly sets, frequency from all workout logs."""
+    import datetime as dt
+
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_workout_history
+        try:
+            logs = neon_get_workout_history(limit="all")
+        except Exception:
+            logs = []
+    else:
+        logs = []
+        if os.path.exists(WORKOUT_LOG_CSV):
+            with open(WORKOUT_LOG_CSV, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                logs = [dict(r) for r in reader]
+
+    now = dt.datetime.utcnow()
+    week_start = (now - dt.timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0)
+
+    # PRs per exercise: {exercise: {best_weight, best_reps, best_volume, best_1rm}}
+    prs = {}
+    # Weekly sets per muscle category
+    weekly_sets = {}
+    # Last session date per category
+    last_trained = {}
+    # Session summary list
+    sessions = []
+
+    for log in logs:
+        ex = log.get("Workout") or log.get("workout") or ""
+        cat = log.get("Category") or log.get("category") or ""
+        ts_raw = log.get("Timestamp") or log.get("timestamp") or ""
+        sets_str = log.get("Sets") or log.get("sets") or ""
+        dur = int(log.get("Duration_Minutes") or log.get("duration_minutes") or 0)
+
+        try:
+            ts = dt.datetime.fromisoformat(ts_raw)
+        except Exception:
+            continue
+
+        parsed = _parse_sets_string(sets_str)
+        session_volume = sum(s["weight"] * s["reps"] for s in parsed)
+        max_weight = max((s["weight"] for s in parsed), default=0)
+        max_reps = max((s["reps"] for s in parsed), default=0)
+        best_1rm = max((s["weight"] * (1 + s["reps"] / 30) for s in parsed), default=0)
+
+        # PRs
+        if ex not in prs:
+            prs[ex] = {"exercise": ex, "category": cat, "best_weight": 0, "best_reps": 0, "best_volume": 0, "best_1rm": 0}
+        if max_weight > prs[ex]["best_weight"]:
+            prs[ex]["best_weight"] = max_weight
+        if max_reps > prs[ex]["best_reps"]:
+            prs[ex]["best_reps"] = max_reps
+        if session_volume > prs[ex]["best_volume"]:
+            prs[ex]["best_volume"] = round(session_volume, 1)
+        if best_1rm > prs[ex]["best_1rm"]:
+            prs[ex]["best_1rm"] = round(best_1rm, 1)
+
+        # Weekly sets (current calendar week)
+        if ts >= week_start:
+            weekly_sets[cat] = weekly_sets.get(cat, 0) + len(parsed)
+
+        # Last trained per category
+        if cat not in last_trained or ts > last_trained[cat]:
+            last_trained[cat] = ts
+
+        sessions.append({
+            "timestamp": ts_raw,
+            "exercise": ex,
+            "category": cat,
+            "sets": parsed,
+            "volume": round(session_volume, 1),
+            "duration_minutes": dur,
+            "set_count": len(parsed)
+        })
+
+    # Recovery: days since last trained per muscle
+    recovery = {}
+    for cat, last_ts in last_trained.items():
+        days_ago = (now - last_ts).days
+        recovery[cat] = {
+            "days_ago": days_ago,
+            "status": "green" if days_ago >= 3 else ("amber" if days_ago >= 1 else "red")
+        }
+
+    def _ts_gte(s, week_start):
+        try:
+            return dt.datetime.fromisoformat(s["timestamp"]) >= week_start
+        except Exception:
+            return False
+
+    return {
+        "prs": list(prs.values()),
+        "weekly_sets": weekly_sets,
+        "recovery": recovery,
+        "sessions": sessions[:100],
+        "total_logs": len(logs),
+        "this_week_sessions": sum(1 for s in sessions if _ts_gte(s, week_start))
+    }
+
+
+# ─── Body Metrics API ─────────────────────────────────────────────────────────
+
+@app.post("/api/workouts/body-metrics")
+def save_body_metrics(payload: BodyMetricsPayload):
+    """Save body measurements to the database."""
+    import datetime as dt
+    timestamp = dt.datetime.now().isoformat()
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_body_metrics
+        try:
+            result = neon_save_body_metrics(
+                timestamp,
+                payload.weight_kg or 0,
+                payload.body_fat_pct or 0,
+                payload.waist_cm or 0,
+                payload.chest_cm or 0,
+                payload.arms_cm or 0,
+                payload.thigh_cm or 0,
+                payload.notes or ""
+            )
+            return {"status": "success", "message": "Body metrics saved!", **result}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error saving body metrics: {e}")
+    else:
+        # Local CSV fallback
+        body_csv = os.path.join(DATA_DIR, "body_metrics.csv")
+        file_exists = os.path.exists(body_csv)
+        try:
+            with open(body_csv, "a", encoding="utf-8", newline="") as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(["timestamp", "weight_kg", "body_fat_pct", "waist_cm", "chest_cm", "arms_cm", "thigh_cm", "notes"])
+                writer.writerow([timestamp, payload.weight_kg, payload.body_fat_pct, payload.waist_cm, payload.chest_cm, payload.arms_cm, payload.thigh_cm, payload.notes])
+            return {"status": "success", "message": "Body metrics saved!", "timestamp": timestamp}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error saving body metrics: {e}")
+
+
+@app.get("/api/workouts/body-metrics")
+def get_body_metrics():
+    """Return all body metric entries."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_body_metrics
+        try:
+            return neon_get_body_metrics()
+        except Exception as e:
+            print(f"[API] Error reading body metrics: {e}")
+            return []
+    else:
+        body_csv = os.path.join(DATA_DIR, "body_metrics.csv")
+        if not os.path.exists(body_csv):
+            return []
+        with open(body_csv, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            return [dict(r) for r in reader]
+
+
 
 @app.post("/api/checklist/toggle")
 def toggle_checklist(payload: ChecklistTogglePayload):
