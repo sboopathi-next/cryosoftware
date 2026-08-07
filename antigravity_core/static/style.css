@@ -1171,15 +1171,20 @@ select, input, textarea { font-family: var(--ff-body); }
     height: 100vh !important;
   }
   .main {
-    height: calc(100dvh - 110px) !important;
-    height: calc(100vh - 110px) !important;
-    padding-bottom: 85px !important;
+    height: calc(100dvh - 65px - env(safe-area-inset-bottom)) !important;
+    height: calc(100vh - 65px - env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
     box-sizing: border-box !important;
   }
   
+  /* Guarantee that chat inputs, suggestion rows, and other bottom-anchored content clear the bottom nav */
+  .input-row, .chat-footer, .quick-row, .quick-suggestions, .sets-table, #log-extra {
+    margin-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+  }
+  
   /* Fallback scroll margins for long content pages */
-  .teach-pane, .meditation-zone, .english-container, .exam-layout, .stoic-pane, .chat-messages {
-    padding-bottom: 24px !important;
+  .teach-pane, .meditation-zone, .english-container, .exam-layout, .stoic-pane, .chat-messages, .tab-panel, .history-list {
+    padding-bottom: calc(95px + env(safe-area-inset-bottom)) !important;
   }
 
   /* Full-width bubbles for mobile chat screens (ChatGPT style) */

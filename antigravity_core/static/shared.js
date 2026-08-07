@@ -389,6 +389,9 @@ function speakVoice(text, forceInterrupt = false, moodObj = null) {
   const utter = new SpeechSynthesisUtterance(clean);
   utter.volume = 1.0;
 
+  // Detect mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   // Dynamic Voice Selection matching Coach Mood
   const allVoices = window.speechSynthesis.getVoices();
   const enVoices = allVoices.filter(v => v.lang.startsWith('en'));
@@ -409,8 +412,13 @@ function speakVoice(text, forceInterrupt = false, moodObj = null) {
       );
       if (selectedVoice) {
         utter.voice = selectedVoice;
-        utter.pitch = targetPitch || (0.62 + (Math.random() * 0.1));
-        utter.rate = targetRate || 0.92;
+        if (isMobile) {
+          utter.pitch = targetPitch || 0.95;
+          utter.rate = targetRate || 1.0;
+        } else {
+          utter.pitch = targetPitch || (0.62 + (Math.random() * 0.1));
+          utter.rate = targetRate || 0.92;
+        }
       }
     }
 
@@ -421,13 +429,23 @@ function speakVoice(text, forceInterrupt = false, moodObj = null) {
       ) || enVoices[0];
       if (selectedVoice) {
         utter.voice = selectedVoice;
-        utter.pitch = targetPitch || (0.35 + (Math.random() * 0.12));
-        utter.rate = targetRate || 0.85;
+        if (isMobile) {
+          utter.pitch = targetPitch || 0.88;
+          utter.rate = targetRate || 0.95;
+        } else {
+          utter.pitch = targetPitch || (0.35 + (Math.random() * 0.12));
+          utter.rate = targetRate || 0.85;
+        }
       }
     }
   } else {
-    utter.pitch = moodObj && moodObj.pitch ? moodObj.pitch : 0.45;
-    utter.rate = moodObj && moodObj.rate ? moodObj.rate : 0.88;
+    if (isMobile) {
+      utter.pitch = moodObj && moodObj.pitch ? moodObj.pitch : 0.95;
+      utter.rate = moodObj && moodObj.rate ? moodObj.rate : 1.0;
+    } else {
+      utter.pitch = moodObj && moodObj.pitch ? moodObj.pitch : 0.45;
+      utter.rate = moodObj && moodObj.rate ? moodObj.rate : 0.88;
+    }
   }
 
   window.speechSynthesis.speak(utter);
