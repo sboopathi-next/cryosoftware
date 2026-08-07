@@ -102,21 +102,79 @@ def mark_all_synced():
 
 
 # ──────────────────────────────────────────────
-# Online check
+# Online check (Asynchronous & Cached)
 # ──────────────────────────────────────────────
 
+import threading
+import queue
+
+_ONLINE_STATUS = True
+_ONLINE_CHECK_THREAD = None
+_NEON_WRITE_QUEUE = queue.Queue()
+_NEON_WRITE_THREAD = None
+
+def _background_online_checker():
+    global _ONLINE_STATUS
+    while True:
+        try:
+            from config import DATABASE_URL
+            if not DATABASE_URL:
+                _ONLINE_STATUS = False
+            else:
+                import psycopg2
+                conn = psycopg2.connect(DATABASE_URL, connect_timeout=3)
+                conn.close()
+                _ONLINE_STATUS = True
+        except Exception:
+            _ONLINE_STATUS = False
+        time.sleep(20)
+
+def start_online_checker():
+    global _ONLINE_CHECK_THREAD
+    if _ONLINE_CHECK_THREAD is None:
+        _ONLINE_CHECK_THREAD = threading.Thread(
+            target=_background_online_checker,
+            name="OnlineCheckerThread",
+            daemon=True
+        )
+        _ONLINE_CHECK_THREAD.start()
+
 def is_online() -> bool:
-    """Returns True if Neon DB is reachable."""
-    try:
-        from config import DATABASE_URL
-        if not DATABASE_URL:
-            return False
-        import psycopg2
-        conn = psycopg2.connect(DATABASE_URL, connect_timeout=4)
-        conn.close()
-        return True
-    except Exception:
-        return False
+    """Returns True if Neon DB is reachable (instantly reads cached status)."""
+    start_online_checker()
+    return _ONLINE_STATUS
+
+# ──────────────────────────────────────────────
+# Background Neon PG Writer Queue (Producer-Consumer)
+# ──────────────────────────────────────────────
+
+def _background_neon_writer():
+    while True:
+        state = _NEON_WRITE_QUEUE.get()
+        try:
+            if is_online():
+                from state import save_state_to_db
+                save_state_to_db(state)
+                # Sync any other pending local modifications recorded in CSV
+                push_pending_to_neon()
+        except Exception as e:
+            print(f"[Sync] Asynchronous Neon write failed: {e}")
+        finally:
+            _NEON_WRITE_QUEUE.task_done()
+
+def start_neon_writer():
+    global _NEON_WRITE_THREAD
+    if _NEON_WRITE_THREAD is None:
+        _NEON_WRITE_THREAD = threading.Thread(
+            target=_background_neon_writer,
+            name="NeonWriterThread",
+            daemon=True
+        )
+        _NEON_WRITE_THREAD.start()
+
+def queue_neon_write(state: dict):
+    start_neon_writer()
+    _NEON_WRITE_QUEUE.put(state)
 
 
 # ──────────────────────────────────────────────
@@ -263,7 +321,7 @@ def sync_load_state() -> dict:
                 synced=True,
             )
         save_state_file(merged)
-        save_state_to_db(merged)
+        queue_neon_write(merged)
         print("[Sync] Online — state merged and synced.")
         return merged
     except Exception as e:
@@ -294,11 +352,8 @@ def sync_save_state(state: dict, old_state: dict = None):
     # Always persist locally first
     save_state_file(state)
 
-    # Try Neon DB
+    # Try Neon DB (Asynchronously)
     if is_online():
-        try:
-            save_state_to_db(state)
-        except Exception as e:
-            print(f"[Sync] Neon save failed, state queued locally. Error: {e}")
+        queue_neon_write(state)
     else:
         print("[Sync] Offline — state saved locally, will sync when online.")

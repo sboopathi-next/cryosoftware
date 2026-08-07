@@ -770,6 +770,9 @@ def gym_check(payload: GymCheckPayload):
         raise HTTPException(status_code=500, detail="Database state not initialized.")
         
     if payload.completed:
+        if state.get("gym_completed"):
+            return {"status": "ignored", "message": "Gym check already completed today."}
+            
         state["agi"] = state.get("agi", 10) + 1
         state["gym_completed"] = 1
         save_state(state)
