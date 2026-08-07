@@ -520,7 +520,7 @@ function injectFloatingStatsBar() {
     'border:1px solid rgba(99,102,241,0.25)', 'border-radius:30px',
     'padding:5px 12px', 'box-shadow:0 4px 20px rgba(0,0,0,0.5)',
     'font-family:var(--ff-mono)', 'font-size:11px', 'color:var(--text2)',
-    'pointer-events:none', 'user-select:none'
+    'pointer-events:auto', 'user-select:none'
   ].join(';');
   bar.innerHTML = `
     <span style="color:var(--indigo);font-weight:700;letter-spacing:.05em;"><i class="fa-solid fa-microchip" style="font-size:10px"></i></span>
@@ -530,8 +530,56 @@ function injectFloatingStatsBar() {
     <span style="color:var(--border)">|</span>
     <i class="fa-solid fa-fire" style="color:var(--amber);font-size:9px"></i>
     <span id="hdr-streak" style="color:var(--amber)">0d</span>
+    <span style="color:var(--border)">|</span>
+    <button id="sync-status-btn" onclick="triggerManualSync()" title="Neon DB Sync Status (Click to Sync)" style="background:none; border:none; color:var(--text2); font-family:var(--ff-mono); font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; outline:none; padding: 2px 6px; border-radius: 12px; transition: background 0.2s;">
+      <i id="sync-icon" class="fa-solid fa-circle" style="color:var(--green); font-size:8px;"></i>
+      <span id="sync-text">Online</span>
+    </button>
   `;
   document.body.appendChild(bar);
+}
+
+async function triggerManualSync() {
+  const btn = document.getElementById('sync-status-btn');
+  const icon = document.getElementById('sync-icon');
+  const text = document.getElementById('sync-text');
+  if (!btn) return;
+
+  btn.disabled = true;
+  const originalClass = icon ? icon.className : 'fa-solid fa-circle';
+  const originalColor = icon ? icon.style.color : 'var(--green)';
+  const originalText = text ? text.textContent : 'Online';
+
+  if (icon) {
+    icon.className = 'fa-solid fa-rotate fa-spin';
+    icon.style.color = 'var(--cyan)';
+  }
+  if (text) text.textContent = 'Syncing...';
+
+  try {
+    const r = await apiFetch('/api/sync/trigger', { method: 'POST' });
+    const d = await r.json();
+    if (r.ok && d.status === 'success') {
+      toast('Neon database synchronized successfully! 🎉', 'ok');
+      await loadMiniStats();
+    } else {
+      toast('Sync failed: ' + (d.message || 'database unreachable'), 'err');
+      if (icon) {
+        icon.className = originalClass;
+        icon.style.color = originalColor;
+      }
+      if (text) text.textContent = originalText;
+    }
+  } catch(e) {
+    toast('Sync failed: Network error', 'err');
+    if (icon) {
+      icon.className = originalClass;
+      icon.style.color = originalColor;
+    }
+    if (text) text.textContent = originalText;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function loadMiniStats() {
@@ -548,6 +596,20 @@ async function loadMiniStats() {
     setEl('hdr-xp', d.xp);
     setEl('hdr-energy', Math.round(d.energy) + '%');
     setEl('hdr-streak', d.streak_days + 'd');
+
+    const syncIcon = document.getElementById('sync-icon');
+    const syncText = document.getElementById('sync-text');
+    if (syncIcon && syncText) {
+      if (d.neon_online) {
+        syncIcon.className = 'fa-solid fa-circle';
+        syncIcon.style.color = 'var(--green)';
+        syncText.textContent = 'Online';
+      } else {
+        syncIcon.className = 'fa-solid fa-triangle-exclamation';
+        syncIcon.style.color = 'var(--amber)';
+        syncText.textContent = 'Offline';
+      }
+    }
 
     if (d.level) {
       checkLevelUpEvent(d.level);

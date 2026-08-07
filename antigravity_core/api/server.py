@@ -756,7 +756,8 @@ def get_stats():
         "nopmo_completed": bool(state.get("nopmo_completed", 0)),
         "reading_completed": bool(state.get("reading_completed", 0)),
         "reading_book": state.get("reading_book", "None"),
-        "english_completed": bool(state.get("english_completed", 0))
+        "english_completed": bool(state.get("english_completed", 0)),
+        "neon_online": (lambda: (__import__('sync').is_online()))()
     }
 
 
@@ -923,6 +924,28 @@ def toggle_syllabus_item(payload: SyllabusTogglePayload):
         )
     
     return {"status": "success", "state": get_stats()}
+
+
+@app.post("/api/sync/trigger")
+def trigger_manual_sync():
+    """Manual sync request. Forces online check and pushes pending local changes to Neon."""
+    try:
+        from sync import push_pending_to_neon, is_online
+        from config import DATABASE_URL
+        if not DATABASE_URL:
+            return {"status": "error", "message": "DATABASE_URL is not set on this server environment."}
+            
+        import psycopg2
+        conn = psycopg2.connect(DATABASE_URL, connect_timeout=3)
+        conn.close()
+        
+        success = push_pending_to_neon()
+        if success:
+            return {"status": "success", "message": "Synchronized with Neon DB successfully."}
+        else:
+            return {"status": "error", "message": "Failed to synchronize. Neon database could be unreachable."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # ─── Activity Logs API ────────────────────────────────────────────────────────
