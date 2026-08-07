@@ -11,6 +11,12 @@ except ImportError:
 DEFAULT_STATE = {
     "level": 1,
     "xp": 0,
+    "str": 10,
+    "int": 10,
+    "agi": 10,
+    "wil": 10,
+    "heart": 10,
+    "stoic": 10,
     "willpower": 10,
     "energy": 100.0,
     "streak_days": 0,
@@ -31,7 +37,12 @@ DEFAULT_STATE = {
     "cooking_completed": False,
     "nopmo_completed": False,
     "active_subject": "Python_Data_Science",
-    "completed_syllabus_items": {}
+    "completed_syllabus_items": {},
+    "reading_book": "None",
+    "reading_completed": False,
+    "english_completed": False,
+    "leetcode_completed": False,
+    "study_completed": False
 }
 
 def get_db_connection():

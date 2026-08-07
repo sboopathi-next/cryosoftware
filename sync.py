@@ -128,15 +128,16 @@ def merge_states(local_state: dict, remote_state: dict) -> dict:
     Merge local and remote state.
     Strategy: field-level merge using 'last_update' timestamp.
     For non-timestamped fields, remote (Neon) wins if it differs.
-    XP/level/energy are always taken as max to avoid rollbacks.
+    XP/level/energy/attributes are always taken as max to avoid rollbacks.
     """
-    merged = dict(local_state)
+    merged = {**remote_state, **local_state}
 
     local_ts = local_state.get("last_update", "")
     remote_ts = remote_state.get("last_update", "")
 
     # For cumulative numeric progress fields, always take the higher value
-    for key in ("xp", "level", "streak_days", "continuous_study_days", "willpower"):
+    for key in ("xp", "level", "streak_days", "continuous_study_days", "willpower",
+                "str", "int", "agi", "wil", "heart", "stoic"):
         local_val = local_state.get(key, 0)
         remote_val = remote_state.get(key, 0)
         merged[key] = max(local_val, remote_val)

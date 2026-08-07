@@ -486,67 +486,34 @@ def save_state(state: dict):
         pass
 
 def add_xp(amount: int) -> dict:
-    with _DB_WRITE_LOCK:
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
-        row = cursor.fetchone()
-        if not row:
-            conn.close()
-            return {}
-        state = dict(row)
-        state["xp"] += amount
+    state = get_state()
+    if not state:
+        return {}
+    state["xp"] += amount
+    
+    # Handle level down
+    while state["xp"] < 0 and state["level"] > 1:
+        state["level"] -= 1
+        state["xp"] += calculate_xp_required(state["level"])
         
-        # Handle level down
-        while state["xp"] < 0 and state["level"] > 1:
-            state["level"] -= 1
-            state["xp"] += calculate_xp_required(state["level"])
+    if state["xp"] < 0:
+        state["xp"] = 0
+        
+    # Handle level up
+    while True:
+        req = calculate_xp_required(state["level"])
+        if state["xp"] >= req:
+            state["xp"] -= req
+            state["level"] += 1
+        else:
+            break
             
-        if state["xp"] < 0:
-            state["xp"] = 0
-            
-        # Handle level up
-        while True:
-            req = calculate_xp_required(state["level"])
-            if state["xp"] >= req:
-                state["xp"] -= req
-                state["level"] += 1
-            else:
-                break
-        cursor.execute("""
-        UPDATE system_state
-        SET level = ?, xp = ?, str = ?, int = ?, agi = ?, wil = ?,
-            energy = ?, lockout_active = ?, last_update = ?,
-            streak_days = ?, continuous_study_days = ?, active_subject = ?,
-            gym_completed = ?, study_completed = ?, leetcode_completed = ?,
-            cooking_completed = ?, nopmo_completed = ?,
-            english_completed = ?, reading_completed = ?, reading_book = ?, heart = ?, stoic = ?
-        WHERE id = (SELECT id FROM system_state ORDER BY id DESC LIMIT 1)
-        """, (
-            state["level"], state["xp"],
-            state.get("str", 10), state.get("int", 10),
-            state.get("agi", 10), state.get("wil", 10),
-            state.get("energy", 100.0),
-            1 if state.get("lockout_active") else 0,
-            state.get("last_update", date.today().isoformat()),
-            state.get("streak_days", 0), state.get("continuous_study_days", 0),
-            state.get("active_subject", "Python_Data_Science"),
-            state.get("gym_completed", 0), state.get("study_completed", 0),
-            state.get("leetcode_completed", 0), state.get("cooking_completed", 0),
-            state.get("nopmo_completed", 0),
-            state.get("english_completed", 0), state.get("reading_completed", 0),
-            state.get("reading_book", "None"), state.get("heart", 10), state.get("stoic", 10)
-        ))
-        conn.commit()
-        conn.close()
-        return state
+    save_state(state)
+    return state
 
 def update_stat(stat_name: str, amount: float) -> dict:
     """Dynamically update any core stat (XP, STR, INT, AGI, WIL, ENERGY, HEART)"""
     stat_name = stat_name.lower()
-    
-    # Map friendly names to DB column names
     col_map = {
         "xp": "xp", "str": "str", "int": "int", "agi": "agi", "wil": "wil", 
         "energy": "energy", "hrt": "heart", "heart": "heart", "humanity": "heart",
@@ -557,55 +524,33 @@ def update_stat(stat_name: str, amount: float) -> dict:
     if not db_col:
         return {}
         
-    with _DB_WRITE_LOCK:
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
-        row = cursor.fetchone()
-        if not row:
-            conn.close()
-            return {}
-            
-        state = dict(row)
+    state = get_state()
+    if not state:
+        return {}
         
-        # Apply the stat change
-        state[db_col] += amount
+    state[db_col] += amount
+    
+    if db_col == "xp":
+        state["xp"] = int(state["xp"])
+        while state["xp"] < 0 and state["level"] > 1:
+            state["level"] -= 1
+            state["xp"] += calculate_xp_required(state["level"])
+        if state["xp"] < 0:
+            state["xp"] = 0
+        while True:
+            req = calculate_xp_required(state["level"])
+            if state["xp"] >= req:
+                state["xp"] -= req
+                state["level"] += 1
+            else:
+                break
+    elif db_col == "energy":
+        state["energy"] = max(0.0, min(100.0, float(state["energy"])))
+    else:
+        state[db_col] = int(state[db_col])
         
-        # Handle specific edge cases
-        if db_col == "xp":
-            state["xp"] = int(state["xp"])
-            
-            # Handle level down
-            while state["xp"] < 0 and state["level"] > 1:
-                state["level"] -= 1
-                state["xp"] += calculate_xp_required(state["level"])
-                
-            if state["xp"] < 0:
-                state["xp"] = 0  # Floor at absolute 0 (Level 1, 0 XP)
-                
-            # Handle level up
-            while True:
-                req = calculate_xp_required(state["level"])
-                if state["xp"] >= req:
-                    state["xp"] -= req
-                    state["level"] += 1
-                else:
-                    break
-        elif db_col == "energy":
-            state["energy"] = max(0.0, min(100.0, float(state["energy"])))
-        else:
-            state[db_col] = int(state[db_col])
-            
-        cursor.execute(f"""
-        UPDATE system_state
-        SET {db_col} = ?, level = ?
-        WHERE id = (SELECT id FROM system_state ORDER BY id DESC LIMIT 1)
-        """, (state[db_col], state["level"]))
-        
-        conn.commit()
-        conn.close()
-        return state
+    save_state(state)
+    return state
 
 def save_chat_message(role: str, message: str, bot_type: str = "coach"):
     """Persist a chat message (role='user' or 'ai') to the database with bot_type."""

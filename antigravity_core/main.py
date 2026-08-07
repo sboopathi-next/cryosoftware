@@ -7,7 +7,8 @@ import threading
 import subprocess
 import uvicorn
 
-# Append project root to path to ensure modules are importable
+# Append project root and antigravity_core to sys.path to ensure modules are importable
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from engine.database import init_db, get_state
