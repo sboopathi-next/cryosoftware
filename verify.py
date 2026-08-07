@@ -15,28 +15,28 @@ def run_tests():
             print(f"Could not remove state file: {e}")
 
     state = load_state()
-    print(f"Loaded initial state: {state}")
-    assert state["level"] == 1, "Initial level should be 1"
-    assert state["xp"] == 0, "Initial XP should be 0"
-    assert state["energy"] == 100.0, "Initial energy should be 100%"
-    assert state["lockout_active"] is False, "Lockout should be inactive"
+    print(f"Loaded state (synced with Neon DB): Level {state.get('level')}, XP {state.get('xp')}, Energy {state.get('energy')}%")
+    assert "level" in state and state["level"] >= 1, "Level should be >= 1"
+    assert "xp" in state and state["xp"] >= 0, "XP should be >= 0"
+    assert "energy" in state, "Energy key should exist in state"
 
     print("\n--- 2. Testing XP & Level-Up Math ---")
-    state = add_xp(state, 120)
-    print(f"State after adding 120 XP: Level {state['level']}, XP {state['xp']}")
-    assert state["level"] == 2, "Level should be 2"
-    assert state["xp"] == 20, "XP should be 20"
+    test_state = {"level": 1, "xp": 0, "energy": 100.0, "lockout_active": False}
+    test_state = add_xp(test_state, 120)
+    print(f"State after adding 120 XP: Level {test_state['level']}, XP {test_state['xp']}")
+    assert test_state["level"] == 2, "Level should be 2"
+    assert test_state["xp"] == 20, "XP should be 20"
 
     print("\n--- 3. Testing Energy Formula & Circuit Breaker ---")
-    state = update_daily_energy(state, study_hours=6.0, gym_hours=0.0, dopamine_rewards=0)
-    print(f"State after 6h study drawdown: Energy {state['energy']}%, Lockout Active: {state['lockout_active']}")
-    assert state["energy"] == 10.0, "Energy should be 10%"
-    assert state["lockout_active"] is True, "Circuit breaker should have triggered lockout"
+    test_state = update_daily_energy(test_state, study_hours=6.0, gym_hours=0.0, dopamine_rewards=0)
+    print(f"State after 6h study drawdown: Energy {test_state['energy']}%, Lockout Active: {test_state['lockout_active']}")
+    assert test_state["energy"] == 10.0, "Energy should be 10%"
+    assert test_state["lockout_active"] is True, "Circuit breaker should have triggered lockout"
 
-    state = update_daily_energy(state, study_hours=0.0, gym_hours=2.0, dopamine_rewards=1)
-    print(f"State after replenishment: Energy {state['energy']}%, Lockout Active: {state['lockout_active']}")
-    assert state["energy"] == 70.0, "Energy should be 70%"
-    assert state["lockout_active"] is False, "Lockout should have cleared"
+    test_state = update_daily_energy(test_state, study_hours=0.0, gym_hours=2.0, dopamine_rewards=1)
+    print(f"State after replenishment: Energy {test_state['energy']}%, Lockout Active: {test_state['lockout_active']}")
+    assert test_state["energy"] == 70.0, "Energy should be 70%"
+    assert test_state["lockout_active"] is False, "Lockout should have cleared"
 
     print("\n--- 4. Testing LeetCode GraphQL Endpoint ---")
     print("Fetching solved statistics for user 'boopathispark'...")

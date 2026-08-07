@@ -1,42 +1,49 @@
 import os
 import sqlite3
 import json
+import csv
 from config import DATABASE_URL, USER_PROFILE_ID
 
 try:
     import psycopg2
-    from psycopg2.extras import RealDictCursor
+    from psycopg2.extras import RealDictCursor, execute_values
 except ImportError:
     psycopg2 = None
 
 SQLITE_SOLO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "antigravity_core", "data", "system_solo.db")
 SQLITE_NEWS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "antigravity_core", "data", "antigravity.db")
 
+def connect_pg():
+    if not DATABASE_URL or not psycopg2:
+        return None
+    conn = psycopg2.connect(DATABASE_URL, keepalives=1, keepalives_idle=30, keepalives_interval=10, keepalives_count=5)
+    conn.autocommit = True
+    return conn
+
 def migrate_all():
     print("==================================================================")
-    print("       MIGRATING ALL 22 TABLES & DATA TO NEON POSTGRESQL          ")
+    print("       MIGRATING ALL TABLES & CSV DATASETS TO NEON POSTGRESQL     ")
     print("==================================================================")
 
     if not DATABASE_URL or not psycopg2:
         print("Error: DATABASE_URL not set or psycopg2 missing!")
         return
 
-    pg_conn = psycopg2.connect(DATABASE_URL)
-    pg_conn.autocommit = True
-    pg_cur = pg_conn.cursor()
+    conn = connect_pg()
+    cur = conn.cursor()
 
-    # Check user_state columns
-    pg_cur.execute("""
+    # 1. Check user_state columns
+    cur.execute("""
     SELECT column_name FROM information_schema.columns 
     WHERE table_name = 'user_state';
     """)
-    existing_cols = [r[0] for r in pg_cur.fetchall()]
+    existing_cols = [r[0] for r in cur.fetchall()]
 
     json_col = "state_data"
     if "state" in existing_cols:
         json_col = "state"
     elif not existing_cols:
-        pg_cur.execute("""
+        cur.execute("""
         CREATE TABLE IF NOT EXISTS user_state (
             user_id VARCHAR(255) PRIMARY KEY,
             state_data JSONB NOT NULL,
@@ -78,15 +85,17 @@ def migrate_all():
             SET {json_col} = EXCLUDED.{json_col},
                 updated_at = CURRENT_TIMESTAMP;
             """
-            pg_cur.execute(query, (USER_PROFILE_ID, state_json))
+            cur.execute(query, (USER_PROFILE_ID, state_json))
             print(f"[OK] Migrated system_state (Level {state_dict.get('level')}, XP {state_dict.get('xp')}) & {len(cm_rows)} completed modules into user_state.{json_col}!")
 
-        # Dynamic migration for tabular history tables into PostgreSQL
+        # Dynamic migration for tabular history tables into PostgreSQL using bulk execute_values
         tables_to_migrate = [
             "ai_chat_history", "study_journal", "bad_experiences", "reading_logs",
             "human_connections", "human_contexts", "stoic_logs", "translation_history",
             "daily_english_lessons", "settings", "teacher_topics", "mind_reality_checks",
-            "mind_rumination_logs", "mind_relationships", "mind_meditation_logs"
+            "mind_rumination_logs", "mind_relationships", "mind_meditation_logs",
+            "leetcode_stats", "saved_books", "english_user_progress", "english_speech_logs",
+            "offline_dictionary"
         ]
 
         for table in tables_to_migrate:
@@ -95,7 +104,6 @@ def migrate_all():
                 rows = s_cur.fetchall()
                 if rows:
                     cols = [description[0] for description in s_cur.description]
-                    # Map SQLite types to PostgreSQL types
                     pg_cols = []
                     for c in cols:
                         if c == "id":
@@ -106,19 +114,14 @@ def migrate_all():
                             pg_cols.append(f"{c} TEXT")
                     
                     create_sql = f"CREATE TABLE IF NOT EXISTS pg_{table} ({', '.join(pg_cols)});"
-                    pg_cur.execute(create_sql)
+                    cur.execute(create_sql)
 
-                    # Truncate and insert fresh rows
-                    pg_cur.execute(f"TRUNCATE TABLE pg_{table};")
-                    for r in rows:
-                        r_dict = dict(r)
-                        col_names = list(r_dict.keys())
-                        col_vals = [r_dict[k] for k in col_names]
-                        placeholders = ", ".join(["%s"] * len(col_names))
-                        cols_fmt = ", ".join(col_names)
-                        insert_sql = f"INSERT INTO pg_{table} ({cols_fmt}) VALUES ({placeholders});"
-                        pg_cur.execute(insert_sql, col_vals)
-
+                    cur.execute(f"TRUNCATE TABLE pg_{table};")
+                    col_names = [c for c in cols]
+                    cols_fmt = ", ".join(col_names)
+                    val_tuples = [tuple(r[k] for k in col_names) for r in rows]
+                    
+                    execute_values(cur, f"INSERT INTO pg_{table} ({cols_fmt}) VALUES %s;", val_tuples)
                     print(f"[OK] Migrated table 'pg_{table}' ({len(rows)} rows)")
             except Exception as e:
                 print(f"[Warn] Could not migrate table '{table}': {e}")
@@ -134,7 +137,7 @@ def migrate_all():
             a_cur.execute("SELECT * FROM tech_news")
             news_rows = a_cur.fetchall()
             if news_rows:
-                pg_cur.execute("""
+                cur.execute("""
                 CREATE TABLE IF NOT EXISTS pg_tech_news (
                     id SERIAL PRIMARY KEY,
                     fetch_date TEXT NOT NULL,
@@ -146,21 +149,143 @@ def migrate_all():
                     created_at TEXT
                 );
                 """)
-                pg_cur.execute("TRUNCATE TABLE pg_tech_news;")
-                for nr in news_rows:
-                    nd = dict(nr)
-                    pg_cur.execute("""
-                    INSERT INTO pg_tech_news (id, fetch_date, title, summary, source, url, icon, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-                    """, (nd.get("id"), nd.get("fetch_date"), nd.get("title"), nd.get("summary"), nd.get("source"), nd.get("url"), nd.get("icon"), str(nd.get("created_at"))))
+                cur.execute("TRUNCATE TABLE pg_tech_news;")
+                val_tuples = [
+                    (nd.get("id"), nd.get("fetch_date"), nd.get("title"), nd.get("summary"), nd.get("source"), nd.get("url"), nd.get("icon"), str(nd.get("created_at")))
+                    for nd in [dict(nr) for nr in news_rows]
+                ]
+                execute_values(cur, """
+                INSERT INTO pg_tech_news (id, fetch_date, title, summary, source, url, icon, created_at)
+                VALUES %s;
+                """, val_tuples)
                 print(f"[OK] Migrated 'pg_tech_news' ({len(news_rows)} rows)")
         except Exception as e:
             print(f"[Warn] Could not migrate tech_news: {e}")
         a_conn.close()
 
-    pg_conn.close()
+    # 4. Migrate workout_log.csv
+    workout_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "antigravity_core", "data", "workout_log.csv")
+    if os.path.exists(workout_csv_path):
+        try:
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS pg_workout_logs (
+                id SERIAL PRIMARY KEY,
+                timestamp TEXT NOT NULL,
+                category TEXT,
+                workout TEXT,
+                variations TEXT,
+                sets TEXT,
+                duration_minutes INTEGER DEFAULT 0
+            );
+            """)
+            cur.execute("TRUNCATE TABLE pg_workout_logs;")
+            vals = []
+            with open(workout_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    dur = 0
+                    try:
+                        dur = int(row.get("Duration_Minutes", 0) or 0)
+                    except Exception:
+                        pass
+                    vals.append((row.get("Timestamp"), row.get("Category"), row.get("Workout"), row.get("Variations"), row.get("Sets"), dur))
+            if vals:
+                execute_values(cur, """
+                INSERT INTO pg_workout_logs (timestamp, category, workout, variations, sets, duration_minutes)
+                VALUES %s;
+                """, vals)
+            print(f"[OK] Migrated 'pg_workout_logs' ({len(vals)} rows from CSV)")
+        except Exception as e:
+            print(f"[Warn] Could not migrate workout_log.csv: {e}")
+
+    # 5. Migrate syllabuls.csv
+    syllabus_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "syllabuls.csv")
+    if os.path.exists(syllabus_csv_path):
+        try:
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS pg_syllabus (
+                id SERIAL PRIMARY KEY,
+                course_module TEXT,
+                level_required TEXT,
+                xp_points_earned INTEGER DEFAULT 0,
+                course TEXT
+            );
+            """)
+            cur.execute("TRUNCATE TABLE pg_syllabus;")
+            vals = []
+            with open(syllabus_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    xp = 0
+                    try:
+                        xp = int(row.get("XP_Points_Earned", 0) or 0)
+                    except Exception:
+                        pass
+                    vals.append((row.get("Course_Module"), row.get("Level_Required"), xp, row.get("Course")))
+            if vals:
+                execute_values(cur, """
+                INSERT INTO pg_syllabus (course_module, level_required, xp_points_earned, course)
+                VALUES %s;
+                """, vals)
+            print(f"[OK] Migrated 'pg_syllabus' ({len(vals)} rows from syllabuls.csv)")
+        except Exception as e:
+            print(f"[Warn] Could not migrate syllabuls.csv: {e}")
+
+    # 6. Migrate gym_workouts_by_category.csv
+    gym_cat_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "antigravity_core", "gym_workouts_by_category.csv")
+    if os.path.exists(gym_cat_csv_path):
+        try:
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS pg_gym_workouts_by_category (
+                id SERIAL PRIMARY KEY,
+                category TEXT,
+                workout TEXT
+            );
+            """)
+            cur.execute("TRUNCATE TABLE pg_gym_workouts_by_category;")
+            vals = []
+            with open(gym_cat_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    vals.append((row.get("Category"), row.get("Workout")))
+            if vals:
+                execute_values(cur, """
+                INSERT INTO pg_gym_workouts_by_category (category, workout)
+                VALUES %s;
+                """, vals)
+            print(f"[OK] Migrated 'pg_gym_workouts_by_category' ({len(vals)} rows from CSV)")
+        except Exception as e:
+            print(f"[Warn] Could not migrate gym_workouts_by_category.csv: {e}")
+
+    # 7. Migrate dictionary.csv
+    dict_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "antigravity_core", "data", "dictionary.csv")
+    if os.path.exists(dict_csv_path):
+        try:
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS pg_dictionary (
+                id SERIAL PRIMARY KEY,
+                english TEXT,
+                tamil TEXT
+            );
+            """)
+            cur.execute("TRUNCATE TABLE pg_dictionary;")
+            vals = []
+            with open(dict_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    vals.append((row.get("English"), row.get("Tamil")))
+            if vals:
+                execute_values(cur, """
+                INSERT INTO pg_dictionary (english, tamil)
+                VALUES %s;
+                """, vals)
+            print(f"[OK] Migrated 'pg_dictionary' ({len(vals)} rows from dictionary.csv)")
+        except Exception as e:
+            print(f"[Warn] Could not migrate dictionary.csv: {e}")
+
+    conn.close()
     print("\n==================================================================")
-    print("SUCCESS: ALL 22 TABLES AND DATA FULLY MIGRATED TO NEON POSTGRESQL!")
+    print("SUCCESS: ALL TABLES AND CSV DATASETS FULLY MIGRATED TO NEON PG!")
     print("==================================================================")
 
 if __name__ == "__main__":

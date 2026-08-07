@@ -19,16 +19,8 @@ EXAM_SCRATCHPAD_PATH = os.path.join(DB_DIR, "exam_scratchpad.md")
 _DB_WRITE_LOCK = threading.Lock()
 
 
-SEED_DB_PATH = os.path.join(CORE_DIR, "data", "seed_system_solo.db")
-
 def init_db():
     os.makedirs(DB_DIR, exist_ok=True)
-    if not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0:
-        if os.path.exists(SEED_DB_PATH):
-            import shutil
-            shutil.copyfile(SEED_DB_PATH, DB_PATH)
-            print(f"[DB] Initialized system_solo.db from seed: {SEED_DB_PATH}")
-
     conn = sqlite3.connect(DB_PATH, timeout=30.0)
 
     conn.execute("PRAGMA journal_mode=WAL;")

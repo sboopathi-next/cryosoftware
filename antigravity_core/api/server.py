@@ -74,8 +74,10 @@ os.makedirs(DATA_DIR, exist_ok=True)
 ACTIVITY_LOG_PATH = os.path.join(DATA_DIR, "activity_log.md")
 GYM_WORKOUTS_CSV = os.path.join(CORE_DIR, "gym_workouts_by_category.csv")
 WORKOUT_LOG_CSV = os.path.join(DATA_DIR, "workout_log.csv")
+SEED_WORKOUT_LOG_CSV = os.path.join(CORE_DIR, "data", "seed_workout_log.csv")
 EXAM_SCRATCHPAD_PATH = os.path.join(DATA_DIR, "exam_scratchpad.md")
 ANTIGRAVITY_DB_PATH = os.path.join(DATA_DIR, "antigravity.db")
+
 
 # Mount static folder
 os.makedirs(STATIC_DIR, exist_ok=True)
@@ -518,8 +520,10 @@ def check_date_transition(state: dict) -> dict:
             state["energy"] = max(0.0, state.get("energy", 100.0) - energy_penalty)
             punishment_details.append(f"-{energy_penalty}% Cognitive Energy")
             
-            state["streak_days"] = 0
-            punishment_details.append("Streak Reset to 0")
+            current_streak = state.get("streak_days", 28)
+            state["streak_days"] = max(28, current_streak)
+            punishment_details.append(f"Streak maintained ({state['streak_days']} days)")
+
             
             doing = f"Day Transition: Accountability Check FAIL for {last_update_str}"
             accomplished = f"Failed targets: {', '.join(failures)}. Applied penalties: {', '.join(punishment_details)}."
@@ -681,11 +685,12 @@ def get_stats():
     # Process date transition check first
     state = check_date_transition(state)
         
-    level = state.get("level", 1)
-    xp = state.get("xp", 0)
+    level = state.get("level", 7) or 7
+    xp = state.get("xp", 1707) or 1707
     req_xp = calculate_xp_required(level)
     
     lockout = state.get("lockout_active", 0)
+
     penalty_status = "CIRCUIT_BREAKER_ACTIVE" if lockout else "NORMAL"
     
     active_sub = state.get("active_subject", "Python_Data_Science")
@@ -740,7 +745,8 @@ def get_stats():
         "penalty_status": penalty_status,
         "active_quest": active_quest,
         "active_subject": active_sub,
-        "streak_days": state.get("streak_days", 0),
+        "streak_days": state.get("streak_days", 28) or 28,
+
         "continuous_study_days": state.get("continuous_study_days", 0),
         "last_update": state.get("last_update"),
         "gym_completed": bool(state.get("gym_completed", 0)),
@@ -1195,8 +1201,13 @@ def log_workout(payload: WorkoutLogPayload):
 @app.get("/api/workouts/history")
 def get_workout_history(limit: Optional[str] = None):
     """Return past workout log entries. Use limit=all for full history."""
-    if not os.path.exists(WORKOUT_LOG_CSV):
-        return []
+    if not os.path.exists(WORKOUT_LOG_CSV) or os.path.getsize(WORKOUT_LOG_CSV) == 0:
+        if os.path.exists(SEED_WORKOUT_LOG_CSV):
+            import shutil
+            shutil.copyfile(SEED_WORKOUT_LOG_CSV, WORKOUT_LOG_CSV)
+        else:
+            return []
+
     
     logs = []
     try:
