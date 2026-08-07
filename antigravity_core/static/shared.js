@@ -514,7 +514,7 @@ function injectFloatingStatsBar() {
   const bar = document.createElement('div');
   bar.id = 'ag-stats-bar';
   bar.style.cssText = [
-    'position:fixed', 'top:12px', 'right:16px', 'z-index:900',
+    'position:fixed', 'top:12px', 'right:16px', 'z-index:1005',
     'display:flex', 'align-items:center', 'gap:6px',
     'background:rgba(6,8,24,0.85)', 'backdrop-filter:blur(12px)',
     'border:1px solid rgba(99,102,241,0.25)', 'border-radius:30px',
@@ -537,6 +537,95 @@ function injectFloatingStatsBar() {
     </button>
   `;
   document.body.appendChild(bar);
+}
+
+// ── Mobile Bottom Nav & Sheet Injection ───────────────────────
+function injectMobileNavigation() {
+  if (document.querySelector('.mobile-bottom-nav')) return;
+
+  // 1. Create and inject bottom nav container
+  const bottomNav = document.createElement('div');
+  bottomNav.className = 'mobile-bottom-nav';
+  bottomNav.innerHTML = `
+    <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
+    <a href="/syllabus" class="mobile-nav-item" data-path="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study</span></a>
+    <a href="/gym" class="mobile-nav-item" data-path="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym</span></a>
+    <a href="/ai" class="mobile-nav-item" data-path="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a>
+    <button class="mobile-nav-item" id="mobile-more-btn"><i class="fa-solid fa-bars"></i><span>More</span></button>
+  `;
+  document.body.appendChild(bottomNav);
+
+  // 2. Create and inject overlay and sheet drawer
+  const overlay = document.createElement('div');
+  overlay.className = 'mobile-bottom-sheet-overlay';
+  overlay.id = 'mobile-sheet-overlay';
+  document.body.appendChild(overlay);
+
+  const sheet = document.createElement('div');
+  sheet.className = 'mobile-bottom-sheet';
+  sheet.id = 'mobile-sheet';
+  sheet.innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">More Modules</div>
+      <button class="sheet-close" id="mobile-sheet-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-grid">
+        <a href="/mind-os" class="sheet-grid-item"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
+        <a href="/journal" class="sheet-grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a>
+        <a href="/english" class="sheet-grid-item"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span></a>
+        <a href="/badlog" class="sheet-grid-item"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span></a>
+        <a href="/stoic" class="sheet-grid-item"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span></a>
+        <a href="/human" class="sheet-grid-item"><i class="fa-solid fa-heart" style="color:var(--red)"></i><span>Human Journal</span></a>
+        <a href="/logs" class="sheet-grid-item"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a>
+        <a href="/news" class="sheet-grid-item"><i class="fa-solid fa-newspaper" style="color:var(--blue)"></i><span>Tech News</span></a>
+        <a href="/exam" class="sheet-grid-item"><i class="fa-solid fa-square-root-variable" style="color:var(--indigo)"></i><span>Exam Editor</span></a>
+        <a href="/teacher" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span></a>
+        <a href="/teach" class="sheet-grid-item"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span></a>
+        <a href="#" onclick="openSettings(); return false;" class="sheet-grid-item"><i class="fa-solid fa-gear" style="color:var(--text2)"></i><span>Settings</span></a>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(sheet);
+
+  // 3. Highlight current path
+  const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+  bottomNav.querySelectorAll('.mobile-nav-item').forEach(item => {
+    const path = item.getAttribute('data-path');
+    if (path === currentPath) {
+      item.classList.add('active');
+    }
+  });
+
+  sheet.querySelectorAll('.sheet-grid-item').forEach(item => {
+    const href = item.getAttribute('href');
+    if (href && href !== '#' && href.replace(/\/$/, '') === currentPath) {
+      item.style.borderColor = 'var(--cyan)';
+      item.style.background = 'rgba(6, 182, 212, 0.08)';
+      item.querySelector('span').style.color = '#ffffff';
+    }
+  });
+
+  // 4. Bind Toggle events
+  const moreBtn = document.getElementById('mobile-more-btn');
+  const closeBtn = document.getElementById('mobile-sheet-close');
+  
+  function openSheet() {
+    overlay.classList.add('active');
+    sheet.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSheet() {
+    overlay.classList.remove('active');
+    sheet.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  if (moreBtn) moreBtn.addEventListener('click', openSheet);
+  if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+  if (overlay) overlay.addEventListener('click', closeSheet);
 }
 
 async function triggerManualSync() {
@@ -585,6 +674,7 @@ async function triggerManualSync() {
 async function loadMiniStats() {
   try {
     injectFloatingStatsBar();
+    injectMobileNavigation();
     renderVoiceControls();
     startVoiceDaemonTimer();
 
@@ -601,13 +691,13 @@ async function loadMiniStats() {
     const syncText = document.getElementById('sync-text');
     if (syncIcon && syncText) {
       if (d.neon_online) {
-        syncIcon.className = 'fa-solid fa-circle';
-        syncIcon.style.color = 'var(--green)';
-        syncText.textContent = 'Online';
+         syncIcon.className = 'fa-solid fa-circle';
+         syncIcon.style.color = 'var(--green)';
+         syncText.textContent = 'Online';
       } else {
-        syncIcon.className = 'fa-solid fa-triangle-exclamation';
-        syncIcon.style.color = 'var(--amber)';
-        syncText.textContent = 'Offline';
+         syncIcon.className = 'fa-solid fa-triangle-exclamation';
+         syncIcon.style.color = 'var(--amber)';
+         syncText.textContent = 'Offline';
       }
     }
 
