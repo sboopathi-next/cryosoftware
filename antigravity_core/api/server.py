@@ -1826,6 +1826,45 @@ def api_clear_teacher_topics():
     return {"status": "success", "message": "Topics cleared from database."}
 
 
+class TeachingSessionPayload(BaseModel):
+    person: str
+    subject: str
+    topic: str
+    duration: str
+    outcome: str
+    notes: str
+    date: str
+    ts: str
+
+
+@app.get("/api/teach/sessions")
+def api_get_teaching_sessions():
+    try:
+        from engine.database import get_teaching_sessions
+        return {"status": "success", "sessions": get_teaching_sessions()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/teach/session")
+def api_save_teaching_session(payload: TeachingSessionPayload):
+    try:
+        from engine.database import save_teaching_session
+        save_teaching_session(
+            payload.person,
+            payload.subject,
+            payload.topic,
+            payload.duration,
+            payload.outcome,
+            payload.notes,
+            payload.date,
+            payload.ts
+        )
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/ai/history/teacher")
 
 def get_teacher_chat_history_api(limit: int = 50):

@@ -52,18 +52,42 @@ body, .app { height: 100vh; overflow: hidden; }
 @keyframes th { 0%,100%{opacity:.5} 50%{opacity:1} }
 
 .quick-row {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 16px 28px;
+  width: 100%;
 }
 .qp-btn {
-  font-size: 11px; padding: 4px 10px;
-  background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.2);
-  color: #a5b4fc; border-radius: 14px; cursor: pointer;
-  font-family: var(--ff-body); transition: all .18s;
+  font-size: 12px; padding: 12px 14px;
+  background: rgba(99, 102, 241, 0.05); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 10px; cursor: pointer;
+  font-family: var(--ff-body); transition: all .2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
 }
-.qp-btn:hover { background: rgba(99,102,241,.22); }
-.qp-lbl { font-size: 10px; color: var(--text3); align-self: center; }
+.qp-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--text1);
+  transform: translateY(-1px);
+}
+.qp-lbl { display: none; }
+
+@media (max-width: 480px) {
+  .quick-row {
+    grid-template-columns: 1fr;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .qp-btn {
+    font-size: 11.5px;
+    padding: 10px 12px;
+  }
+}
 
 .input-row {
   display: flex; gap: 10px; align-items: flex-end;
@@ -145,16 +169,15 @@ body, .app { height: 100vh; overflow: hidden; }
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="quick-row">
-        <span class="qp-lbl">Quick Ask:</span>
-        <button class="qp-btn" onclick="quickAsk('What should I study today for GATE 2028?')">Today's Study Plan</button>
-        <button class="qp-btn" onclick="quickAsk('Motivate me to stay consistent and not give up')">Motivate Me</button>
-        <button class="qp-btn" onclick="quickAsk('What gym workout should I do today?')">Today's Gym Plan</button>
-        <button class="qp-btn" onclick="quickAsk('Explain GATE 2028 DA syllabus priority order for me')">GATE Priority Order</button>
-        <button class="qp-btn" onclick="quickAsk('Give me a 1-week focused study schedule for Linear Algebra')">Linear Algebra Week Plan</button>
-        <button class="qp-btn" onclick="quickAsk('Am I on track to pass GATE 2028? What should I focus on?')">Am I On Track?</button>
+        <div class="quick-row" id="quick-suggestions">
+          <button class="qp-btn" onclick="quickAsk('What should I study today for GATE 2028?')"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i> Today's Study Plan</button>
+          <button class="qp-btn" onclick="quickAsk('Motivate me to stay consistent and not give up')"><i class="fa-solid fa-fire" style="color:var(--amber)"></i> Motivate Me</button>
+          <button class="qp-btn" onclick="quickAsk('What gym workout should I do today?')"><i class="fa-solid fa-dumbbell" style="color:var(--green)"></i> Today's Gym Plan</button>
+          <button class="qp-btn" onclick="quickAsk('Explain GATE 2028 DA syllabus priority order for me')"><i class="fa-solid fa-list-ol" style="color:var(--indigo)"></i> GATE Priority Order</button>
+          <button class="qp-btn" onclick="quickAsk('Give me a 1-week focused study schedule for Linear Algebra')"><i class="fa-solid fa-calendar-days" style="color:var(--purple)"></i> Linear Algebra Week Plan</button>
+          <button class="qp-btn" onclick="quickAsk('Am I on track to pass GATE 2028? What should I focus on?')"><i class="fa-solid fa-compass" style="color:var(--blue)"></i> Am I On Track?</button>
+        </div>
       </div>
 
       <div class="input-row">
@@ -319,6 +342,10 @@ async function loadChatHistory() {
     if (!r.ok) return;
     const data = await r.json();
     if (!data.messages || data.messages.length === 0) return;
+    
+    const sug = document.getElementById('quick-suggestions');
+    if (sug) sug.style.display = 'none';
+
     // Add a divider to show these are historical messages
     const divider = document.createElement('div');
     divider.style.cssText = 'text-align:center;color:var(--muted);font-size:0.75rem;padding:8px 0;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06);';
@@ -342,6 +369,9 @@ async function sendMsg() {
   const inp = document.getElementById('chat-inp');
   const msg = inp.value.trim();
   if (!msg) return;
+
+  const sug = document.getElementById('quick-suggestions');
+  if (sug) sug.style.display = 'none';
 
   const key = localStorage.getItem('groq_key') || localStorage.getItem('gemini_key') || '';
   const groqModel = window.getSanitizedGroqModel ? getSanitizedGroqModel() : (localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile');

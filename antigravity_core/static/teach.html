@@ -155,9 +155,76 @@ body, .app { height: 100vh; overflow: hidden; }
 <script>
 function escH(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function switchTab(tab){document.querySelectorAll('.teach-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.teach-pane').forEach(p=>p.classList.remove('active'));document.getElementById('tab-'+tab).classList.add('active');document.getElementById('pane-'+tab).classList.add('active');if(tab==='report')renderReport();}
-function getSessions(){return JSON.parse(localStorage.getItem('teach_sessions_v2')||'[]');}
-function saveSessions(arr){localStorage.setItem('teach_sessions_v2',JSON.stringify(arr));localStorage.setItem('teach_sessions',JSON.stringify(arr));}
-function updateBadge(){const n=getSessions().length;const el=document.getElementById('total-sessions-badge');if(el)el.textContent=n+' session'+(n!==1?'s':'');}
+
+let sessions = [];
+
+async function loadSessions() {
+  try {
+    const r = await fetch('/api/teach/sessions');
+    const d = await r.json();
+    if (d.status === 'success') {
+      sessions = d.sessions || [];
+    }
+  } catch(e) {
+    console.warn('Failed to load teaching sessions from DB:', e);
+    sessions = JSON.parse(localStorage.getItem('teach_sessions_v2')||'[]');
+  }
+
+  // Auto-migration check: If there are old local storage sessions, push them to the server DB!
+  const localLogs = JSON.parse(localStorage.getItem('teach_sessions_v2') || '[]');
+  if (localLogs.length > 0) {
+    console.log(`Migrating ${localLogs.length} local teaching sessions to Neon DB...`);
+    for (const s of localLogs) {
+      if (!sessions.some(dbS => dbS.ts === s.ts || (dbS.topic === s.topic && dbS.person === s.person))) {
+        try {
+          await fetch('/api/teach/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              person: s.person,
+              subject: s.subject || 'Other',
+              topic: s.topic,
+              duration: s.duration || '30 min',
+              outcome: s.outcome || 'Understood well',
+              notes: s.notes || '',
+              date: s.date || '',
+              ts: s.ts || new Date().toISOString()
+            })
+          });
+        } catch(err) {
+          console.warn('Failed to migrate session:', s, err);
+        }
+      }
+    }
+    localStorage.removeItem('teach_sessions_v2');
+    localStorage.removeItem('teach_sessions');
+    
+    // Refetch
+    try {
+      const r = await fetch('/api/teach/sessions');
+      const d = await r.json();
+      if (d.status === 'success') {
+        sessions = d.sessions || [];
+      }
+    } catch(_) {}
+  }
+
+  updateBadge();
+  if (document.getElementById('pane-report').classList.contains('active')) {
+    renderReport();
+  }
+}
+
+function getSessions(){
+  return sessions;
+}
+
+function updateBadge(){
+  const n=sessions.length;
+  const el=document.getElementById('total-sessions-badge');
+  if(el)el.textContent=n+' session'+(n!==1?'s':'');
+}
+
 function togglePersonSelect() {
   const sel = document.getElementById('t-person-sel');
   const inp = document.getElementById('t-person-inp');
@@ -177,7 +244,6 @@ async function loadPeopleMeta() {
     if (d.status === 'success') {
       const pSel = document.getElementById('t-person-sel');
       const cur = pSel.value;
-      // Get unique people list
       pSel.innerHTML = '<option value="">— Select Person or Add New —</option>' +
         d.people.map(p => `<option value="${escH(p)}">${escH(p)}</option>`).join('') +
         '<option value="__new__">➕ Add New Person / Stranger...</option>';
@@ -196,21 +262,35 @@ async function submitSession(){
   if(!person){toast('Enter student / friend name','err');return;}
   if(!topic){toast('Enter topic taught','err');return;}
   
-  const session={
-    id:Date.now(),
+  const dateStr = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const timestampStr = new Date().toISOString();
+  
+  const payload = {
     person,
-    subject:document.getElementById('t-subject').value,
+    subject: document.getElementById('t-subject').value,
     topic,
-    duration:document.getElementById('t-duration').value,
-    outcome:document.getElementById('t-outcome').value,
-    notes:document.getElementById('t-notes').value.trim(),
-    date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),
-    ts:new Date().toISOString()
+    duration: document.getElementById('t-duration').value,
+    outcome: document.getElementById('t-outcome').value,
+    notes: document.getElementById('t-notes').value.trim(),
+    date: dateStr,
+    ts: timestampStr
   };
 
-  const sessions=getSessions();
-  sessions.push(session);
-  saveSessions(sessions);
+  try {
+    const r = await fetch('/api/teach/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast('Teaching session logged! +2 INT +1 HRT earned','ok');
+    } else {
+      toast('Failed to save teaching session: ' + (d.detail || 'error'), 'err');
+    }
+  } catch(e) {
+    toast('Error connecting to database', 'err');
+  }
 
   // Clear form
   document.getElementById('t-person-sel').value = '';
@@ -219,41 +299,52 @@ async function submitSession(){
   document.getElementById('t-topic').value = '';
   document.getElementById('t-notes').value = '';
   
-  updateBadge();
-  toast('Teaching session logged! +2 INT +1 HRT earned','ok');
+  // Reload sessions from database
+  await loadSessions();
   
   try {
     await fetch('/api/study/journal', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        topic: 'Taught "' + topic + '" to ' + person + ' (' + session.subject + ') for ' + session.duration,
-        notes: session.notes || 'Teaching session',
-        duration_minutes: ({'15 min':15,'30 min':30,'1 hour':60,'2 hours':120,'3+ hours':180}[session.duration]||30),
+        topic: 'Taught "' + topic + '" to ' + person + ' (' + payload.subject + ') for ' + payload.duration,
+        notes: payload.notes || 'Teaching session',
+        duration_minutes: ({'15 min':15,'30 min':30,'1 hour':60,'2 hours':120,'3+ hours':180}[payload.duration]||30),
         source: 'teaching'
       })
     });
   } catch(_) {}
   loadPeopleMeta();
 }
+
 function renderReport(){
-  const sessions=getSessions();const q=(document.getElementById('search-inp')?.value||'').toLowerCase();
-  const filtered=q?sessions.filter(s=>s.person.toLowerCase().includes(q)||s.topic.toLowerCase().includes(q)||(s.subject||'').toLowerCase().includes(q)):sessions;
-  const unique=[...new Set(sessions.map(s=>s.person.toLowerCase()))].length;
-  document.getElementById('r-total').textContent=sessions.length;document.getElementById('r-students').textContent=unique;document.getElementById('r-int').textContent='+'+(sessions.length*2);document.getElementById('r-hrt').textContent='+'+sessions.length;
-  const tbody=document.getElementById('report-body');
+  const sList = getSessions();
+  const q = (document.getElementById('search-inp')?.value||'').toLowerCase();
+  const filtered = q ? sList.filter(s => s.person.toLowerCase().includes(q) || s.topic.toLowerCase().includes(q) || (s.subject||'').toLowerCase().includes(q)) : sList;
+  const unique = [...new Set(sList.map(s => s.person.toLowerCase()))].length;
+  
+  document.getElementById('r-total').textContent = sList.length;
+  document.getElementById('r-students').textContent = unique;
+  document.getElementById('r-int').textContent = '+' + (sList.length * 2);
+  document.getElementById('r-hrt').textContent = '+' + sList.length;
+  
+  const tbody = document.getElementById('report-body');
   if(!filtered.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3);">No sessions match your search.</td></tr>';return;}
   tbody.innerHTML=filtered.slice().reverse().map(s=>'<tr><td style="font-family:var(--ff-mono);font-size:11px;white-space:nowrap;">'+escH(s.date)+'</td><td style="font-weight:700;color:var(--text1);">'+escH(s.person)+'</td><td style="color:var(--indigo);font-size:11px;">'+escH(s.subject||'')+'</td><td style="color:var(--cyan);">'+escH(s.topic)+'</td><td style="font-family:var(--ff-mono);font-size:11px;">'+escH(s.duration)+'</td><td>'+escH(s.outcome)+'</td><td style="color:var(--text3);font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escH(s.notes)+'">'+escH(s.notes||'')+'</td></tr>').join('');
 }
+
 function exportCSV(){
-  const sessions=getSessions();if(!sessions.length){toast('No sessions to export','err');return;}
+  const sList = getSessions();
+  if(!sList.length){toast('No sessions to export','err');return;}
   const headers='Date,Student,Subject,Topic,Duration,Outcome,Notes';
-  const rows=sessions.map(s=>[s.date,s.person,s.subject||'',s.topic,s.duration,s.outcome,s.notes||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+  const rows=sList.map(s=>[s.date,s.person,s.subject||'',s.topic,s.duration,s.outcome,s.notes||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
   const blob=new Blob([[headers,...rows].join('\n')],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='teaching_log_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
   toast('Exported!','ok');
 }
-updateBadge();
+
+// Boot load
+loadSessions();
 loadPeopleMeta();
 </script>
 </body>

@@ -732,11 +732,11 @@ function initGymMobileTabs() {
   const gymLayout = document.querySelector('.gym-layout');
   if (!gymLayout) return;
 
-  const cards = Array.from(gymLayout.querySelectorAll(':scope > .card'));
-  if (cards.length < 2) return;
+  const children = Array.from(gymLayout.children);
+  if (children.length < 2) return;
 
-  const formCard = cards[0];
-  const historyCard = cards[1];
+  const formCard = children[0];
+  const historyCard = children[1];
 
   formCard.classList.add('dashboard-section', 'section-log');
   historyCard.classList.add('dashboard-section', 'section-history');
@@ -778,11 +778,11 @@ function initJournalMobileTabs() {
   const journalGrid = document.querySelector('.journal-grid');
   if (!journalGrid) return;
 
-  const cards = Array.from(journalGrid.querySelectorAll(':scope > .card'));
-  if (cards.length < 2) return;
+  const children = Array.from(journalGrid.children);
+  if (children.length < 2) return;
 
-  const formCard = cards[0];
-  const historyCard = cards[1];
+  const formCard = children[0];
+  const historyCard = children[1];
 
   formCard.classList.add('dashboard-section', 'section-log');
   historyCard.classList.add('dashboard-section', 'section-history');

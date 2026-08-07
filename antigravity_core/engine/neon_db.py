@@ -353,3 +353,49 @@ def neon_get_workout_history(limit: str = None) -> list:
         })
     return res
 
+
+# ─── Teaching Sessions ─────────────────────────────────────────────────────────
+
+def neon_save_teaching_session(person: str, subject: str, topic: str, duration: str, outcome: str, notes: str, date: str, ts: str) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS pg_teaching_sessions (
+                    id SERIAL PRIMARY KEY,
+                    person TEXT NOT NULL,
+                    subject TEXT,
+                    topic TEXT NOT NULL,
+                    duration TEXT,
+                    outcome TEXT,
+                    notes TEXT,
+                    date TEXT,
+                    ts TEXT
+                );
+            """)
+            cur.execute(
+                "INSERT INTO pg_teaching_sessions (person, subject, topic, duration, outcome, notes, date, ts) VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                (person, subject, topic, duration, outcome, notes, date, ts)
+            )
+            new_id = cur.fetchone()[0]
+    return {"id": new_id}
+
+
+def neon_get_teaching_sessions() -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS pg_teaching_sessions (
+                    id SERIAL PRIMARY KEY,
+                    person TEXT NOT NULL,
+                    subject TEXT,
+                    topic TEXT NOT NULL,
+                    duration TEXT,
+                    outcome TEXT,
+                    notes TEXT,
+                    date TEXT,
+                    ts TEXT
+                );
+            """)
+            cur.execute("SELECT * FROM pg_teaching_sessions ORDER BY id ASC")
+            return [dict(r) for r in cur.fetchall()]
+

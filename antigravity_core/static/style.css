@@ -1074,6 +1074,63 @@ select, input, textarea { font-family: var(--ff-body); }
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
   }
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .mind-pane, .mind-pane * {
+    font-size: 13px !important;
+  }
+  .mind-pane h3, .mind-pane .card-title, .mind-pane label {
+    font-size: 12px !important;
+  }
+  .mind-pane input, .mind-pane select, .mind-pane textarea, .mind-pane button {
+    font-size: 13px !important;
+    min-height: 38px !important;
+  }
+  .distortion-label {
+    font-size: 9px !important;
+    padding: 4px 8px !important;
+  }
+  .breath-circle {
+    width: 120px !important;
+    height: 120px !important;
+    font-size: 14px !important;
+  }
+  .breath-circle-wrap {
+    width: 150px !important;
+    height: 150px !important;
+  }
+
+  /* ── Exam Editor collapsing layout ── */
+  .exam-layout {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+  .editor-pane, .preview-pane {
+    min-height: 250px !important;
+    height: 250px !important;
+    flex: none !important;
+  }
+  .vault-pane {
+    width: 100% !important;
+    min-height: 300px !important;
+    height: 300px !important;
+    flex: none !important;
+  }
+
+  /* ── English Booster collapsing layout ── */
+  .english-container {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+  .english-container .pane {
+    height: auto !important;
+    min-height: 400px !important;
+    margin-bottom: 20px !important;
+  }
   .gym-layout {
     grid-template-columns: 1fr !important;
     gap: 16px !important;

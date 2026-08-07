@@ -370,6 +370,21 @@ def init_db():
     )
     """)
 
+    # 18. Teaching Sessions Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS teaching_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person TEXT NOT NULL,
+        subject TEXT,
+        topic TEXT NOT NULL,
+        duration TEXT,
+        outcome TEXT,
+        notes TEXT,
+        date TEXT,
+        ts TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -962,6 +977,34 @@ def clear_teacher_topics():
         cursor.execute("DELETE FROM teacher_topics")
         conn.commit()
     conn.close()
+
+def save_teaching_session(person: str, subject: str, topic: str, duration: str, outcome: str, notes: str, date: str, ts: str):
+    """Log a teaching session."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_teaching_session
+        return neon_save_teaching_session(person, subject, topic, duration, outcome, notes, date, ts)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    with _DB_WRITE_LOCK:
+        cursor.execute(
+            "INSERT INTO teaching_sessions (person, subject, topic, duration, outcome, notes, date, ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (person, subject, topic, duration, outcome, notes, date, ts)
+        )
+        conn.commit()
+    conn.close()
+
+def get_teaching_sessions() -> list:
+    """Retrieve all logged teaching sessions."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_teaching_sessions
+        return neon_get_teaching_sessions()
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM teaching_sessions ORDER BY id ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 def delete_translation_history_item(item_id: int):
     """Delete a single translation history entry by ID."""
