@@ -724,11 +724,105 @@ function initDashboardMobileTabs() {
   });
 }
 
+// ── Gym Layout Mobile Tabs ────────────────────────────────────
+function initGymMobileTabs() {
+  const pathname = window.location.pathname.replace(/\/$/, '') || '/';
+  if (pathname !== '/gym' && pathname !== '/gym.html') return;
+
+  const gymLayout = document.querySelector('.gym-layout');
+  if (!gymLayout) return;
+
+  const cards = Array.from(gymLayout.querySelectorAll(':scope > .card'));
+  if (cards.length < 2) return;
+
+  const formCard = cards[0];
+  const historyCard = cards[1];
+
+  formCard.classList.add('dashboard-section', 'section-log');
+  historyCard.classList.add('dashboard-section', 'section-history');
+
+  // Set default active section
+  formCard.classList.add('active');
+
+  // Create mobile tab container
+  const tabContainer = document.createElement('div');
+  tabContainer.className = 'dashboard-mobile-tabs';
+  tabContainer.innerHTML = `
+    <button class="db-tab active" data-sec="log"><i class="fa-solid fa-plus-circle"></i>Log Workout</button>
+    <button class="db-tab" data-sec="history"><i class="fa-solid fa-clock-rotate-left"></i>History</button>
+  `;
+
+  // Insert tabs before gymLayout
+  gymLayout.parentNode.insertBefore(tabContainer, gymLayout);
+
+  // Bind click handlers
+  tabContainer.querySelectorAll('.db-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabContainer.querySelectorAll('.db-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      gymLayout.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+      
+      const sec = btn.getAttribute('data-sec');
+      if (sec === 'log') formCard.classList.add('active');
+      if (sec === 'history') historyCard.classList.add('active');
+    });
+  });
+}
+
+// ── Study Journal Mobile Tabs ─────────────────────────────────
+function initJournalMobileTabs() {
+  const pathname = window.location.pathname.replace(/\/$/, '') || '/';
+  if (pathname !== '/journal' && pathname !== '/journal.html') return;
+
+  const journalGrid = document.querySelector('.journal-grid');
+  if (!journalGrid) return;
+
+  const cards = Array.from(journalGrid.querySelectorAll(':scope > .card'));
+  if (cards.length < 2) return;
+
+  const formCard = cards[0];
+  const historyCard = cards[1];
+
+  formCard.classList.add('dashboard-section', 'section-log');
+  historyCard.classList.add('dashboard-section', 'section-history');
+
+  // Set default active section
+  formCard.classList.add('active');
+
+  // Create mobile tab container
+  const tabContainer = document.createElement('div');
+  tabContainer.className = 'dashboard-mobile-tabs';
+  tabContainer.innerHTML = `
+    <button class="db-tab active" data-sec="log"><i class="fa-solid fa-pen-to-square"></i>Log Entry</button>
+    <button class="db-tab" data-sec="history"><i class="fa-solid fa-clock-rotate-left"></i>History</button>
+  `;
+
+  // Insert tabs before journalGrid
+  journalGrid.parentNode.insertBefore(tabContainer, journalGrid);
+
+  // Bind click handlers
+  tabContainer.querySelectorAll('.db-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabContainer.querySelectorAll('.db-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      journalGrid.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+      
+      const sec = btn.getAttribute('data-sec');
+      if (sec === 'log') formCard.classList.add('active');
+      if (sec === 'history') historyCard.classList.add('active');
+    });
+  });
+}
+
 async function loadMiniStats() {
   try {
     injectFloatingStatsBar();
     injectMobileNavigation();
     initDashboardMobileTabs();
+    initGymMobileTabs();
+    initJournalMobileTabs();
     renderVoiceControls();
     startVoiceDaemonTimer();
 

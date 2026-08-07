@@ -1074,6 +1074,39 @@ select, input, textarea { font-family: var(--ff-body); }
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
   }
+  .gym-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .journal-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .stat-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .teach-tabs {
+    padding: 10px 14px 0 !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+    display: flex !important;
+    gap: 6px !important;
+  }
+  .teach-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+  .teach-tab {
+    padding: 8px 14px !important;
+    font-size: 11px !important;
+    flex-shrink: 0 !important;
+    border-radius: 8px 8px 0 0 !important;
+  }
 }
 
 
