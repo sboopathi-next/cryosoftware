@@ -561,13 +561,13 @@ function injectFloatingStatsBar() {
 function injectMobileNavigation() {
   if (document.querySelector('.mobile-bottom-nav')) return;
 
-  // 1. Create and inject bottom nav container
+  // 1. Create and inject bottom nav container (Dashboard, Study, Gym Pro, AI Coach, More)
   const bottomNav = document.createElement('div');
   bottomNav.className = 'mobile-bottom-nav';
   bottomNav.innerHTML = `
     <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
     <a href="/syllabus" class="mobile-nav-item" data-path="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study</span></a>
-    <a href="/gym" class="mobile-nav-item" data-path="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym</span></a>
+    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span></a>
     <a href="/ai" class="mobile-nav-item" data-path="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a>
     <button class="mobile-nav-item" id="mobile-more-btn"><i class="fa-solid fa-bars"></i><span>More</span></button>
   `;
@@ -590,6 +590,7 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
+        <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-dumbbell" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
         <a href="/system" class="sheet-grid-item"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span></a>
         <a href="/mind-os" class="sheet-grid-item"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
         <a href="/journal" class="sheet-grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a>
@@ -612,7 +613,7 @@ function injectMobileNavigation() {
   const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
   bottomNav.querySelectorAll('.mobile-nav-item').forEach(item => {
     const path = item.getAttribute('data-path');
-    if (path === currentPath) {
+    if (path === currentPath || (path === '/gym-pro' && (currentPath === '/gym_pro' || currentPath === '/gym-pro.html'))) {
       item.classList.add('active');
     }
   });
@@ -840,20 +841,33 @@ function injectDesktopSidebarNav() {
   if (!nav) return;
   const pathname = window.location.pathname.replace(/\/$/, '') || '/';
 
-  // 1. Inject Gym Pro right after Gym Tracker if missing
+  // 1. Ensure Gym Pro is inserted right after Study Path (/syllabus)
   if (!nav.querySelector('a[href="/gym-pro"]')) {
-    const gymLi = nav.querySelector('a[href="/gym"]')?.closest('li');
+    const syllabusLi = nav.querySelector('a[href="/syllabus"]')?.closest('li');
     const li = document.createElement('li');
     const activeClass = (pathname === '/gym-pro' || pathname === '/gym_pro' || pathname === '/gym-pro.html' || pathname === '/gym_pro.html') ? 'class="active"' : '';
     li.innerHTML = `<a href="/gym-pro" ${activeClass}><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">PRO</span></a>`;
-    if (gymLi && gymLi.nextSibling) {
-      nav.insertBefore(li, gymLi.nextSibling);
+    if (syllabusLi && syllabusLi.nextSibling) {
+      nav.insertBefore(li, syllabusLi.nextSibling);
     } else {
       nav.appendChild(li);
     }
   }
 
-  // 2. Inject System OS if missing
+  // 2. Ensure Gym Tracker is inserted right after Activity Logs (/logs)
+  if (!nav.querySelector('a[href="/gym"]')) {
+    const logsLi = nav.querySelector('a[href="/logs"]')?.closest('li');
+    const li = document.createElement('li');
+    const activeClass = (pathname === '/gym' || pathname === '/gym.html') ? 'class="active"' : '';
+    li.innerHTML = `<a href="/gym" ${activeClass}><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a>`;
+    if (logsLi && logsLi.nextSibling) {
+      nav.insertBefore(li, logsLi.nextSibling);
+    } else {
+      nav.appendChild(li);
+    }
+  }
+
+  // 3. Ensure System OS is inserted at the end
   if (!nav.querySelector('a[href="/system"]')) {
     const li = document.createElement('li');
     const activeClass = (pathname === '/system' || pathname === '/system.html') ? 'class="active"' : '';
