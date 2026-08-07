@@ -63,6 +63,57 @@ body, .app { height: 100vh; overflow: hidden; }
 
 .speak-bubble-btn { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 11px; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; transition: color .15s; }
 .speak-bubble-btn:hover { color: var(--cyan); }
+@media (max-width: 900px) {
+  .teacher-grid {
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  .checklist-pane {
+    width: 100% !important;
+    height: 100% !important;
+    border-right: none !important;
+    display: none !important; /* Controlled by active tab */
+  }
+  .chat-pane {
+    width: 100% !important;
+    height: 100% !important;
+    display: none !important; /* Controlled by active tab */
+  }
+  
+  /* Active states on mobile */
+  .checklist-pane.active, .chat-pane.active {
+    display: flex !important;
+  }
+  
+  /* Create custom mobile navigation header */
+  .teacher-mobile-nav {
+    display: flex !important;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .teacher-mobile-nav button {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text3);
+    padding: 12px;
+    font-size: 11px;
+    font-family: var(--ff-mono);
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .teacher-mobile-nav button.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+  }
+}
+/* Hide mobile nav on desktop by default */
+.teacher-mobile-nav {
+  display: none;
+}
 </style>
 </head>
 <body>
@@ -95,8 +146,12 @@ body, .app { height: 100vh; overflow: hidden; }
     </div>
   </nav>
   <main class="main">
+    <div class="teacher-mobile-nav" id="teacher-m-nav">
+      <button class="active" onclick="switchMobileTab('syllabus')">Syllabus</button>
+      <button onclick="switchMobileTab('teacher')">AI Teacher</button>
+    </div>
     <div class="teacher-grid">
-      <div class="checklist-pane">
+      <div class="checklist-pane active">
         <div class="pane-section">
           <span class="header-meta">Study Material Upload</span>
           <div style="height:8px;"></div>
@@ -408,24 +463,61 @@ async function toggleTopic(idx) {
     console.warn('Could not sync topic toggle to server:', e);
   }
 }
+let currentChecklistPage = 0;
+const ITEMS_PER_PAGE = 10;
+
 function renderChecklist() {
   const listEl = document.getElementById('checklist-scroll');
   if (!topicsList.length) {
     listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:30px;">No topics loaded yet. Upload your syllabus above or ask the teacher to list topics!</div>';
     document.getElementById('progress-lbl').textContent = '0% (0/0)';
     document.getElementById('progress-bar').style.width = '0%';
+    const pag = document.getElementById('checklist-pagination');
+    if (pag) pag.style.display = 'none';
     return;
   }
+  
   const completedCount = topicsList.filter(t => t.completed).length;
   const pct = Math.round((completedCount / topicsList.length) * 100);
   document.getElementById('progress-lbl').textContent = `${pct}% (${completedCount}/${topicsList.length})`;
   document.getElementById('progress-bar').style.width = `${pct}%`;
-  listEl.innerHTML = topicsList.map((t, i) => `
-    <div class="topic-item ${t.completed ? 'completed' : ''}" onclick="toggleTopic(${i})">
-      <div class="topic-checkbox">${t.completed ? '✓' : ''}</div>
-      <div class="topic-name">${t.name}</div>
-    </div>
-  `).join('');
+  
+  const totalPages = Math.ceil(topicsList.length / ITEMS_PER_PAGE);
+  if (currentChecklistPage >= totalPages) currentChecklistPage = totalPages - 1;
+  if (currentChecklistPage < 0) currentChecklistPage = 0;
+  
+  const startIdx = currentChecklistPage * ITEMS_PER_PAGE;
+  const endIdx = Math.min(startIdx + ITEMS_PER_PAGE, topicsList.length);
+  const pageItems = topicsList.slice(startIdx, endIdx);
+  
+  listEl.innerHTML = pageItems.map((t, idx) => {
+    const globalIdx = startIdx + idx;
+    return `
+      <div class="topic-item ${t.completed ? 'completed' : ''}" onclick="toggleTopic(${globalIdx})">
+        <div class="topic-checkbox">${t.completed ? '✓' : ''}</div>
+        <div class="topic-name">${t.name}</div>
+      </div>
+    `;
+  }).join('');
+  
+  let pag = document.getElementById('checklist-pagination');
+  if (!pag) {
+    pag = document.createElement('div');
+    pag.id = 'checklist-pagination';
+    pag.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;font-family:var(--ff-mono);color:var(--text3);';
+    listEl.parentNode.appendChild(pag);
+  }
+  pag.style.display = 'flex';
+  pag.innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="changeChecklistPage(-1)" ${currentChecklistPage === 0 ? 'disabled' : ''} style="padding:2px 8px;font-size:10px;"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+    <span>Page ${currentChecklistPage + 1} of ${totalPages}</span>
+    <button class="btn btn-ghost btn-sm" onclick="changeChecklistPage(1)" ${currentChecklistPage === totalPages - 1 ? 'disabled' : ''} style="padding:2px 8px;font-size:10px;">Next <i class="fa-solid fa-chevron-right"></i></button>
+  `;
+}
+
+function changeChecklistPage(dir) {
+  currentChecklistPage += dir;
+  renderChecklist();
 }
 function teachNextTopic() {
   const next = topicsList.find(t => !t.completed);
@@ -495,6 +587,26 @@ async function loadChatHistory() {
       data.messages.forEach(h => appendBubble(h.message, h.role === 'user' ? 'user' : 'ai'));
     }
   } catch(e) {}
+}
+
+function switchMobileTab(tab) {
+  const btns = document.querySelectorAll('#teacher-m-nav button');
+  btns.forEach(b => b.classList.remove('active'));
+  
+  if (tab === 'syllabus') btns[0].classList.add('active');
+  if (tab === 'teacher') btns[1].classList.add('active');
+  
+  const checklistPane = document.querySelector('.checklist-pane');
+  const chatPane = document.querySelector('.chat-pane');
+  
+  checklistPane.classList.remove('active');
+  chatPane.classList.remove('active');
+  
+  if (tab === 'syllabus') {
+    checklistPane.classList.add('active');
+  } else if (tab === 'teacher') {
+    chatPane.classList.add('active');
+  }
 }
 
 loadChecklistState();

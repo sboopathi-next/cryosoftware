@@ -58,6 +58,57 @@ body, .app { height: 100vh; overflow: hidden; }
 .score-badge { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: rgba(245,158,11,0.15); border: 1px solid var(--amber); color: var(--amber); font-weight: 700; font-family: var(--ff-mono); }
 .speak-bubble-btn { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 11px; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; transition: color .15s; }
 .speak-bubble-btn:hover { color: var(--amber); }
+@media (max-width: 900px) {
+  .stoic-container {
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  .input-pane {
+    width: 100% !important;
+    height: 100% !important;
+    border-right: none !important;
+    display: none !important; /* Controlled by active tab */
+  }
+  .chat-pane {
+    width: 100% !important;
+    height: 100% !important;
+    display: none !important; /* Controlled by active tab */
+  }
+  
+  /* Active states on mobile */
+  .input-pane.active, .chat-pane.active {
+    display: flex !important;
+  }
+  
+  /* Create custom mobile navigation header */
+  .stoic-mobile-nav {
+    display: flex !important;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .stoic-mobile-nav button {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text3);
+    padding: 12px;
+    font-size: 11px;
+    font-family: var(--ff-mono);
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .stoic-mobile-nav button.active {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+  }
+}
+/* Hide mobile nav on desktop by default */
+.stoic-mobile-nav {
+  display: none;
+}
 </style>
 </head>
 <body>
@@ -90,8 +141,13 @@ body, .app { height: 100vh; overflow: hidden; }
     </div>
   </nav>
   <main class="main">
+    <div class="stoic-mobile-nav" id="stoic-m-nav">
+      <button class="active" onclick="switchMobileTab('log')">Reflect</button>
+      <button onclick="switchMobileTab('history')">History</button>
+      <button onclick="switchMobileTab('coach')">Stoic AI</button>
+    </div>
     <div class="stoic-container">
-      <div class="input-pane">
+      <div class="input-pane active">
         <div class="tab-headers">
           <div class="tab-hdr active" id="hdr-log" onclick="switchPane('log')">Log Reflection</div>
           <div class="tab-hdr" id="hdr-history" onclick="switchPane('history')">Reflection History</div>
@@ -424,6 +480,31 @@ async function loadChatHistory() {
       data.messages.forEach(h => appendBubble(h.message, h.role === 'user' ? 'user' : 'ai'));
     }
   } catch(e) {}
+}
+
+function switchMobileTab(tab) {
+  const btns = document.querySelectorAll('#stoic-m-nav button');
+  btns.forEach(b => b.classList.remove('active'));
+  
+  if (tab === 'log') btns[0].classList.add('active');
+  if (tab === 'history') btns[1].classList.add('active');
+  if (tab === 'coach') btns[2].classList.add('active');
+  
+  const inputPane = document.querySelector('.input-pane');
+  const chatPane = document.querySelector('.chat-pane');
+  
+  inputPane.classList.remove('active');
+  chatPane.classList.remove('active');
+  
+  if (tab === 'log') {
+    inputPane.classList.add('active');
+    switchPane('log');
+  } else if (tab === 'history') {
+    inputPane.classList.add('active');
+    switchPane('history');
+  } else if (tab === 'coach') {
+    chatPane.classList.add('active');
+  }
 }
 
 loadChatHistory();
