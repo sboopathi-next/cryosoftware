@@ -1165,9 +1165,21 @@ select, input, textarea { font-family: var(--ff-body); }
     border-radius: 8px 8px 0 0 !important;
   }
 
-  /* ── Bottom Nav Safe Padding & UI Consistency ── */
-  .main, .chat-messages, .teach-pane, .meditation-zone, .english-container, .exam-layout, .stoic-pane {
-    padding-bottom: 84px !important;
+  /* ── Bottom Nav Safe Viewport Height & Spacing ── */
+  .app {
+    height: 100dvh !important;
+    height: 100vh !important;
+  }
+  .main {
+    height: calc(100dvh - 110px) !important;
+    height: calc(100vh - 110px) !important;
+    padding-bottom: 16px !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Fallback scroll margins for long content pages */
+  .teach-pane, .meditation-zone, .english-container, .exam-layout, .stoic-pane, .chat-messages {
+    padding-bottom: 24px !important;
   }
 
   /* Full-width bubbles for mobile chat screens (ChatGPT style) */
@@ -1182,7 +1194,7 @@ select, input, textarea { font-family: var(--ff-body); }
     gap: 0 !important;
   }
 
-  /* Typographic Hierarchy Consistency */
+  /* Typographic Hierarchy Consistency (Safe UI Principles) */
   h1, .page-title {
     font-size: 19px !important;
     font-weight: 800 !important;
@@ -1195,11 +1207,14 @@ select, input, textarea { font-family: var(--ff-body); }
     font-size: 11.5px !important;
     font-weight: 600 !important;
   }
-  .page-sub, p, label, span, td, th {
+  .page-sub, .field-hint, .text-muted {
     font-size: 11px !important;
   }
+  label {
+    font-size: 11.5px !important;
+  }
   .badge, .btn-sm, .vault-tab {
-    font-size: 9.5px !important;
+    font-size: 10px !important;
   }
   input, select, textarea, button {
     font-size: 12.5px !important;
