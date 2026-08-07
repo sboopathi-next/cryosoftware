@@ -567,7 +567,7 @@ function injectMobileNavigation() {
   bottomNav.innerHTML = `
     <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
     <a href="/syllabus" class="mobile-nav-item" data-path="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study</span></a>
-    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-bolt"></i><span>Gym Pro</span></a>
+    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-dumbbell"></i><span>Gym Pro</span></a>
     <a href="/ai" class="mobile-nav-item" data-path="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a>
     <button class="mobile-nav-item" id="mobile-more-btn"><i class="fa-solid fa-bars"></i><span>More</span></button>
   `;
@@ -590,7 +590,7 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
-        <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-dumbbell" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
+        <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
         <a href="/system" class="sheet-grid-item"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span></a>
         <a href="/mind-os" class="sheet-grid-item"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
         <a href="/journal" class="sheet-grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a>
