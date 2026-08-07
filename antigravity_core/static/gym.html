@@ -46,18 +46,41 @@
 /* History */
 .history-list { display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; }
 .history-item {
-  background: #0a0d1e; border: 1px solid var(--border);
+  position: relative;
+  background: var(--bg-card); border: 1px solid var(--border);
   border-radius: 10px; padding: 10px 12px;
   border-left: 3px solid var(--indigo);
   transition: border-color .18s;
+  padding-right: 32px;
 }
 .history-item:hover { border-color: var(--border-hi); }
 .hi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .hi-name { font-weight: 700; font-size: 13px; }
 .hi-meta { font-family: var(--ff-mono); font-size: 10px; color: var(--text3); }
 .hi-sets { font-size: 11px; color: var(--text2); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hi-delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+.history-item:hover .hi-delete-btn {
+  opacity: 1;
+}
+.hi-delete-btn:hover {
+  color: var(--red);
+}
 
-@media (max-width: 900px) { .gym-layout { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .gym-layout { grid-template-columns: 1fr; }
+  .hi-delete-btn { opacity: 0.8; }
+}
 </style>
 </head>
 <body>
@@ -369,10 +392,31 @@ async function loadHistory() {
           <span class="badge badge-indigo">${log.Category || ''}</span>
         </div>
         <div class="hi-meta">${dt} · ${log.Duration_Minutes || 0} min</div>
-        <div class="hi-sets">${log.Sets || ''}</div>`;
+        <div class="hi-sets">${log.Sets || ''}</div>
+        <button class="hi-delete-btn" onclick="deleteWorkout('${log.Timestamp}', ${log.id || 'null'})" title="Delete Workout"><i class="fa-solid fa-trash-can"></i></button>`;
       container.appendChild(item);
     });
   } catch(e) { console.error(e); }
+}
+
+async function deleteWorkout(timestamp, id) {
+  if (!confirm('Are you sure you want to delete this workout log?')) return;
+  try {
+    const r = await fetch('/api/workouts/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ Timestamp: timestamp, id: id })
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast('Workout deleted successfully', 'ok');
+      loadHistory();
+    } else {
+      toast('Failed to delete workout: ' + (d.detail || 'error'), 'err');
+    }
+  } catch(e) {
+    toast('Error connecting to server', 'err');
+  }
 }
 
 loadOptions();

@@ -37,6 +37,29 @@
 /* Reading Log Specifics */
 .log-item-reading { border-left-color: var(--amber); }
 .log-dot-reading { background: linear-gradient(135deg, var(--amber), #f97316); }
+
+.log-item {
+  position: relative;
+  padding-right: 36px;
+}
+.log-delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: all 0.2s ease;
+}
+.log-item:hover .log-delete-btn {
+  opacity: 1;
+}
+.log-delete-btn:hover {
+  color: var(--red);
+}
 </style>
 </head>
 <body>
@@ -163,11 +186,30 @@ async function loadReadingLogs() {
           <div class="log-time">${log.timestamp}</div>
           <div class="log-doing"><strong>Book:</strong> ${log.book_title}</div>
           <div class="log-did">Read pages <strong>${log.page_from}</strong> to <strong>${log.page_to}</strong> (<strong>${log.pages_read}</strong> pages).</div>
-        </div>`;
+        </div>
+        <button class="log-delete-btn" onclick="deleteReadingLog(${log.id})" title="Delete Reading Log"><i class="fa-solid fa-trash-can"></i></button>`;
       container.appendChild(item);
     });
   } catch(e) {
     document.getElementById('reading-list').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Could not load reading logs.</div>';
+  }
+}
+
+async function deleteReadingLog(id) {
+  if (!confirm('Are you sure you want to delete this reading log entry?')) return;
+  try {
+    const r = await fetch(`/api/reading/logs/${id}`, {
+      method: 'DELETE'
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast('Reading log deleted', 'ok');
+      loadReadingLogs();
+    } else {
+      toast('Failed to delete: ' + (d.detail || 'error'), 'err');
+    }
+  } catch(e) {
+    toast('Error connecting to server', 'err');
   }
 }
 

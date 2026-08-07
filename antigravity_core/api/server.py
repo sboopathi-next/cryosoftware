@@ -459,6 +459,11 @@ def get_logs_page():
 def get_badlog_page():
     return FileResponse(os.path.join(STATIC_DIR, "badlog.html"))
 
+
+@app.get("/system")
+def get_system_page():
+    return FileResponse(os.path.join(STATIC_DIR, "system.html"))
+
 @app.get("/exam")
 def get_exam_page():
     return FileResponse(os.path.join(STATIC_DIR, "exam.html"))
@@ -764,6 +769,72 @@ def get_stats():
         "english_completed": bool(state.get("english_completed", 0)),
         "neon_online": (lambda: (__import__('sync').is_online()))()
     }
+
+
+@app.get("/api/system/calendar")
+def get_system_calendar():
+    try:
+        # Query all logs to compile date list
+        dates_map = {} # date -> count of logs
+        
+        # 1. Study Journal
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_get_study_journal
+            study_logs = neon_get_study_journal(limit=200)
+        else:
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            study_logs = [dict(r) for r in conn.execute("SELECT date FROM study_journal LIMIT 200").fetchall()]
+            conn.close()
+        for l in study_logs:
+            d = l.get("date")
+            if d:
+                dates_map[d] = dates_map.get(d, 0) + 1
+                
+        # 2. Workout Logs
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_get_workout_history
+            workout_logs = neon_get_workout_history(limit="all")
+        else:
+            workout_logs = []
+            if os.path.exists(WORKOUT_LOG_CSV):
+                with open(WORKOUT_LOG_CSV, "r", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    workout_logs = [dict(row) for row in reader]
+        for l in workout_logs:
+            ts = l.get("Timestamp") or l.get("timestamp")
+            if ts:
+                d = ts.split(" ")[0].split("T")[0]
+                dates_map[d] = dates_map.get(d, 0) + 1
+                
+        # 3. Reading Logs
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_get_reading_logs
+            reading_logs = neon_get_reading_logs(limit=200)
+        else:
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            reading_logs = [dict(r) for r in conn.execute("SELECT date FROM reading_logs LIMIT 200").fetchall()]
+            conn.close()
+        for l in reading_logs:
+            d = l.get("date")
+            if d:
+                dates_map[d] = dates_map.get(d, 0) + 1
+        
+        # Map activity count to score percent
+        logs_formatted = []
+        for d, count in dates_map.items():
+            # Map logs count to percentage score
+            score = min(100, count * 34) # 1 log = 34%, 2 logs = 68%, 3+ logs = 100%
+            logs_formatted.append({
+                "date": d,
+                "score": score,
+                "count": count
+            })
+            
+        return {"success": True, "logs": logs_formatted}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 # ─── Gym Check & Telemetry ────────────────────────────────────────────────────
@@ -1100,6 +1171,23 @@ def get_study_journal(date: Optional[str] = None, limit: int = 30):
     return {"entries": [dict(r) for r in reversed(rows)]}
 
 
+@app.delete("/api/study/journal/{entry_id}")
+def delete_study_journal_entry(entry_id: int):
+    try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_delete_study_entry
+            neon_delete_study_entry(entry_id)
+        else:
+            conn = get_db_connection()
+            with _DB_WRITE_LOCK:
+                conn.execute("DELETE FROM study_journal WHERE id = ?", (entry_id,))
+                conn.commit()
+            conn.close()
+        return {"status": "success", "message": "Study entry deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ─── Bad Experience / Scold Log API ──────────────────────────────────────────
 
 @app.post("/api/badlog")
@@ -1299,6 +1387,42 @@ def get_workout_history(limit: Optional[str] = None):
         return []
 
 
+class WorkoutDeletePayload(BaseModel):
+    Timestamp: str
+    id: Optional[int] = None
+
+
+@app.post("/api/workouts/delete")
+def delete_workout_entry(payload: WorkoutDeletePayload):
+    try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_delete_workout_by_id, neon_delete_workout_by_timestamp
+            if payload.id is not None:
+                neon_delete_workout_by_id(payload.id)
+            else:
+                neon_delete_workout_by_timestamp(payload.Timestamp)
+        else:
+            if os.path.exists(WORKOUT_LOG_CSV):
+                temp_file = WORKOUT_LOG_CSV + ".tmp"
+                try:
+                    with open(WORKOUT_LOG_CSV, "r", encoding="utf-8") as f, \
+                         open(temp_file, "w", encoding="utf-8", newline="") as out:
+                        reader = csv.DictReader(f)
+                        writer = csv.DictWriter(out, fieldnames=reader.fieldnames)
+                        writer.writeheader()
+                        for row in reader:
+                            if row.get("Timestamp") != payload.Timestamp:
+                                writer.writerow(row)
+                    os.replace(temp_file, WORKOUT_LOG_CSV)
+                except Exception as e:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                    raise e
+        return {"status": "success", "message": "Workout deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ─── Checklist Toggle API ─────────────────────────────────────────────────────
 
 @app.post("/api/checklist/toggle")
@@ -1406,6 +1530,23 @@ def get_reading_logs():
         return {"status": "success", "logs": [dict(r) for r in rows]}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@app.delete("/api/reading/logs/{log_id}")
+def delete_reading_log_entry(log_id: int):
+    try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_delete_reading_log
+            neon_delete_reading_log(log_id)
+        else:
+            conn = get_db_connection()
+            with _DB_WRITE_LOCK:
+                conn.execute("DELETE FROM reading_logs WHERE id = ?", (log_id,))
+                conn.commit()
+            conn.close()
+        return {"status": "success", "message": "Reading log deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/reading/log")
 def log_reading_session(payload: LogReadingPayload):

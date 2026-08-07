@@ -572,6 +572,7 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
+        <a href="/system" class="sheet-grid-item"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span></a>
         <a href="/mind-os" class="sheet-grid-item"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
         <a href="/journal" class="sheet-grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a>
         <a href="/english" class="sheet-grid-item"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span></a>
@@ -816,10 +817,23 @@ function initJournalMobileTabs() {
   });
 }
 
+function injectDesktopSidebarNav() {
+  const nav = document.querySelector('.nav');
+  if (!nav) return;
+  if (nav.querySelector('a[href="/system"]')) return;
+  
+  const li = document.createElement('li');
+  const pathname = window.location.pathname.replace(/\/$/, '') || '/';
+  const activeClass = pathname === '/system' || pathname === '/system.html' ? 'class="active"' : '';
+  li.innerHTML = `<a href="/system" ${activeClass}><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a>`;
+  nav.appendChild(li);
+}
+
 async function loadMiniStats() {
   try {
     injectFloatingStatsBar();
     injectMobileNavigation();
+    injectDesktopSidebarNav();
     initDashboardMobileTabs();
     initGymMobileTabs();
     initJournalMobileTabs();

@@ -75,6 +75,12 @@ def neon_save_reading_log(book_title: str, page_from: int, page_to: int, pages_r
     return {"status": "success", "timestamp": ts}
 
 
+def neon_delete_reading_log(log_id: int):
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM pg_reading_logs WHERE id = %s", (log_id,))
+
+
 # ─── Bad Experiences / Rage Wall ───────────────────────────────────────────────
 
 def neon_get_bad_experiences(date_filter: str = None, limit: int = 100) -> list:
@@ -344,6 +350,7 @@ def neon_get_workout_history(limit: str = None) -> list:
     res = []
     for r in rows:
         res.append({
+            "id": r["id"],
             "Timestamp": r["timestamp"],
             "Category": r["category"],
             "Workout": r["workout"],
@@ -352,6 +359,24 @@ def neon_get_workout_history(limit: str = None) -> list:
             "Duration_Minutes": str(r["duration_minutes"])
         })
     return res
+
+
+def neon_delete_workout_by_id(pg_id: int):
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM pg_workout_logs WHERE id = %s", (pg_id,))
+
+
+def neon_delete_workout_by_timestamp(timestamp: str):
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM pg_workout_logs WHERE timestamp = %s", (timestamp,))
+
+
+def neon_delete_study_entry(entry_id: int):
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM pg_study_journal WHERE id = %s", (entry_id,))
 
 
 # ─── Teaching Sessions ─────────────────────────────────────────────────────────

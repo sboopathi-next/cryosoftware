@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — System OS</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ─── SOLO LEVELING "THE SYSTEM" GLOWING THEME ─── */
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+
+.system-body {
+  flex: 1; overflow-y: auto; padding: 24px 28px;
+  display: flex; flex-direction: column; gap: 20px;
+  background: radial-gradient(circle at 50% 10%, #0d0c24 0%, #060514 80%);
+}
+
+.system-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid rgba(147, 51, 234, 0.4); padding-bottom: 12px;
+  margin-bottom: 4px;
+}
+.system-title-text {
+  font-family: var(--ff-brand); font-weight: 900; font-size: 26px;
+  color: #fff; text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+  letter-spacing: .05em; display: flex; align-items: center; gap: 10px;
+}
+.system-status-badge {
+  font-family: var(--ff-mono); font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 4px; background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;
+}
+
+/* Attributes Grid */
+.sys-grid {
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start;
+}
+
+.sys-card {
+  background: rgba(10, 8, 28, 0.7);
+  border: 1px solid rgba(147, 51, 234, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(147, 51, 234, 0.05);
+  border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+.sys-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+  background: linear-gradient(90deg, transparent, #a855f7, transparent);
+}
+
+.sys-card-title {
+  font-family: var(--ff-brand); font-size: 14px; font-weight: 800;
+  color: #c084fc; text-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  letter-spacing: .05em; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;
+}
+
+/* Stat Rows */
+.stat-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.04);
+}
+.stat-item:last-child { border-bottom: none; }
+.stat-lbl { font-family: var(--ff-brand); font-weight: 700; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+.stat-val { font-family: var(--ff-mono); font-weight: 900; color: #fff; font-size: 16px; }
+
+/* Daily Quest Checklist */
+.quest-item {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; transition: all 0.2s;
+}
+.quest-item.completed {
+  border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.04);
+}
+.quest-checkbox {
+  width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  border: 2px solid rgba(255,255,255,0.2); transition: all 0.2s;
+}
+.quest-item.completed .quest-checkbox {
+  background: #10b981; border-color: #10b981; color: #fff;
+}
+.quest-body { flex: 1; }
+.quest-title { font-weight: 700; font-size: 13px; color: var(--text1); }
+.quest-rewards { font-family: var(--ff-mono); font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* Loot Box Screen */
+.loot-box-area {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+}
+.loot-box-glowing {
+  font-size: 54px; color: #d8b4fe; margin-bottom: 16px; cursor: pointer;
+  filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.6));
+  transition: transform 0.2s;
+}
+.loot-box-glowing:hover {
+  transform: scale(1.1);
+}
+.loot-box-glowing.shaking {
+  animation: shake 0.5s ease-in-out infinite;
+}
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+/* 91-Day Heatmap styling */
+.heatmap-container {
+  overflow-x: auto; width: 100%; padding-bottom: 6px;
+}
+.heatmap-grid {
+  display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; gap: 3px;
+  min-width: max-content; padding: 4px 0;
+}
+.heatmap-day {
+  width: 12px; height: 12px; border-radius: 2px; background: rgba(255,255,255,0.04);
+  cursor: pointer; position: relative; transition: transform 0.15s;
+}
+.heatmap-day:hover {
+  transform: scale(1.2); z-index: 10;
+  box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+
+/* Heatmap day colors */
+.day-none { background: rgba(255, 255, 255, 0.05); }
+.day-low { background: rgba(239, 68, 68, 0.45); border: 1px solid rgba(239,68,68,0.2); }
+.day-mid { background: rgba(245, 158, 11, 0.6); border: 1px solid rgba(245,158,11,0.25); }
+.day-high { background: rgba(16, 185, 129, 0.85); border: 1px solid rgba(16,185,129,0.3); }
+
+/* System Popup Alert style */
+.sys-alert-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  backdrop-filter: blur(8px);
+}
+.sys-alert-box {
+  background: #090815; border: 2px solid #a855f7; border-radius: 12px;
+  max-width: 420px; width: 100%; box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+  overflow: hidden; animation: popAlert 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popAlert {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.sys-alert-hd {
+  background: linear-gradient(90deg, #6b21a8, #090815);
+  padding: 12px 18px; font-family: var(--ff-brand); font-weight: 900;
+  color: #fff; letter-spacing: .08em; font-size: 13px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+  display: flex; align-items: center; gap: 8px;
+}
+.sys-alert-bd {
+  padding: 20px 24px; color: #c084fc; font-size: 13.5px; line-height: 1.6;
+}
+.sys-alert-ft {
+  padding: 12px 24px 20px; display: flex; justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .sys-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR INJECTED VIA SHARED.JS -->
+  <main class="main">
+    <div class="system-body">
+      <div class="system-title-row">
+        <div class="system-title-text"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i> SYSTEM OS</div>
+        <div class="system-status-badge" id="sys-title-badge">E-Rank Hunter</div>
+      </div>
+
+      <div class="sys-grid">
+        <!-- Panel 1: Player Status -->
+        <div class="sys-card">
+          <div class="sys-card-title"><i class="fa-solid fa-user-shield"></i> HUNTER STATUS</div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-arrow-up-9-1"></i> Level</span><span class="stat-val" id="sys-lvl">8</span></div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-star"></i> Experience (XP)</span><span class="stat-val" id="sys-xp">1832 / 2000</span></div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-dumbbell"></i> Strength (STR)</span><span class="stat-val" id="sys-str">225</span></div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-brain"></i> Intelligence (INT)</span><span class="stat-val" id="sys-int">181</span></div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-gauge-high"></i> Agility (AGI)</span><span class="stat-val" id="sys-agi">214</span></div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-crown"></i> Willpower (WIL)</span><span class="stat-val" id="sys-wil">10</span></div>
+          <div class="stat-item"><span class="stat-lbl"><i class="fa-solid fa-heart"></i> Vitality (VIT)</span><span class="stat-val" id="sys-vit">44</span></div>
+        </div>
+
+        <!-- Panel 2: Daily Quests Checklist -->
+        <div class="sys-card">
+          <div class="sys-card-title"><i class="fa-solid fa-circle-exclamation"></i> DAILY QUEST: BUILD POWER</div>
+          
+          <div class="quest-item" id="q-gym">
+            <div class="quest-checkbox"><i class="fa-solid fa-check"></i></div>
+            <div class="quest-body">
+              <div class="quest-title">Strength Training (Gym Workout)</div>
+              <div class="quest-rewards">Rewards: +15 XP · +2 STR · +1 VIT</div>
+            </div>
+          </div>
+
+          <div class="quest-item" id="q-study">
+            <div class="quest-checkbox"><i class="fa-solid fa-check"></i></div>
+            <div class="quest-body">
+              <div class="quest-title">Intelligence Training (Study Session)</div>
+              <div class="quest-rewards">Rewards: +10 XP · +2 INT</div>
+            </div>
+          </div>
+
+          <div class="quest-item" id="q-reading">
+            <div class="quest-checkbox"><i class="fa-solid fa-check"></i></div>
+            <div class="quest-body">
+              <div class="quest-title">Willpower training (Read Books)</div>
+              <div class="quest-rewards">Rewards: +10 XP · +1 INT</div>
+            </div>
+          </div>
+
+          <div class="quest-item" id="q-english">
+            <div class="quest-checkbox"><i class="fa-solid fa-check"></i></div>
+            <div class="quest-body">
+              <div class="quest-title">Communication booster (English Boost)</div>
+              <div class="quest-rewards">Rewards: +10 XP · +1 INT</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Surprise Rewards & Heatmap Calendar -->
+      <div class="sys-grid">
+        <!-- Heatmap Grid -->
+        <div class="sys-card">
+          <div class="sys-card-title"><i class="fa-solid fa-calendar-days"></i> 91-DAY CONSISTENCY CALENDAR</div>
+          <div class="heatmap-container">
+            <div class="heatmap-grid" id="heatmap-list"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:14px;justify-content:center;" id="heatmap-legend">
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><div class="heatmap-day day-none"></div> 0 logs</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><div class="heatmap-day day-low"></div> 1 log</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><div class="heatmap-day day-mid"></div> 2 logs</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><div class="heatmap-day day-high"></div> 3+ logs</div>
+          </div>
+        </div>
+
+        <!-- Loot Box Daily Box -->
+        <div class="sys-card" style="text-align:center;">
+          <div class="sys-card-title"><i class="fa-solid fa-gift"></i> SURPRISE LOOT BOX</div>
+          <div class="loot-box-area">
+            <div class="loot-box-glowing" id="loot-box-element" onclick="claimLootBox()"><i class="fa-solid fa-box-open"></i></div>
+            <p style="font-size:11px;color:var(--text3);margin-bottom:12px;" id="loot-box-status">Click to open your daily loot box reward</p>
+            <button class="btn btn-primary btn-sm" onclick="claimLootBox()" id="loot-box-btn">Open Box</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Alert Popup -->
+<div id="sys-alert-overlay" class="sys-alert-overlay hidden">
+  <div class="sys-alert-box">
+    <div class="sys-alert-hd" id="alert-title"><i class="fa-solid fa-circle-exclamation"></i> SYSTEM MESSAGE</div>
+    <div class="sys-alert-bd" id="alert-body">A hidden quest has appeared! Complete it before the deadline or face the centipedes penalty zone.</div>
+    <div class="sys-alert-ft">
+      <button class="btn btn-primary btn-sm" onclick="closeSysAlert()">Acknowledge</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/shared.js?v=sysos1"></script>
+<script>
+let stateData = null;
+
+async function loadSystemStats() {
+  try {
+    const r = await fetch('/stats');
+    if (!r.ok) return;
+    const d = await r.json();
+    stateData = d;
+
+    // Set Level Title
+    let title = "E-Rank Hunter";
+    if (d.level >= 11) title = "Shadow Monarch 👑";
+    else if (d.level >= 9) title = "A-Rank Hunter";
+    else if (d.level >= 7) title = "B-Rank Hunter";
+    else if (d.level >= 5) title = "C-Rank Hunter";
+    else if (d.level >= 3) title = "D-Rank Hunter";
+    
+    document.getElementById('sys-title-badge').textContent = title;
+    document.getElementById('sys-lvl').textContent = d.level;
+    document.getElementById('sys-xp').textContent = `${d.xp} / ${d.xp_required}`;
+    document.getElementById('sys-str').textContent = d.attributes.STR || 10;
+    document.getElementById('sys-int').textContent = d.attributes.INT || 10;
+    document.getElementById('sys-agi').textContent = d.attributes.AGI || 10;
+    document.getElementById('sys-wil').textContent = d.attributes.WIL || 10;
+    document.getElementById('sys-vit').textContent = d.attributes.HRT || 10;
+
+    // Toggle daily quests status
+    const toggleQ = (id, comp) => {
+      const el = document.getElementById(id);
+      if (comp) el.classList.add('completed');
+      else el.classList.remove('completed');
+    };
+    toggleQ('q-gym', d.gym_completed);
+    toggleQ('q-study', d.study_completed);
+    toggleQ('q-reading', d.reading_completed);
+    toggleQ('q-english', d.english_completed);
+
+    // Random surprise pop-up warning alert
+    checkRandomSurprisePopup(d);
+
+  } catch(e) { console.warn('Failed to load system stats:', e); }
+}
+
+// ── Daily Loot Box Logic ─────────────────────────────────────
+function checkLootBoxStatus() {
+  const lastOpened = localStorage.getItem('last_loot_box_date');
+  const today = new Date().toISOString().split('T')[0];
+  if (lastOpened === today) {
+    document.getElementById('loot-box-element').style.opacity = 0.5;
+    document.getElementById('loot-box-status').textContent = 'Loot Box claimed today. Returns tomorrow!';
+    document.getElementById('loot-box-btn').disabled = true;
+    document.getElementById('loot-box-btn').textContent = 'Claimed';
+  }
+}
+
+async function claimLootBox() {
+  const lastOpened = localStorage.getItem('last_loot_box_date');
+  const today = new Date().toISOString().split('T')[0];
+  if (lastOpened === today) {
+    showSysAlert("System Notice", "Loot box already opened. Check back tomorrow!");
+    return;
+  }
+
+  const box = document.getElementById('loot-box-element');
+  box.classList.add('shaking');
+
+  setTimeout(async () => {
+    box.classList.remove('shaking');
+    const rolls = [
+      { text: "Blessed Loot: Status Recovery fully replenished your Energy to 100%!", action: 'energy' },
+      { text: "Blessed Box: You received +50 XP bonus points from the system!", action: 'xp' },
+      { text: "Blessed Elixir: Level up! You found +5 Strength (STR) attribute points!", action: 'str' },
+      { text: "Blessed Elixir: You obtained +5 Intelligence (INT) attribute points!", action: 'int' },
+      { text: "System Alert: Cursed Loot! 'Penalty Quest' has been issued. Complete gym workouts to restore balance.", action: 'cursed' }
+    ];
+    const rolled = rolls[Math.floor(Math.random() * rolls.length)];
+
+    localStorage.setItem('last_loot_box_date', today);
+    checkLootBoxStatus();
+
+    // Perform state changes
+    if (rolled.action === 'energy') {
+      try { await fetch('/api/settings/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key: 'energy', value: '100' }) }); } catch(_) {}
+    } else if (rolled.action === 'xp') {
+      try { await fetch('/api/settings/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key: 'xp', value: String((stateData?.xp || 0) + 50) }) }); } catch(_) {}
+    } else if (rolled.action === 'str') {
+      try { await fetch('/api/settings/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key: 'str', value: String((stateData?.attributes?.STR || 10) + 5) }) }); } catch(_) {}
+    } else if (rolled.action === 'int') {
+      try { await fetch('/api/settings/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key: 'int', value: String((stateData?.attributes?.INT || 10) + 5) }) }); } catch(_) {}
+    }
+
+    showSysAlert("Loot Box Opened!", rolled.text);
+    loadSystemStats();
+  }, 1200);
+}
+
+// ── Heatmap Calendar Rendering ────────────────────────────────
+async function loadHeatmapCalendar() {
+  try {
+    const r = await fetch('/api/system/calendar');
+    const d = await r.json();
+    if (!d.success) return;
+
+    const logMap = {};
+    d.logs.forEach(l => { logMap[l.date] = l; });
+
+    // Generate last 91 days
+    const container = document.getElementById('heatmap-list');
+    container.innerHTML = '';
+
+    const days = [];
+    const now = new Date();
+    for (let i = 90; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      days.push(date.toISOString().split('T')[0]);
+    }
+
+    days.forEach(date => {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'heatmap-day';
+      
+      const log = logMap[date];
+      if (!log) {
+        dayEl.classList.add('day-none');
+      } else {
+        if (log.count === 1) dayEl.classList.add('day-low');
+        else if (log.count === 2) dayEl.classList.add('day-mid');
+        else dayEl.classList.add('day-high');
+      }
+
+      dayEl.title = `${date}: ${log ? log.count : 0} logs completed`;
+      dayEl.addEventListener('click', () => {
+        showSysAlert("Activity Summary", `Date: ${date}<br>Completed tasks/logs on this day: <strong>${log ? log.count : 0}</strong>`);
+      });
+      container.appendChild(dayEl);
+    });
+
+  } catch(e) { console.warn('Failed to load heatmap:', e); }
+}
+
+// ── System Alerts & Random Surprises ──────────────────────────
+function showSysAlert(title, text) {
+  document.getElementById('alert-title').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${title}`;
+  document.getElementById('alert-body').innerHTML = text;
+  document.getElementById('sys-alert-overlay').classList.remove('hidden');
+}
+
+function closeSysAlert() {
+  document.getElementById('sys-alert-overlay').classList.add('hidden');
+}
+
+function checkRandomSurprisePopup(d) {
+  // 12% chance of warning popup on load
+  if (Math.random() < 0.12) {
+    const surprises = [
+      "Warning: Your heart rate has exceeded standard safety thresholds. Take deep breaths.",
+      "System Message: A hidden Quest has appeared! Solve LeetCode problems or complete physical workouts.",
+      "Notice: You have entered the workstation zone. Discipline check in progress...",
+      "System alert: You earned a random hidden XP modifier today! Go complete study logs to gain +1.5x stats.",
+      "System Warning: Fatigue levels are reaching boundary limits. Ensure adequate rest today."
+    ];
+    const text = surprises[Math.floor(Math.random() * surprises.length)];
+    setTimeout(() => {
+      showSysAlert("SYSTEM ALERT", text);
+    }, 800);
+  }
+}
+
+// Boot load
+loadSystemStats();
+checkLootBoxStatus();
+loadHeatmapCalendar();
+</script>
+</body>
+</html>
