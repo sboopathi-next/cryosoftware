@@ -671,10 +671,64 @@ async function triggerManualSync() {
   }
 }
 
+// ── Dashboard Sub-Tabs for Mobile ────────────────────────────
+function initDashboardMobileTabs() {
+  // Only execute on main dashboard page
+  const pathname = window.location.pathname.replace(/\/$/, '') || '/';
+  if (pathname !== '/' && pathname !== '/index.html') return;
+
+  const main = document.querySelector('.main');
+  if (!main) return;
+
+  const statsGrid = document.querySelector('.stats-grid');
+  const cards = Array.from(main.querySelectorAll(':scope > .card'));
+  
+  if (!statsGrid || cards.length < 2) return;
+
+  // Stats Grid, Daily Checklist (cards[0]), and Course Progress (cards[1])
+  const checklistCard = cards[0]; 
+  const progressCard = cards[1];
+
+  statsGrid.classList.add('dashboard-section', 'section-stats');
+  checklistCard.classList.add('dashboard-section', 'section-checklist');
+  progressCard.classList.add('dashboard-section', 'section-progress');
+
+  // Set default active tab
+  statsGrid.classList.add('active');
+
+  // Create mobile tab container
+  const tabContainer = document.createElement('div');
+  tabContainer.className = 'dashboard-mobile-tabs';
+  tabContainer.innerHTML = `
+    <button class="db-tab active" data-sec="stats"><i class="fa-solid fa-chart-simple"></i>Stats</button>
+    <button class="db-tab" data-sec="checklist"><i class="fa-solid fa-list-check"></i>Tasks</button>
+    <button class="db-tab" data-sec="progress"><i class="fa-solid fa-graduation-cap"></i>Syllabus</button>
+  `;
+
+  // Insert tabs before statsGrid
+  statsGrid.parentNode.insertBefore(tabContainer, statsGrid);
+
+  // Bind click handlers
+  tabContainer.querySelectorAll('.db-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabContainer.querySelectorAll('.db-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      main.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+      
+      const sec = btn.getAttribute('data-sec');
+      if (sec === 'stats') statsGrid.classList.add('active');
+      if (sec === 'checklist') checklistCard.classList.add('active');
+      if (sec === 'progress') progressCard.classList.add('active');
+    });
+  });
+}
+
 async function loadMiniStats() {
   try {
     injectFloatingStatsBar();
     injectMobileNavigation();
+    initDashboardMobileTabs();
     renderVoiceControls();
     startVoiceDaemonTimer();
 
