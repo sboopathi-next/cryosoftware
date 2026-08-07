@@ -930,15 +930,22 @@ def toggle_syllabus_item(payload: SyllabusTogglePayload):
 def trigger_manual_sync():
     """Manual sync request. Forces online check and pushes pending local changes to Neon."""
     try:
-        from sync import push_pending_to_neon, is_online
-        from config import DATABASE_URL
+        from config import DATABASE_URL, IS_SERVERLESS
         if not DATABASE_URL:
             return {"status": "error", "message": "DATABASE_URL is not set on this server environment."}
-            
+
         import psycopg2
         conn = psycopg2.connect(DATABASE_URL, connect_timeout=3)
         conn.close()
-        
+
+        if IS_SERVERLESS:
+            # Serverless: push current in-memory state to Neon directly
+            from state import save_state_to_db, load_state_from_db
+            current_state = get_state()
+            save_state_to_db(current_state)
+            return {"status": "success", "message": "Serverless: pushed current state to Neon DB successfully."}
+
+        from sync import push_pending_to_neon
         success = push_pending_to_neon()
         if success:
             return {"status": "success", "message": "Synchronized with Neon DB successfully."}

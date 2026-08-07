@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime, date
-from config import STATE_FILE, ALPHA, BETA, GAMMA, CIRCUIT_BREAKER_LIMIT, MAX_STREAK_LIMIT, DATABASE_URL, USER_PROFILE_ID
+from config import STATE_FILE, ALPHA, BETA, GAMMA, CIRCUIT_BREAKER_LIMIT, MAX_STREAK_LIMIT, DATABASE_URL, USER_PROFILE_ID, IS_SERVERLESS
 
 try:
     import psycopg2
@@ -150,7 +150,9 @@ def update_syllabus_quest(state: dict) -> dict:
     return state
 
 def load_state_file() -> dict:
-    """Load state from local state.json only (no DB). Returns None if file missing."""
+    """Load state from local state.json only (no DB). Returns None if file missing or serverless."""
+    if IS_SERVERLESS:
+        return None  # Serverless: no local filesystem — use Neon directly
     if not os.path.exists(STATE_FILE):
         return None
     try:
@@ -164,7 +166,9 @@ def load_state_file() -> dict:
         return None
 
 def save_state_file(state: dict):
-    """Save state to local state.json only."""
+    """Save state to local state.json only. Skipped in serverless mode."""
+    if IS_SERVERLESS:
+        return  # Serverless: filesystem is read-only, skip file write
     try:
         with open(STATE_FILE, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2)
@@ -173,6 +177,16 @@ def save_state_file(state: dict):
 
 def load_state() -> dict:
     """Load state using the sync engine (offline+online merge)."""
+    if IS_SERVERLESS:
+        # Serverless mode: go directly to Neon DB (no local file fallback)
+        try:
+            state = load_state_from_db()
+            state = update_syllabus_quest(state)
+            return state
+        except Exception as e:
+            print(f"[State] Serverless Neon load failed, using defaults: {e}")
+            return DEFAULT_STATE.copy()
+
     try:
         from sync import sync_load_state
         state = sync_load_state()
@@ -191,6 +205,15 @@ _last_state_snapshot: dict = {}
 def save_state(state: dict):
     """Save state via sync engine (local + CSV changelog + Neon when online)."""
     global _last_state_snapshot
+    if IS_SERVERLESS:
+        # Serverless mode: write directly to Neon DB only
+        try:
+            save_state_to_db(state)
+        except Exception as e:
+            print(f"[State] Serverless Neon save failed: {e}")
+        _last_state_snapshot = dict(state)
+        return
+
     try:
         from sync import sync_save_state
         sync_save_state(state, old_state=_last_state_snapshot or None)

@@ -8,6 +8,8 @@ Strategy:
     is newer, otherwise local wins (last-write-wins per field by timestamp).
   - The CSV changelog (sync_log.csv) records every mutation so nothing is
     lost even if the app is offline for days.
+  - On read-only serverless environments (Vercel), all file-system writes
+    are skipped and Neon DB is used as the sole persistent storage.
 """
 
 import json
@@ -15,6 +17,11 @@ import os
 import csv
 import time
 from datetime import datetime, timezone
+
+try:
+    from config import IS_SERVERLESS
+except ImportError:
+    IS_SERVERLESS = False
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SYNC_LOG_CSV = os.path.join(BASE_DIR, "sync_log.csv")
@@ -28,6 +35,8 @@ CSV_FIELDS = ["timestamp_utc", "user_id", "field", "old_value", "new_value", "sy
 # ──────────────────────────────────────────────
 
 def _ensure_csv():
+    if IS_SERVERLESS:
+        return  # No file writes in serverless mode
     if not os.path.exists(SYNC_LOG_CSV):
         with open(SYNC_LOG_CSV, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
@@ -36,6 +45,8 @@ def _ensure_csv():
 
 def log_change_to_csv(user_id: str, field: str, old_value, new_value, synced: bool = False):
     """Append a single field change to the sync log CSV."""
+    if IS_SERVERLESS:
+        return  # No file writes in serverless mode
     _ensure_csv()
     row = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -52,6 +63,8 @@ def log_change_to_csv(user_id: str, field: str, old_value, new_value, synced: bo
 
 def log_state_diff_to_csv(user_id: str, old_state: dict, new_state: dict, synced: bool = False):
     """Diff two states and log each changed field to CSV."""
+    if IS_SERVERLESS:
+        return  # No file writes in serverless mode
     _ensure_csv()
     rows = []
     all_keys = set(list(old_state.keys()) + list(new_state.keys()))
@@ -88,6 +101,8 @@ def get_unsynced_rows() -> list:
 
 def mark_all_synced():
     """Rewrite the CSV marking all rows as synced."""
+    if IS_SERVERLESS:
+        return  # No file writes in serverless mode
     _ensure_csv()
     rows = []
     with open(SYNC_LOG_CSV, "r", newline="", encoding="utf-8") as f:
@@ -300,6 +315,16 @@ def sync_load_state() -> dict:
     """
     from state import load_state_file, save_state_file, save_state_to_db, load_state_from_db, DEFAULT_STATE
 
+    # In serverless mode, go directly to Neon DB
+    if IS_SERVERLESS:
+        try:
+            remote_state = load_state_from_db()
+            print("[Sync] Serverless — loaded state from Neon DB.")
+            return remote_state
+        except Exception as e:
+            print(f"[Sync] Serverless Neon load failed: {e}")
+            return DEFAULT_STATE.copy()
+
     local_state = load_state_file()
     if local_state is None:
         local_state = DEFAULT_STATE.copy()
@@ -338,6 +363,14 @@ def sync_save_state(state: dict, old_state: dict = None):
     """
     from config import USER_PROFILE_ID
     from state import save_state_file, save_state_to_db
+
+    # Serverless mode: write directly to Neon DB only, skip all file writes
+    if IS_SERVERLESS:
+        try:
+            save_state_to_db(state)
+        except Exception as e:
+            print(f"[Sync] Serverless Neon save failed: {e}")
+        return
 
     # Log changes to CSV
     if old_state is not None:
