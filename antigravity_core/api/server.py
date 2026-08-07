@@ -1198,9 +1198,6 @@ def add_custom_workout(payload: CustomWorkoutPayload):
 @app.post("/api/workouts/log")
 def log_workout(payload: WorkoutLogPayload):
     """Log a completed workout session to workout_log.csv and award XP/stats."""
-    os.makedirs(os.path.dirname(WORKOUT_LOG_CSV), exist_ok=True)
-    
-    file_exists = os.path.exists(WORKOUT_LOG_CSV)
     timestamp = datetime.datetime.now().isoformat()
     
     # Serialize sets
@@ -1209,21 +1206,37 @@ def log_workout(payload: WorkoutLogPayload):
         for i, s in enumerate(payload.sets)
     ]) if payload.sets else "No sets recorded"
     
-    try:
-        with open(WORKOUT_LOG_CSV, "a", encoding="utf-8", newline="") as f:
-            writer = csv.writer(f)
-            if not file_exists:
-                writer.writerow(["Timestamp", "Category", "Workout", "Variations", "Sets", "Duration_Minutes"])
-            writer.writerow([
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_workout_log
+        try:
+            neon_save_workout_log(
                 timestamp,
                 payload.category,
                 payload.workout,
                 payload.variations or "",
                 sets_summary,
                 payload.duration_minutes or 0
-            ])
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error writing workout log: {e}")
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error writing workout log to PG: {e}")
+    else:
+        os.makedirs(os.path.dirname(WORKOUT_LOG_CSV), exist_ok=True)
+        file_exists = os.path.exists(WORKOUT_LOG_CSV)
+        try:
+            with open(WORKOUT_LOG_CSV, "a", encoding="utf-8", newline="") as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(["Timestamp", "Category", "Workout", "Variations", "Sets", "Duration_Minutes"])
+                writer.writerow([
+                    timestamp,
+                    payload.category,
+                    payload.workout,
+                    payload.variations or "",
+                    sets_summary,
+                    payload.duration_minutes or 0
+                ])
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error writing workout log: {e}")
     
     # Award XP and update stats
     num_sets = len(payload.sets) if payload.sets else 1
@@ -1255,6 +1268,14 @@ def log_workout(payload: WorkoutLogPayload):
 @app.get("/api/workouts/history")
 def get_workout_history(limit: Optional[str] = None):
     """Return past workout log entries. Use limit=all for full history."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_workout_history
+        try:
+            return neon_get_workout_history(limit=limit)
+        except Exception as e:
+            print(f"[API] Error reading workout history from PG: {e}")
+            return []
+
     if not os.path.exists(WORKOUT_LOG_CSV) or os.path.getsize(WORKOUT_LOG_CSV) == 0:
         if os.path.exists(SEED_WORKOUT_LOG_CSV):
             import shutil

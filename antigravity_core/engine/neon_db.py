@@ -318,3 +318,38 @@ def neon_save_study_journal(topic: str, notes: str, subject_id: str, item_id: st
             )
             new_id = cur.fetchone()[0]
     return {"id": new_id, "timestamp": ts}
+
+
+# ─── Workout Logs ──────────────────────────────────────────────────────────────
+
+def neon_save_workout_log(timestamp: str, category: str, workout: str, variations: str, sets: str, duration_minutes: int) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO pg_workout_logs (timestamp, category, workout, variations, sets, duration_minutes) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id",
+                (timestamp, category, workout, variations, sets, duration_minutes)
+            )
+            new_id = cur.fetchone()[0]
+    return {"id": new_id, "timestamp": timestamp}
+
+
+def neon_get_workout_history(limit: str = None) -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            if limit == "all":
+                cur.execute("SELECT * FROM pg_workout_logs ORDER BY id DESC")
+            else:
+                cur.execute("SELECT * FROM pg_workout_logs ORDER BY id DESC LIMIT 50")
+            rows = cur.fetchall()
+    res = []
+    for r in rows:
+        res.append({
+            "Timestamp": r["timestamp"],
+            "Category": r["category"],
+            "Workout": r["workout"],
+            "Variations": r["variations"],
+            "Sets": r["sets"],
+            "Duration_Minutes": str(r["duration_minutes"])
+        })
+    return res
+
