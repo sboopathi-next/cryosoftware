@@ -134,20 +134,17 @@ class CustomWorkoutPayload(BaseModel):
     workout: str
 
 DECOMMISSIONED_GROQ_MODELS = {
-    "llama3-70b-8192": "openai/gpt-oss-120b",
-    "llama3-8b-8192": "openai/gpt-oss-20b",
-    "mixtral-8x7b-32768": "openai/gpt-oss-120b",
-    "gemma2-9b-it": "openai/gpt-oss-20b",
-    "llama-3.1-70b-versatile": "openai/gpt-oss-120b",
-    "llama-3.1-8b-instant": "openai/gpt-oss-20b",
-    "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
+    "llama3-70b-8192": "llama-3.3-70b-versatile",
+    "llama3-8b-8192": "llama-3.1-8b-instant",
 }
 
 def sanitize_groq_model(model_name: Optional[str]) -> str:
     if not model_name:
-        return "openai/gpt-oss-120b"
+        return "llama-3.3-70b-versatile"
     m = model_name.strip()
-    return DECOMMISSIONED_GROQ_MODELS.get(m, m if m else "openai/gpt-oss-120b")
+    if m.startswith("openai/"):
+        return "llama-3.3-70b-versatile"
+    return DECOMMISSIONED_GROQ_MODELS.get(m, m if m else "llama-3.3-70b-versatile")
 
 class AIChatPayload(BaseModel):
     message: str

@@ -93,14 +93,13 @@ function toast(msg, type = 'info') {
 
 // ── Groq Models ─────────────────────────────────────────────────────────────
 const DECOMMISSIONED_MODELS_JS = [
-  'llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it', 
-  'llama-3.1-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile'
+  'llama3-70b-8192', 'llama3-8b-8192'
 ];
 
 function getSanitizedGroqModel() {
   let m = localStorage.getItem('groq_model');
-  if (!m || DECOMMISSIONED_MODELS_JS.includes(m)) {
-    m = 'openai/gpt-oss-120b';
+  if (!m || DECOMMISSIONED_MODELS_JS.includes(m) || m.includes('openai/')) {
+    m = 'llama-3.3-70b-versatile';
     localStorage.setItem('groq_model', m);
     localStorage.setItem('studio_model', m);
   }
@@ -108,9 +107,10 @@ function getSanitizedGroqModel() {
 }
 
 const GROQ_MODELS = [
-  { value: 'openai/gpt-oss-120b',     label: 'openai/gpt-oss-120b 🔥 Recommended (Most Powerful)' },
-  { value: 'openai/gpt-oss-20b',      label: 'openai/gpt-oss-20b ⚡ Fast & Lightweight' },
-  { value: 'qwen/qwen3.6-27b',        label: 'qwen/qwen3.6-27b 🎯 Qwen 3.6 27B' },
+  { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile 🔥 Flagship (70B)' },
+  { value: 'llama-3.1-8b-instant',    label: 'llama-3.1-8b-instant ⚡ Fast (8B)' },
+  { value: 'gemma2-9b-it',            label: 'gemma2-9b-it 🎯 Google Gemma' },
+  { value: 'mixtral-8x7b-32768',      label: 'mixtral-8x7b-32768 🌀 Mixtral 8x7B' }
 ];
 
 function _buildGroqModelOptions(selected) {
