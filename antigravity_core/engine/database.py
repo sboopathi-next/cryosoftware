@@ -1,7 +1,12 @@
+import sys
 import os
 import sqlite3
 import threading
 from datetime import date
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 try:
     from config import IS_SERVERLESS
@@ -402,7 +407,34 @@ def calculate_xp_required(level: int) -> int:
     """XP required to level up: XP_req = 100 * level^1.5"""
     return int(100 * (level ** 1.5))
 
+def check_date_transition_db(state: dict) -> dict:
+    if not state:
+        return state
+    today_str = date.today().isoformat()
+    last_update_str = state.get("last_update", "")
+    if last_update_str and last_update_str != today_str:
+        state["completed_quests_today"] = []
+        state["gym_completed"] = 0
+        state["study_completed"] = 0
+        state["leetcode_completed"] = 0
+        state["cooking_completed"] = 0
+        state["nopmo_completed"] = 0
+        state["reading_completed"] = 0
+        state["english_completed"] = 0
+        state["daily_telemetry"] = {
+            "study_hours": 0.0,
+            "gym_hours": 0.0,
+            "dopamine_rewards": 0
+        }
+        state["last_update"] = today_str
+        save_state(state)
+    elif not last_update_str:
+        state["last_update"] = today_str
+        save_state(state)
+    return state
+
 def get_state() -> dict:
+    state = {}
     try:
         from state import load_state
         db_state = load_state()
@@ -421,22 +453,26 @@ def get_state() -> dict:
                 conn.close()
             except Exception:
                 pass
-            return db_state
+            state = db_state
     except Exception as e:
         print(f"Error loading state via Neon sync engine: {e}")
 
-    try:
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
-        row = cursor.fetchone()
-        conn.close()
-        if row:
-            return dict(row)
-    except Exception:
-        pass
-    return {}
+    if not state:
+        try:
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM system_state ORDER BY id DESC LIMIT 1")
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                state = dict(row)
+        except Exception:
+            pass
+
+    if state:
+        state = check_date_transition_db(state)
+    return state or {}
 
 def save_state(state: dict):
     # 1. Save via root state.py sync engine (Neon PostgreSQL DB + local file sync)

@@ -304,8 +304,8 @@ def check_date_transition(state: dict) -> dict:
             "dopamine_rewards": 0
         }
         state["last_update"] = today_str
-        save_state_file(state)
+        save_state(state)
     elif not last_update_str:
         state["last_update"] = today_str
-        save_state_file(state)
+        save_state(state)
     return state

@@ -199,38 +199,55 @@ def queue_neon_write(state: dict):
 def merge_states(local_state: dict, remote_state: dict) -> dict:
     """
     Merge local and remote state.
-    Strategy: field-level merge using 'last_update' timestamp.
-    For non-timestamped fields, remote (Neon) wins if it differs.
-    XP/level/energy/attributes are always taken as max to avoid rollbacks.
+    Strategy: field-level merge using 'last_update' date timestamp.
+    If one state has a newer 'last_update' date string (e.g. 2026-08-08 > 2026-08-07),
+    the daily completion flags of the NEWER date MUST prevail without merging old completed booleans.
     """
-    merged = {**remote_state, **local_state}
-
     local_ts = local_state.get("last_update", "")
     remote_ts = remote_state.get("last_update", "")
 
-    # For cumulative numeric progress fields, always take the higher value
-    for key in ("xp", "level", "streak_days", "continuous_study_days", "willpower",
-                "str", "int", "agi", "wil", "heart", "stoic"):
-        local_val = local_state.get(key, 0)
-        remote_val = remote_state.get(key, 0)
-        merged[key] = max(local_val, remote_val)
-
-    # Energy: take the most recent (newer timestamp wins)
-    if remote_ts >= local_ts:
-        merged["energy"] = remote_state.get("energy", local_state.get("energy", 100.0))
-        merged["lockout_active"] = remote_state.get("lockout_active", local_state.get("lockout_active", False))
-        merged["last_update"] = remote_ts or local_ts
-        # Merge completed lists (union)
+    if local_ts > remote_ts:
+        # Local state is for a newer date than remote DB
+        merged = {**remote_state, **local_state}
+        merged["last_update"] = local_ts
+    elif remote_ts > local_ts:
+        # Remote DB state is for a newer date than local state
+        merged = {**local_state, **remote_state}
+        merged["last_update"] = remote_ts
+    else:
+        # Both are on the exact same date — perform same-day union merge
+        merged = {**remote_state, **local_state}
+        merged["last_update"] = local_ts or remote_ts
         merged["completed_quests_today"] = list(set(
             local_state.get("completed_quests_today", []) +
             remote_state.get("completed_quests_today", [])
         ))
-        merged["gym_completed"] = local_state.get("gym_completed") or remote_state.get("gym_completed")
-        merged["cooking_completed"] = local_state.get("cooking_completed") or remote_state.get("cooking_completed")
-        merged["nopmo_completed"] = local_state.get("nopmo_completed") or remote_state.get("nopmo_completed")
+        merged["gym_completed"] = bool(local_state.get("gym_completed") or remote_state.get("gym_completed"))
+        merged["study_completed"] = bool(local_state.get("study_completed") or remote_state.get("study_completed"))
+        merged["leetcode_completed"] = bool(local_state.get("leetcode_completed") or remote_state.get("leetcode_completed"))
+        merged["cooking_completed"] = bool(local_state.get("cooking_completed") or remote_state.get("cooking_completed"))
+        merged["nopmo_completed"] = bool(local_state.get("nopmo_completed") or remote_state.get("nopmo_completed"))
+        merged["reading_completed"] = bool(local_state.get("reading_completed") or remote_state.get("reading_completed"))
+        merged["english_completed"] = bool(local_state.get("english_completed") or remote_state.get("english_completed"))
+        merged["claimed_rewards_today"] = list(set(
+            local_state.get("claimed_rewards_today", []) +
+            remote_state.get("claimed_rewards_today", [])
+        ))
+
+    # Attributes & streak: max values
+    for key in ("streak_days", "continuous_study_days", "willpower", "str", "int", "agi", "wil", "heart", "stoic"):
+        local_val = local_state.get(key, 0)
+        remote_val = remote_state.get(key, 0)
+        merged[key] = max(local_val, remote_val)
+
+    # XP & Level: if same date, take max. If date differs, take the newer date's values to avoid overriding penalties/resets.
+    if local_ts == remote_ts:
+        merged["level"] = max(local_state.get("level", 1), remote_state.get("level", 1))
+        merged["xp"] = max(local_state.get("xp", 0), remote_state.get("xp", 0))
     else:
-        # Local is newer — keep local values for daily fields
-        merged["last_update"] = local_ts
+        newer_state = local_state if local_ts > remote_ts else remote_state
+        merged["level"] = newer_state.get("level", 1)
+        merged["xp"] = newer_state.get("xp", 0)
 
     # Completed syllabus items: union across all subjects
     local_csi = local_state.get("completed_syllabus_items", {})
@@ -248,17 +265,11 @@ def merge_states(local_state: dict, remote_state: dict) -> dict:
     remote_bonuses = remote_state.get("syllabus_bonuses", {})
     merged["syllabus_bonuses"] = {**local_bonuses, **remote_bonuses}
 
-    # Claimed rewards: union
-    merged["claimed_rewards_today"] = list(set(
-        local_state.get("claimed_rewards_today", []) +
-        remote_state.get("claimed_rewards_today", [])
-    ))
-
-    # Active subject: remote wins if more recent
-    if remote_ts >= local_ts:
-        merged["active_subject"] = remote_state.get("active_subject", local_state.get("active_subject"))
-        merged["active_quests"] = remote_state.get("active_quests", local_state.get("active_quests"))
-        merged["daily_telemetry"] = remote_state.get("daily_telemetry", local_state.get("daily_telemetry"))
+    # Active subject: newer timestamp wins
+    newer_state = local_state if local_ts > remote_ts else (remote_state if remote_ts > local_ts else remote_state)
+    merged["active_subject"] = newer_state.get("active_subject", local_state.get("active_subject"))
+    merged["active_quests"] = newer_state.get("active_quests", local_state.get("active_quests"))
+    merged["daily_telemetry"] = newer_state.get("daily_telemetry", local_state.get("daily_telemetry"))
 
     return merged
 
