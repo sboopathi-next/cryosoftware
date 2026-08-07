@@ -567,7 +567,7 @@ function injectMobileNavigation() {
   bottomNav.innerHTML = `
     <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
     <a href="/syllabus" class="mobile-nav-item" data-path="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study</span></a>
-    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span></a>
+    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-bolt"></i><span>Gym Pro</span></a>
     <a href="/ai" class="mobile-nav-item" data-path="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a>
     <button class="mobile-nav-item" id="mobile-more-btn"><i class="fa-solid fa-bars"></i><span>More</span></button>
   `;
