@@ -344,7 +344,13 @@ async function submitLog() {
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
-    if (!r.ok) { const e = await r.json(); toast(e.detail, 'err'); return; }
+    if (!r.ok) {
+      saveToPendingGymLogs(payload);
+      toast('Saved locally! Will auto-sync when network connects.', 'info');
+      resetWorkoutForm();
+      loadHistory();
+      return;
+    }
     const d = await r.json();
     toast(d.message, 'ok');
     if (typeof speakVoice === 'function') {
@@ -357,17 +363,52 @@ async function submitLog() {
     fb.classList.remove('hidden');
     setTimeout(() => fb.classList.add('hidden'), 5000);
 
-    // ── Keep category selected; only reset exercise + sets ──────────
-    // This lets the user log 5 different exercises (e.g. all Biceps)
-    // without re-selecting the category each time.
-    loadExercises();                         // repopulate exercise dropdown for the same category
-    document.getElementById('wk-ex').value = '';  // clear exercise choice
-    document.getElementById('wk-var').value = '';
-    document.getElementById('wk-dur').value = '10';
-    document.getElementById('sets-body').innerHTML = '<div class="sets-empty">Click "Add Set" to start logging</div>';
-    setIdx = 0;
+    resetWorkoutForm();
     loadHistory();
-  } catch(e) { toast('Error logging workout', 'err'); }
+  } catch(e) {
+    saveToPendingGymLogs(payload);
+    toast('Saved locally! Will auto-sync when online.', 'ok');
+    resetWorkoutForm();
+    loadHistory();
+  }
+}
+
+function resetWorkoutForm() {
+  loadExercises();
+  document.getElementById('wk-ex').value = '';
+  document.getElementById('wk-var').value = '';
+  document.getElementById('wk-dur').value = '10';
+  document.getElementById('sets-body').innerHTML = '<div class="sets-empty">Click "Add Set" to start logging</div>';
+  setIdx = 0;
+}
+
+function saveToPendingGymLogs(payload) {
+  const pending = JSON.parse(localStorage.getItem('pending_gym_logs') || '[]');
+  pending.push({ ...payload, timestamp: new Date().toISOString() });
+  localStorage.setItem('pending_gym_logs', JSON.stringify(pending));
+}
+
+async function syncPendingGymLogs() {
+  const pending = JSON.parse(localStorage.getItem('pending_gym_logs') || '[]');
+  if (!pending.length) return;
+  const remaining = [];
+  for (const log of pending) {
+    try {
+      const r = await fetch('/api/workouts/log', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(log)
+      });
+      if (!r.ok) remaining.push(log);
+    } catch(e) {
+      remaining.push(log);
+    }
+  }
+  localStorage.setItem('pending_gym_logs', JSON.stringify(remaining));
+  if (pending.length > remaining.length) {
+    toast(`Synced ${pending.length - remaining.length} offline workout(s)!`, 'ok');
+    loadHistory();
+  }
 }
 
 // ── History ───────────────────────────────────────────────────
@@ -421,6 +462,7 @@ async function deleteWorkout(timestamp, id) {
 
 loadOptions();
 loadHistory();
+syncPendingGymLogs();
 </script>
 </body>
 </html>
