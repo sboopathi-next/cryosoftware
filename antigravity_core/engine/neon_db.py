@@ -473,3 +473,54 @@ def neon_get_body_metrics() -> list:
             return [dict(r) for r in cur.fetchall()]
 
 
+# ─── Workout Logs ─────────────────────────────────────────────────────────────
+
+def _init_pg_workout_log(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_workout_log (
+            id SERIAL PRIMARY KEY,
+            timestamp TEXT NOT NULL,
+            category TEXT NOT NULL,
+            workout TEXT NOT NULL,
+            variations TEXT,
+            sets TEXT,
+            duration_minutes INTEGER DEFAULT 0
+        );
+    """)
+
+def neon_save_workout_log(timestamp: str, category: str, workout: str, variations: str, sets: str, duration_minutes: int) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_workout_log(cur)
+            cur.execute(
+                "INSERT INTO pg_workout_log (timestamp, category, workout, variations, sets, duration_minutes) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id",
+                (timestamp, category, workout, variations or "", sets or "", duration_minutes or 0)
+            )
+            new_id = cur.fetchone()[0]
+    return {"id": new_id, "timestamp": timestamp}
+
+def neon_get_workout_history(limit: str = None) -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_workout_log(cur)
+            if limit == "all":
+                cur.execute("SELECT timestamp AS \"Timestamp\", category AS \"Category\", workout AS \"Workout\", variations AS \"Variations\", sets AS \"Sets\", duration_minutes AS \"Duration_Minutes\", id FROM pg_workout_log ORDER BY id DESC")
+            else:
+                cur.execute("SELECT timestamp AS \"Timestamp\", category AS \"Category\", workout AS \"Workout\", variations AS \"Variations\", sets AS \"Sets\", duration_minutes AS \"Duration_Minutes\", id FROM pg_workout_log ORDER BY id DESC LIMIT 50")
+            return [dict(r) for r in cur.fetchall()]
+
+def neon_delete_workout_by_id(log_id: int) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_workout_log(cur)
+            cur.execute("DELETE FROM pg_workout_log WHERE id = %s", (log_id,))
+    return {"status": "success"}
+
+def neon_delete_workout_by_timestamp(timestamp: str) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_workout_log(cur)
+            cur.execute("DELETE FROM pg_workout_log WHERE timestamp = %s", (timestamp,))
+    return {"status": "success"}
+
+
