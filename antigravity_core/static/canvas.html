@@ -126,6 +126,7 @@
 .cstat-val  { font-family: var(--ff-brand); font-size: 28px; font-weight: 800; color: var(--cyan); line-height: 1; }
 .cstat-lbl  { font-size: 11px; color: var(--text3); margin-top: 5px; }
 
+/* ── Course Grid & Mobile Responsive Typography ───────────────────────────── */
 .course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -138,14 +139,67 @@
   border-radius: 14px;
   padding: 18px;
   transition: transform .2s, border-color .2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
 }
 .course-card:hover { transform: translateY(-2px); border-color: var(--cyan); }
-.course-card-name  { font-weight: 700; color: #e2e8f0; font-size: 14px; margin-bottom: 6px; line-height: 1.3; }
-.course-card-code  { font-size: 11px; color: var(--text3); margin-bottom: 12px; font-family: var(--ff-mono); }
-.course-card-xp    { font-family: var(--ff-brand); font-size: 22px; font-weight: 800; color: var(--amber); }
-.course-card-items { font-size: 12px; color: var(--text3); }
-.course-bar-wrap   { margin-top: 10px; height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; }
-.course-bar        { height: 100%; border-radius: 3px; background: linear-gradient(90deg,var(--cyan),var(--green)); transition: width .8s ease; }
+.course-card-name {
+  font-weight: 700;
+  color: #e2e8f0;
+  font-size: 14px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+.course-card-code {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 12px;
+  font-family: var(--ff-mono);
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+.course-card-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.course-card-xp {
+  font-family: var(--ff-brand);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.course-card-items {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.course-bar-wrap {
+  margin-top: 10px;
+  height: 6px;
+  background: rgba(255,255,255,.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.course-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  transition: width .8s ease;
+}
 
 .history-table-wrap {
   background: var(--card-bg);
@@ -161,17 +215,26 @@
 .history-table-hdr h3 { font-size: 15px; font-weight: 700; color: #e2e8f0; }
 .history-table { width: 100%; border-collapse: collapse; }
 .history-table th { padding: 10px 14px; font-size: 11px; color: var(--text3); text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
-.history-table td { padding: 10px 14px; font-size: 13px; color: #e2e8f0; border-top: 1px solid rgba(255,255,255,.04); }
+.history-table td {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #e2e8f0;
+  border-top: 1px solid rgba(255,255,255,.04);
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
 .history-table tr:hover td { background: rgba(255,255,255,.03); }
 .badge-type {
-  display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;
 }
 .badge-quiz       { background: rgba(16,185,129,.18); color: var(--green); }
 .badge-assignment { background: rgba(245,158,11,.18); color: var(--amber); }
 .badge-cat        { background: rgba(239,68,68,.18); color: #f87171; }
 .badge-video      { background: rgba(99,102,241,.18); color: #a5b4fc; }
 .badge-modwipe    { background: rgba(168,85,247,.25); color: #d8b4fe; border: 1px solid rgba(168,85,247,.4); }
-.xp-green         { color: var(--green); font-weight: 700; font-family: var(--ff-brand); }
+.xp-green         { color: var(--green); font-weight: 700; font-family: var(--ff-brand); white-space: nowrap; }
 
 .sync-btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -204,10 +267,17 @@
 .status-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 .status-dot.red   { background: #ef4444; }
 
+/* ── Mobile Layout Fixes ─────────────────────────────────────────────────── */
 @media(max-width:640px){
-  .canvas-stats-row { grid-template-columns: repeat(2, 1fr); }
-  .course-grid { grid-template-columns: 1fr; }
-  .history-table-wrap { overflow-x: auto; }
+  .canvas-hero { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; }
+  .canvas-stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .course-grid { grid-template-columns: 1fr; gap: 12px; }
+  .course-card { padding: 14px 16px; }
+  .course-card-name { font-size: 13px; line-height: 1.4; margin-bottom: 4px; }
+  .course-card-code { font-size: 10px; margin-bottom: 8px; }
+  .course-card-xp { font-size: 18px; }
+  .history-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .history-table th, .history-table td { padding: 8px 10px; font-size: 11px; }
 }
 </style>
 </head>
@@ -400,9 +470,9 @@ async function loadCourses() {
       <div class="course-card">
         <div class="course-card-name">${c.name}</div>
         <div class="course-card-code">${c.course_code || ''}</div>
-        <div style="display:flex; align-items:baseline; gap:8px;">
-          <div class="course-card-xp">+${(c.xp_earned || 0).toLocaleString()}</div>
-          <div class="course-card-items" style="font-size:12px;">XP • ${c.items_done || 0} items</div>
+        <div class="course-card-stat-row">
+          <div class="course-card-xp">+${(c.xp_earned || 0).toLocaleString()} <span style="font-size:11px; font-weight:500; color:var(--text3);">XP</span></div>
+          <div class="course-card-items"><i class="fa-solid fa-check-double" style="color:var(--green); margin-right:3px;"></i>${c.items_done || 0} items</div>
         </div>
         <div class="course-bar-wrap"><div class="course-bar" style="width:${Math.max(4, Math.round((c.xp_earned||0)/maxXP*100))}%"></div></div>
       </div>
@@ -447,11 +517,11 @@ async function loadHistory() {
         <tbody>
           ${history.map(h => `
             <tr>
-              <td style="max-width:280px; word-break:break-word">${h.item_title || '—'}</td>
-              <td style="font-size:12px; color:var(--text3)">${(h.course_name || '').substring(0, 35)}</td>
+              <td style="max-width:280px;">${h.item_title || '—'}</td>
+              <td style="font-size:12px; color:var(--text3);">${(h.course_name || '').substring(0, 35)}</td>
               <td><span class="badge-type ${badgeClass(h.item_type, h.item_title)}">${h.item_type || 'Page'}</span></td>
               <td class="xp-green">+${h.xp_awarded || 0}</td>
-              <td style="font-size:11px; color:var(--text3)">${(h.completed_at || '').substring(0,10)}</td>
+              <td style="font-size:11px; color:var(--text3); white-space:nowrap;">${(h.completed_at || '').substring(0,10)}</td>
             </tr>
           `).join('')}
         </tbody>
