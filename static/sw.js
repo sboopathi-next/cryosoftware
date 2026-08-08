@@ -1,10 +1,12 @@
-const CACHE_NAME = "antigravity-core-v2";
+const CACHE_NAME = "antigravity-core-v3";
 const ASSETS = [
   "/",
   "/static/index.html",
   "/static/style.css",
   "/static/app.js",
   "/static/icon.svg",
+  "/static/icon-192.png",
+  "/static/icon-512.png",
   "/manifest.json",
   "/api/syllabus"
 ];

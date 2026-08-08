@@ -2,6 +2,7 @@
   "name": "Antigravity Core",
   "short_name": "Antigravity",
   "description": "Gamified World-Class Curriculum Study & Discipline Tracker",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -9,10 +10,22 @@
   "theme_color": "#0a0f1d",
   "icons": [
     {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

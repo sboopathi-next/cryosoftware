@@ -1062,8 +1062,10 @@ def clear_translation_history():
 
 def get_english_user_progress() -> dict:
     """Get or initialize user progress stats for English Learning & Public Speaking."""
-    from datetime import date
-    today_str = date.today().isoformat()
+    from datetime import datetime, date, timezone, timedelta
+    ist = timezone(timedelta(hours=5, minutes=30))
+    today_dt = datetime.now(ist).date()
+    today_str = today_dt.isoformat()
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1084,10 +1086,8 @@ def get_english_user_progress() -> dict:
     last_active = prog.get("last_active_date", "")
     if last_active != today_str:
         try:
-            from datetime import datetime, timedelta
             if last_active:
                 last_dt = datetime.strptime(last_active, "%Y-%m-%d").date()
-                today_dt = date.today()
                 if today_dt - last_dt == timedelta(days=1):
                     prog["streak_days"] += 1
                 elif today_dt - last_dt > timedelta(days=1):

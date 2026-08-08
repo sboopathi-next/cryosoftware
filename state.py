@@ -281,11 +281,17 @@ def check_circuit_breaker(state: dict):
     else:
         state["lockout_active"] = False
 
+def get_today_ist_str() -> str:
+    """Returns today's date ISO string in India Standard Time (IST, UTC+5:30)."""
+    from datetime import datetime, timezone, timedelta
+    ist = timezone(timedelta(hours=5, minutes=30))
+    return datetime.now(ist).date().isoformat()
+
 def check_date_transition(state: dict) -> dict:
     """
-    Checks if a new day has started. Updates energy and resets daily metrics.
+    Checks if a new day has started in IST timezone. Updates energy and resets daily metrics.
     """
-    today_str = date.today().isoformat()
+    today_str = get_today_ist_str()
     last_update_str = state.get("last_update", "")
     
     if last_update_str and last_update_str != today_str:
