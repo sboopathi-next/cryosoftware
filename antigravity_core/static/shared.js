@@ -548,6 +548,10 @@ function injectFloatingStatsBar() {
     <span style="color:var(--border)">|</span>
     <i class="fa-solid fa-fire" style="color:var(--amber);font-size:9px"></i>
     <span id="hdr-streak" style="color:var(--amber)">0d</span>
+    <button id="leetcode-sync-btn" onclick="syncLeetCodeManual()" title="Sync LeetCode (IST Timezone Check)" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); color:var(--amber); font-family:var(--ff-mono); font-size:10px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:3px; outline:none; padding: 2px 7px; border-radius: 12px; transition: transform 0.2s;">
+      <i class="fa-solid fa-code" style="font-size:9px;"></i>
+      <span>LeetCode</span>
+    </button>
     <span style="color:var(--border)">|</span>
     <button id="sync-status-btn" onclick="triggerManualSync()" title="Neon DB Sync Status (Click to Sync)" style="background:none; border:none; color:var(--text2); font-family:var(--ff-mono); font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; outline:none; padding: 2px 6px; border-radius: 12px; transition: background 0.2s;">
       <i id="sync-icon" class="fa-solid fa-circle" style="color:var(--green); font-size:8px;"></i>
@@ -555,6 +559,48 @@ function injectFloatingStatsBar() {
     </button>
   `;
   document.body.appendChild(bar);
+}
+
+async function syncLeetCodeManual() {
+  const btn = document.getElementById('leetcode-sync-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Syncing...</span>';
+  }
+  toast('⚡ Querying LeetCode API (IST Timezone Check)...', 'info');
+
+  try {
+    const r = await apiFetch('/api/leetcode/sync', { method: 'POST' });
+    const d = await r.json();
+
+    if (d.status === 'success') {
+      const solved = d.solved_today;
+      const xp = d.xp_awarded || 0;
+      const str = d.str_awarded || 0;
+
+      if (solved || xp > 0) {
+        toast(`🔥 LeetCode Synced! Solved Today: YES (+${xp} XP, +${str} STR)`, 'ok');
+      } else {
+        toast(`⚡ LeetCode Checked! All: ${d.current_stats?.All || 0} solved. No new solves today yet.`, 'info');
+      }
+
+      const chk = document.getElementById('chk-leetcode');
+      if (chk && (solved || d.leetcode_completed)) {
+        chk.classList.add('auto-checked');
+      }
+      if (window.loadDashboard) window.loadDashboard();
+      if (window.fetchMiniStats) window.fetchMiniStats();
+    } else {
+      toast('LeetCode sync error: ' + (d.message || 'Check connection'), 'err');
+    }
+  } catch(e) {
+    toast('LeetCode sync request failed: ' + e.message, 'err');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-code" style="font-size:9px;"></i> <span>LeetCode</span>';
+    }
+  }
 }
 
 // ── Mobile Bottom Nav & Sheet Injection ───────────────────────

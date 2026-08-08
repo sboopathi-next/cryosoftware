@@ -3095,6 +3095,26 @@ def api_health_sync_google_fit():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# LEETCODE MANUAL TRIGGER & TIMEZONE SYNC
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/leetcode/sync")
+@app.get("/api/leetcode/sync")
+def api_leetcode_sync(username: Optional[str] = None):
+    """
+    Triggers on-demand LeetCode submission check & timezone evaluation.
+    Auto-marks daily completion and awards XP/STR if solves detected.
+    """
+    try:
+        from engine.leetcode_sync import sync_leetcode
+        uname = username or os.getenv("LEETCODE_USERNAME", "boopathispark")
+        return sync_leetcode(username=uname, force=True)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 
 
 

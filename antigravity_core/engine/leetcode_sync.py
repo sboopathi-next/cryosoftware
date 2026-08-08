@@ -74,21 +74,42 @@ def fetch_leetcode_recent_ac(username: str = LEETCODE_USERNAME, limit: int = 15)
         print(f"[LeetCode Sync] Error querying recent AC submissions: {e}")
     return []
 
+from datetime import datetime, timezone, timedelta
+
+IST = timezone(timedelta(hours=5, minutes=30))
+
 def has_solved_leetcode_today(username: str = LEETCODE_USERNAME) -> bool:
     """
-    Checks if the user has completed an accepted submission in the last 24 hours (86400 seconds).
+    Checks if the user has an accepted submission on the current IST calendar date,
+    or within the last 28 hours (to handle late-night 00:00 - 05:30 AM IST submissions).
     """
-    submissions = fetch_leetcode_recent_ac(username, limit=10)
+    submissions = fetch_leetcode_recent_ac(username, limit=15)
     if not submissions:
         return False
     
-    now = time.time()
+    now_ist = datetime.now(tz=IST)
+    today_ist_date = now_ist.date()
+    yesterday_ist_date = today_ist_date - timedelta(days=1)
+    now_timestamp = time.time()
+    
     for sub in submissions:
         try:
             sub_time = int(sub.get("timestamp", 0))
-            if now - sub_time < 86400:
+            sub_dt_ist = datetime.fromtimestamp(sub_time, tz=IST)
+            sub_date = sub_dt_ist.date()
+            
+            # Check 1: Solved on current IST date
+            if sub_date == today_ist_date:
                 return True
-        except (ValueError, TypeError):
+                
+            # Check 2: Solved within last 28 hours (covers sliding window)
+            if now_timestamp - sub_time < 28 * 3600:
+                return True
+
+            # Check 3: Late night IST window (between 00:00 and 05:30 AM IST)
+            if sub_date == yesterday_ist_date and now_ist.hour < 6:
+                return True
+        except (ValueError, TypeError, Exception):
             continue
     return False
 
