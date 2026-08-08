@@ -10,6 +10,8 @@ USER_PROFILE_ID = os.getenv("USER_PROFILE_ID", "Boopathi Subramaniyan")
 LEETCODE_USERNAME = os.getenv("LEETCODE_USERNAME", "boopathispark")
 LEETCODE_ENDPOINT = os.getenv("LEETCODE_ENDPOINT", "https://leetcode.com/graphql")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
+CANVAS_API_TOKEN = os.getenv("CANVAS_API_TOKEN", "9nMCKvXP9AkA6kZxZ6huDMf39ABv9n7Euvw2aHerm3mEDWmQhM3XfUryA4uMzXAh")
+CANVAS_DOMAIN = os.getenv("CANVAS_DOMAIN", "lms.vitonline.in")
 
 # Burnout mitigation coefficients
 ALPHA = 15.0  # Cognitive drawdown per hour of heavy study

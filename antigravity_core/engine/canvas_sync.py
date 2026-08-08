@@ -27,10 +27,12 @@ for _p in [_ROOT_DIR, _CORE_DIR]:
         sys.path.insert(0, _p)
 
 try:
-    from config import IS_SERVERLESS, DATABASE_URL
+    from config import IS_SERVERLESS, DATABASE_URL, CANVAS_API_TOKEN, CANVAS_DOMAIN
 except ImportError:
     IS_SERVERLESS = False
     DATABASE_URL  = ""
+    CANVAS_API_TOKEN = "9nMCKvXP9AkA6kZxZ6huDMf39ABv9n7Euvw2aHerm3mEDWmQhM3XfUryA4uMzXAh"
+    CANVAS_DOMAIN = "lms.vitonline.in"
 
 # Load .env so token is available when running standalone (Vercel injects env directly)
 try:
@@ -154,9 +156,9 @@ class CanvasLMSSync:
     CANVAS_DOMAIN = "lms.vitonline.in"
 
     def __init__(self, token: Optional[str] = None, domain: Optional[str] = None):
-        self.domain   = domain or os.getenv("CANVAS_DOMAIN", self.CANVAS_DOMAIN)
+        self.domain   = domain or os.getenv("CANVAS_DOMAIN") or CANVAS_DOMAIN or self.CANVAS_DOMAIN
         self.base_url = f"https://{self.domain}/api/v1"
-        self.token    = token or os.getenv("CANVAS_API_TOKEN", "")
+        self.token    = token or os.getenv("CANVAS_API_TOKEN") or CANVAS_API_TOKEN or ""
         self.headers  = {
             "Authorization": f"Bearer {self.token}",
             "Accept":        "application/json",

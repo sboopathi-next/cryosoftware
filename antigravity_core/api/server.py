@@ -2986,13 +2986,13 @@ def get_canvas_page():
 
 @app.get("/api/canvas/status")
 def api_canvas_status():
-    token = os.getenv("CANVAS_API_TOKEN", "")
-    if not token:
-        return {"token_configured": False, "message": "CANVAS_API_TOKEN not set. Add it to .env.", "setup_url": "https://lms.vitonline.in/profile/settings"}
     try:
         engine = _get_canvas()
+        token  = engine.token
+        if not token:
+            return {"token_configured": False, "message": "CANVAS_API_TOKEN not set. Add it to .env.", "setup_url": "https://lms.vitonline.in/profile/settings"}
         valid  = engine.check_token()
-        return {"token_configured": True, "token_valid": valid, "domain": "lms.vitonline.in", "message": "Token valid ✅" if valid else "Token invalid ❌"}
+        return {"token_configured": True, "token_valid": valid, "domain": engine.domain, "message": "Token valid ✅" if valid else "Token invalid ❌"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -3016,7 +3016,8 @@ def api_canvas_history(limit: int = 100):
 @app.post("/api/canvas/sync")
 def api_canvas_sync_post(background_tasks: BackgroundTasks):
     """Async Canvas sync — runs in background, returns immediately."""
-    if not os.getenv("CANVAS_API_TOKEN", ""):
+    engine = _get_canvas()
+    if not engine.token:
         raise HTTPException(status_code=400, detail="CANVAS_API_TOKEN not configured.")
     background_tasks.add_task(_canvas_engine_sync_task)
     return {"status": "SYNC_INITIATED", "target": "https://lms.vitonline.in"}
@@ -3025,10 +3026,11 @@ def api_canvas_sync_post(background_tasks: BackgroundTasks):
 @app.get("/api/canvas/sync")
 def api_canvas_sync_get():
     """Synchronous Canvas sync — returns full result (use for debugging)."""
-    if not os.getenv("CANVAS_API_TOKEN", ""):
+    engine = _get_canvas()
+    if not engine.token:
         raise HTTPException(status_code=400, detail="CANVAS_API_TOKEN not configured.")
     try:
-        return _get_canvas().sync_completed_items()
+        return engine.sync_completed_items()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

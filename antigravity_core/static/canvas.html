@@ -395,7 +395,8 @@ async function triggerSync() {
 }
 
 async function apiFetch(url, opts = {}) {
-  const token = window.getAuthToken ? getAuthToken() : '';
+  let token = window.getAuthToken ? getAuthToken() : '';
+  if (!token) token = localStorage.getItem('antigravity_token') || localStorage.getItem('app_token') || '';
   const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
   const r = await fetch(url, { headers, ...opts });
   if (!r.ok) {
