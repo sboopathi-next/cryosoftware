@@ -698,7 +698,7 @@ class CanvasLMSSync:
     def get_courses_summary(self) -> List[Dict[str, Any]]:
         """Quick summary: course name + total XP earned from Canvas."""
         courses = self.get_active_courses()
-        history = self.get_completion_history(limit=1000)
+        history = self.get_completion_history(limit=10000)
 
         # Map course_id -> xp
         xp_by_course: Dict[int, int] = {}
