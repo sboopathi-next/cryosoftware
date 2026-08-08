@@ -526,7 +526,7 @@ if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 }
 
-// ── Mini stats bar — floating top-right corner ────────────────
+// ── Mini stats bar — floating top-right corner (Draggable & Movable) ────────
 function injectFloatingStatsBar() {
   if (document.getElementById('ag-stats-bar')) return;
   const bar = document.createElement('div');
@@ -534,13 +534,14 @@ function injectFloatingStatsBar() {
   bar.style.cssText = [
     'position:fixed', 'top:12px', 'right:16px', 'z-index:1005',
     'display:flex', 'align-items:center', 'gap:6px',
-    'background:rgba(6,8,24,0.85)', 'backdrop-filter:blur(12px)',
-    'border:1px solid rgba(99,102,241,0.25)', 'border-radius:30px',
-    'padding:5px 12px', 'box-shadow:0 4px 20px rgba(0,0,0,0.5)',
+    'background:rgba(6,8,24,0.88)', 'backdrop-filter:blur(12px)',
+    'border:1px solid rgba(99,102,241,0.3)', 'border-radius:30px',
+    'padding:5px 12px', 'box-shadow:0 6px 24px rgba(0,0,0,0.6)',
     'font-family:var(--ff-mono)', 'font-size:11px', 'color:var(--text2)',
-    'pointer-events:auto', 'user-select:none'
+    'pointer-events:auto', 'user-select:none', 'touch-action:none'
   ].join(';');
   bar.innerHTML = `
+    <span class="drag-handle" style="cursor:grab; color:var(--text3); display:flex; align-items:center; margin-right:2px;" title="Drag to move"><i class="fa-solid fa-grip-vertical" style="font-size:10px"></i></span>
     <span style="color:var(--indigo);font-weight:700;letter-spacing:.05em;"><i class="fa-solid fa-microchip" style="font-size:10px"></i></span>
     <span style="color:var(--text3)">Lv</span><span id="hdr-lvl" style="color:var(--cyan);font-weight:700">—</span>
     <span style="color:var(--border)">|</span>
@@ -548,10 +549,6 @@ function injectFloatingStatsBar() {
     <span style="color:var(--border)">|</span>
     <i class="fa-solid fa-fire" style="color:var(--amber);font-size:9px"></i>
     <span id="hdr-streak" style="color:var(--amber)">0d</span>
-    <button id="leetcode-sync-btn" onclick="syncLeetCodeManual()" title="Sync LeetCode (IST Timezone Check)" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); color:var(--amber); font-family:var(--ff-mono); font-size:10px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:3px; outline:none; padding: 2px 7px; border-radius: 12px; transition: transform 0.2s;">
-      <i class="fa-solid fa-code" style="font-size:9px;"></i>
-      <span>LeetCode</span>
-    </button>
     <span style="color:var(--border)">|</span>
     <button id="sync-status-btn" onclick="triggerManualSync()" title="Neon DB Sync Status (Click to Sync)" style="background:none; border:none; color:var(--text2); font-family:var(--ff-mono); font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; outline:none; padding: 2px 6px; border-radius: 12px; transition: background 0.2s;">
       <i id="sync-icon" class="fa-solid fa-circle" style="color:var(--green); font-size:8px;"></i>
@@ -559,6 +556,89 @@ function injectFloatingStatsBar() {
     </button>
   `;
   document.body.appendChild(bar);
+  makeElementDraggable(bar);
+}
+
+function makeElementDraggable(elmnt) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  const savedPos = localStorage.getItem('ag_stats_bar_pos');
+  if (savedPos) {
+    try {
+      const { top, left } = JSON.parse(savedPos);
+      if (top !== undefined && left !== undefined) {
+        elmnt.style.top = top + 'px';
+        elmnt.style.left = left + 'px';
+        elmnt.style.right = 'auto';
+      }
+    } catch(e) {}
+  }
+
+  const dragHandle = elmnt.querySelector('.drag-handle') || elmnt;
+  dragHandle.addEventListener('mousedown', dragMouseDown);
+  dragHandle.addEventListener('touchstart', dragTouchStart, { passive: false });
+
+  function dragMouseDown(e) {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.addEventListener('mouseup', closeDragElement);
+    document.addEventListener('mousemove', elementDrag);
+    dragHandle.style.cursor = 'grabbing';
+  }
+
+  function elementDrag(e) {
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    let newTop = elmnt.offsetTop - pos2;
+    let newLeft = elmnt.offsetLeft - pos1;
+    newTop = Math.max(5, Math.min(window.innerHeight - 45, newTop));
+    newLeft = Math.max(5, Math.min(window.innerWidth - 160, newLeft));
+    elmnt.style.top = newTop + "px";
+    elmnt.style.left = newLeft + "px";
+    elmnt.style.right = 'auto';
+  }
+
+  function closeDragElement() {
+    document.removeEventListener('mouseup', closeDragElement);
+    document.removeEventListener('mousemove', elementDrag);
+    dragHandle.style.cursor = 'grab';
+    localStorage.setItem('ag_stats_bar_pos', JSON.stringify({ top: elmnt.offsetTop, left: elmnt.offsetLeft }));
+  }
+
+  function dragTouchStart(e) {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+    const touch = e.touches[0];
+    pos3 = touch.clientX;
+    pos4 = touch.clientY;
+    document.addEventListener('touchend', closeTouchElement);
+    document.addEventListener('touchmove', elementTouchMove, { passive: false });
+  }
+
+  function elementTouchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    pos1 = pos3 - touch.clientX;
+    pos2 = pos4 - touch.clientY;
+    pos3 = touch.clientX;
+    pos4 = touch.clientY;
+    let newTop = elmnt.offsetTop - pos2;
+    let newLeft = elmnt.offsetLeft - pos1;
+    newTop = Math.max(5, Math.min(window.innerHeight - 45, newTop));
+    newLeft = Math.max(5, Math.min(window.innerWidth - 160, newLeft));
+    elmnt.style.top = newTop + "px";
+    elmnt.style.left = newLeft + "px";
+    elmnt.style.right = 'auto';
+  }
+
+  function closeTouchElement() {
+    document.removeEventListener('touchend', closeTouchElement);
+    document.removeEventListener('touchmove', elementTouchMove);
+    localStorage.setItem('ag_stats_bar_pos', JSON.stringify({ top: elmnt.offsetTop, left: elmnt.offsetLeft }));
+  }
 }
 
 async function syncLeetCodeManual() {
@@ -607,14 +687,14 @@ async function syncLeetCodeManual() {
 function injectMobileNavigation() {
   if (document.querySelector('.mobile-bottom-nav')) return;
 
-  // 1. Create and inject bottom nav container (Dashboard, Study, Gym Pro, AI Coach, More)
+  // 1. Create and inject bottom nav container (Home, Canvas, Study, Gym Pro, More)
   const bottomNav = document.createElement('div');
   bottomNav.className = 'mobile-bottom-nav';
   bottomNav.innerHTML = `
     <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
+    <a href="/canvas" class="mobile-nav-item" data-path="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas</span></a>
     <a href="/syllabus" class="mobile-nav-item" data-path="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study</span></a>
     <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-dumbbell"></i><span>Gym Pro</span></a>
-    <a href="/ai" class="mobile-nav-item" data-path="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a>
     <button class="mobile-nav-item" id="mobile-more-btn"><i class="fa-solid fa-bars"></i><span>More</span></button>
   `;
   document.body.appendChild(bottomNav);
@@ -636,6 +716,7 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
+        <a href="/canvas" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a>
         <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
         <a href="/system" class="sheet-grid-item"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span></a>
         <a href="/mind-os" class="sheet-grid-item"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
