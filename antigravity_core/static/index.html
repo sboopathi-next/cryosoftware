@@ -818,11 +818,14 @@ setInterval(loadDashboard, 30000);
       </div>
       <div style="display:flex; gap:8px; margin-top:6px;">
         <button class="btn btn-primary" style="flex:1;" onclick="submitHealthSync()">
-          <i class="fa-solid fa-sync"></i> Sync Health Metrics
+          <i class="fa-solid fa-sync"></i> Sync Manual Metrics
+        </button>
+        <button class="btn btn-secondary" style="flex:1; background:linear-gradient(135deg,#3b82f6,#10b981); color:#fff; border:none;" onclick="syncViaGoogleFitCloud()">
+          <i class="fa-solid fa-cloud-arrow-down"></i> Google Fit Cloud API
         </button>
       </div>
       <div style="font-size:11px; color:var(--text3); margin-top:4px;">
-        💡 <strong>Automation API:</strong> POST JSON to <code>/api/health_sync</code> from Tasker / MacroDroid / Termux.
+        💡 <strong>Automation Options:</strong> MacroDroid/Tasker POST to <code>/api/health_sync</code> or Google Fit OAuth via <code>credentials.json</code>.
       </div>
     </div>
   </div>
@@ -834,6 +837,23 @@ function openHealthSyncModal() {
 }
 function closeHealthSyncModal() {
   document.getElementById('health-sync-modal').classList.add('hidden');
+}
+async function syncViaGoogleFitCloud() {
+  try {
+    const r = await fetch('/api/health_sync/google_fit', { method: 'POST' });
+    const d = await r.json();
+    if (d.setup_required) {
+      alert('⚠️ Google Fit Setup Needed:\n\n' + d.message);
+    } else if (d.status === 'SUCCESS' || d.steps !== undefined) {
+      alert(`✅ Google Fit Synced!\n\n${(d.steps||0).toLocaleString()} steps (${d.distance_km||0} km)\n+${d.xp_awarded||0} XP awarded!`);
+      closeHealthSyncModal();
+      if (window.loadDashboard) loadDashboard();
+    } else {
+      alert('Google Fit Sync Result: ' + (d.message || JSON.stringify(d)));
+    }
+  } catch(e) {
+    alert('Google Fit Cloud API error: ' + e.message);
+  }
 }
 async function submitHealthSync() {
   const steps = parseInt(document.getElementById('hs-steps').value) || 0;

@@ -3085,6 +3085,16 @@ def api_health_sync_history(limit: int = 50):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/health_sync/google_fit")
+def api_health_sync_google_fit():
+    """Trigger direct Google Fit Cloud API query."""
+    try:
+        from engine.google_fit_sync import sync_daily_fitness
+        return sync_daily_fitness()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 
