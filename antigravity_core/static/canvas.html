@@ -41,12 +41,73 @@
   display: none;
 }
 .token-notice.show { display: block; }
-.token-notice code {
-  background: rgba(0,0,0,.3);
-  border-radius: 5px;
-  padding: 2px 7px;
+
+/* ── Interactive Progress Banner ─────────────────────────────────────────── */
+.sync-banner {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.sync-banner.hidden {
+  display: none;
+}
+.sync-banner-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.sync-pct-badge {
+  font-family: var(--ff-brand);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cyan);
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  padding: 4px 14px;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+.sync-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 14px;
+}
+.sync-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #6366f1, #10b981, #f59e0b);
+  background-size: 200% 100%;
+  animation: gradientMove 2s infinite linear;
+  transition: width 0.4s ease-out;
+  position: relative;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.sync-bar-glow {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 20px;
+  background: #ffffff;
+  box-shadow: 0 0 12px #ffffff;
+  opacity: 0.7;
+}
+.sync-banner-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 12px;
-  color: var(--amber);
+  color: var(--text2);
 }
 
 .canvas-stats-row {
@@ -109,6 +170,7 @@
 .badge-assignment { background: rgba(245,158,11,.18); color: var(--amber); }
 .badge-cat        { background: rgba(239,68,68,.18); color: #f87171; }
 .badge-video      { background: rgba(99,102,241,.18); color: #a5b4fc; }
+.badge-modwipe    { background: rgba(168,85,247,.25); color: #d8b4fe; border: 1px solid rgba(168,85,247,.4); }
 .xp-green         { color: var(--green); font-weight: 700; font-family: var(--ff-brand); }
 
 .sync-btn {
@@ -190,6 +252,32 @@
       </div>
     </div>
 
+    <!-- INTERACTIVE SYNC PROGRESS BANNER -->
+    <div id="sync-progress-banner" class="sync-banner hidden">
+      <div class="sync-banner-hdr">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="font-size:22px; animation: pulse 1s infinite alternate;">⚡</span>
+          <div>
+            <div style="font-weight:800; font-size:15px; color:#fff;" id="sync-banner-title">Syncing Canvas LMS...</div>
+            <div style="font-size:12px; color:var(--cyan); margin-top:2px;" id="sync-banner-sub">Connecting to lms.vitonline.in...</div>
+          </div>
+        </div>
+        <div class="sync-pct-badge" id="sync-pct-text">0%</div>
+      </div>
+      
+      <div class="sync-bar-track">
+        <div class="sync-bar-fill" id="sync-bar-fill" style="width:0%">
+          <div class="sync-bar-glow"></div>
+        </div>
+      </div>
+
+      <div class="sync-banner-stats">
+        <div><i class="fa-solid fa-graduation-cap"></i> <span id="sync-course-count">Course 0/16</span></div>
+        <div><i class="fa-solid fa-list-check"></i> <span id="sync-items-count">0 items found</span></div>
+        <div style="color:var(--amber); font-weight:700;"><i class="fa-solid fa-bolt"></i> <span id="sync-xp-count">+0 XP</span></div>
+      </div>
+    </div>
+
     <!-- Stats Row -->
     <div class="canvas-stats-row">
       <div class="cstat">
@@ -247,9 +335,11 @@ const ITEM_TYPE_COLORS = {
   'Page': 'badge-video',
   'File': 'badge-video',
   'Discussion': 'badge-video',
+  'ModuleWipe': 'badge-modwipe'
 };
 
 function badgeClass(type, title) {
+  if (type === 'ModuleWipe') return 'badge-modwipe';
   const t = (title || '').toUpperCase();
   if (t.includes('CAT') || t.includes('FINAL') || t.includes('END TERM')) return 'badge-cat';
   if (t.includes('ASSIGNMENT') || t.includes('PROJECT')) return 'badge-assignment';
@@ -263,6 +353,8 @@ function toast(msg, type = 'ok') {
   el.className = `toast-canvas ${type} show`;
   setTimeout(() => el.classList.remove('show'), 3500);
 }
+
+let syncPollTimer = null;
 
 async function checkStatus() {
   try {
@@ -370,24 +462,56 @@ async function loadHistory() {
   }
 }
 
+function startSyncProgressPolling() {
+  const banner = document.getElementById('sync-progress-banner');
+  banner.classList.remove('hidden');
+
+  if (syncPollTimer) clearInterval(syncPollTimer);
+
+  syncPollTimer = setInterval(async () => {
+    try {
+      const prog = await apiFetch('/api/canvas/progress');
+      const pct  = prog.pct || 0;
+      
+      document.getElementById('sync-bar-fill').style.width = pct + '%';
+      document.getElementById('sync-pct-text').textContent = pct + '%';
+      document.getElementById('sync-banner-sub').textContent = prog.status_message || 'Syncing courses...';
+      document.getElementById('sync-course-count').textContent = `Course ${prog.courses_scanned || 0}/${prog.total_courses || 16}`;
+      document.getElementById('sync-items-count').textContent = `${prog.new_items_found || 0} items found`;
+      document.getElementById('sync-xp-count').textContent = `+${(prog.total_xp_gained || 0).toLocaleString()} XP`;
+
+      if (pct >= 100 || !prog.is_syncing) {
+        clearInterval(syncPollTimer);
+        document.getElementById('sync-banner-title').textContent = '🎉 Sync Complete!';
+        document.getElementById('sync-bar-fill').style.width = '100%';
+        document.getElementById('sync-pct-text').textContent = '100%';
+        toast(`🎉 Canvas LMS Sync Complete! +${(prog.total_xp_gained || 0).toLocaleString()} XP`, 'ok');
+        
+        setTimeout(() => {
+          banner.classList.add('hidden');
+          loadCourses();
+          loadHistory();
+        }, 3000);
+      }
+    } catch(e) {
+      console.warn('Progress poll error:', e);
+    }
+  }, 1000);
+}
+
 async function triggerSync() {
   const btn = document.getElementById('sync-btn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing…';
-  toast('Canvas sync initiated…', 'ok');
+  
+  startSyncProgressPolling();
+
   try {
     const r = await apiFetch('/api/canvas/sync', { method: 'POST' });
-    const xp = r.xp_earned || 0;
-    const n  = r.new_completions || 0;
-    if (n > 0) {
-      toast(`✅ ${n} new items synced! +${xp} XP`, 'ok');
-    } else {
-      toast('✅ Already up-to-date — no new completions', 'ok');
-    }
-    await loadCourses();
-    await loadHistory();
+    toast('Canvas quantum sync initiated…', 'ok');
   } catch(e) {
     toast('Sync failed — check token or connection', 'err');
+    document.getElementById('sync-progress-banner').classList.add('hidden');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync Now';

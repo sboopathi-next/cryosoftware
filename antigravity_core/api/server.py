@@ -3035,4 +3035,15 @@ def api_canvas_sync_get():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/canvas/progress")
+def api_canvas_progress():
+    """Returns live sync progress status for interactive UI loading bar."""
+    try:
+        from engine.canvas_sync import get_sync_progress
+        return get_sync_progress()
+    except Exception as e:
+        return {"is_syncing": False, "pct": 0, "status_message": str(e)}
+
+
+
 

@@ -146,6 +146,24 @@ def calculate_canvas_xp(
     return xp_earned, stats
 
 
+# ── Global Live Sync Progress Tracker ──────────────────────────────────────────
+_CURRENT_SYNC_PROGRESS = {
+    "is_syncing": False,
+    "courses_scanned": 0,
+    "total_courses": 0,
+    "current_course_name": "",
+    "new_items_found": 0,
+    "total_xp_gained": 0,
+    "pct": 0,
+    "status_message": "Ready to sync",
+    "updated_at": ""
+}
+
+def get_sync_progress() -> dict:
+    return dict(_CURRENT_SYNC_PROGRESS)
+
+
+
 
 class CanvasLMSSync:
     """
@@ -422,11 +440,25 @@ class CanvasLMSSync:
                 except Exception:
                     pass
 
+        global _CURRENT_SYNC_PROGRESS
+        _CURRENT_SYNC_PROGRESS["is_syncing"] = True
+        _CURRENT_SYNC_PROGRESS["total_courses"] = len(courses)
+        _CURRENT_SYNC_PROGRESS["courses_scanned"] = 0
+        _CURRENT_SYNC_PROGRESS["pct"] = 5
+        _CURRENT_SYNC_PROGRESS["status_message"] = "Initializing Canvas API Scan..."
+        _CURRENT_SYNC_PROGRESS["updated_at"] = datetime.now().isoformat()
+
         # ── Iterate Courses ────────────────────────────────────────────────────
-        for course in courses:
+        for idx, course in enumerate(courses):
             course_id   = course.get("id")
             course_name = course.get("name", "Unknown Course")
             course_code = course.get("course_code", "")
+
+            _CURRENT_SYNC_PROGRESS["courses_scanned"] = idx + 1
+            _CURRENT_SYNC_PROGRESS["current_course_name"] = course_name
+            _CURRENT_SYNC_PROGRESS["pct"] = int(round((idx + 1) / len(courses) * 90))
+            _CURRENT_SYNC_PROGRESS["status_message"] = f"Scanning [{idx+1}/{len(courses)}]: {course_name[:35]}"
+            _CURRENT_SYNC_PROGRESS["updated_at"] = datetime.now().isoformat()
 
             # Cache course info
             if conn:
@@ -612,6 +644,13 @@ class CanvasLMSSync:
             conn.close()
         if neon_conn:
             neon_conn.close()
+
+        _CURRENT_SYNC_PROGRESS["is_syncing"] = False
+        _CURRENT_SYNC_PROGRESS["pct"] = 100
+        _CURRENT_SYNC_PROGRESS["new_items_found"] = len(new_completions)
+        _CURRENT_SYNC_PROGRESS["total_xp_gained"] = total_new_xp
+        _CURRENT_SYNC_PROGRESS["status_message"] = f"Sync Complete! +{total_new_xp} XP Earned ({len(new_completions)} items)"
+        _CURRENT_SYNC_PROGRESS["updated_at"] = datetime.now().isoformat()
 
         return {
             "status":            "success",
