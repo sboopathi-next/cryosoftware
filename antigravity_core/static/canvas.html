@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1d">
+<title>Canvas LMS — VIT Online Progress | Antigravity</title>
+<meta name="description" content="VIT Online degree progress tracker — Canvas LMS module completions, quiz submissions, and XP rewards.">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ── Canvas Page ──────────────────────────────────────────────────────────── */
+.canvas-hero {
+  background: linear-gradient(135deg,rgba(99,102,241,.18) 0%,rgba(16,185,129,.12) 100%);
+  border: 1px solid rgba(99,102,241,.3);
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.canvas-logo {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg,#6366f1,#10b981);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+}
+.canvas-hero-title { font-family: var(--ff-brand); font-size: 20px; font-weight: 800; color: #e2e8f0; }
+.canvas-hero-sub   { font-size: 12px; color: var(--text3); margin-top: 3px; }
+
+.token-notice {
+  background: rgba(245,158,11,.1);
+  border: 1px solid rgba(245,158,11,.35);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  display: none;
+}
+.token-notice.show { display: block; }
+.token-notice code {
+  background: rgba(0,0,0,.3);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: var(--amber);
+}
+
+.canvas-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.cstat {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+.cstat-val  { font-family: var(--ff-brand); font-size: 28px; font-weight: 800; color: var(--cyan); line-height: 1; }
+.cstat-lbl  { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.course-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  transition: transform .2s, border-color .2s;
+}
+.course-card:hover { transform: translateY(-2px); border-color: var(--cyan); }
+.course-card-name  { font-weight: 700; color: #e2e8f0; font-size: 14px; margin-bottom: 6px; line-height: 1.3; }
+.course-card-code  { font-size: 11px; color: var(--text3); margin-bottom: 12px; font-family: var(--ff-mono); }
+.course-card-xp    { font-family: var(--ff-brand); font-size: 22px; font-weight: 800; color: var(--amber); }
+.course-card-items { font-size: 12px; color: var(--text3); }
+.course-bar-wrap   { margin-top: 10px; height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; }
+.course-bar        { height: 100%; border-radius: 3px; background: linear-gradient(90deg,var(--cyan),var(--green)); transition: width .8s ease; }
+
+.history-table-wrap {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.history-table-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.history-table-hdr h3 { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+.history-table { width: 100%; border-collapse: collapse; }
+.history-table th { padding: 10px 14px; font-size: 11px; color: var(--text3); text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.history-table td { padding: 10px 14px; font-size: 13px; color: #e2e8f0; border-top: 1px solid rgba(255,255,255,.04); }
+.history-table tr:hover td { background: rgba(255,255,255,.03); }
+.badge-type {
+  display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-quiz       { background: rgba(16,185,129,.18); color: var(--green); }
+.badge-assignment { background: rgba(245,158,11,.18); color: var(--amber); }
+.badge-cat        { background: rgba(239,68,68,.18); color: #f87171; }
+.badge-video      { background: rgba(99,102,241,.18); color: #a5b4fc; }
+.xp-green         { color: var(--green); font-weight: 700; font-family: var(--ff-brand); }
+
+.sync-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg,#6366f1,#10b981);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 10px 20px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: opacity .2s;
+}
+.sync-btn:hover   { opacity: .85; }
+.sync-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.empty-state {
+  text-align: center; padding: 40px 20px; color: var(--text3);
+}
+.empty-state i { font-size: 40px; margin-bottom: 12px; display: block; color: rgba(99,102,241,.5); }
+.empty-state p { font-size: 14px; }
+
+.toast-canvas {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  padding: 12px 18px; border-radius: 10px; font-weight: 600; font-size: 13px;
+  opacity: 0; transform: translateY(10px); transition: .3s;
+  pointer-events: none;
+}
+.toast-canvas.ok  { background: var(--green); color: #fff; }
+.toast-canvas.err { background: #ef4444; color: #fff; }
+.toast-canvas.show { opacity: 1; transform: translateY(0); }
+
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.status-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.status-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.status-dot.red   { background: #ef4444; }
+
+@media(max-width:640px){
+  .canvas-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .course-grid { grid-template-columns: 1fr; }
+  .history-table-wrap { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Shared Header -->
+  <div id="shared-header-mount"></div>
+
+  <main class="main-content">
+
+    <!-- Hero -->
+    <div class="canvas-hero">
+      <div class="canvas-logo">🎓</div>
+      <div>
+        <div class="canvas-hero-title">VIT Online — Canvas LMS</div>
+        <div class="canvas-hero-sub">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Checking connection…</span>
+        </div>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="sync-btn" id="sync-btn" onclick="triggerSync()">
+          <i class="fa-solid fa-rotate"></i> Sync Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Token Setup Notice -->
+    <div class="token-notice" id="token-notice">
+      <strong style="color:var(--amber)"><i class="fa-solid fa-triangle-exclamation"></i> Canvas API Token Not Configured</strong>
+      <p style="margin:8px 0 4px; font-size:13px; color:#cbd5e1;">To sync your VIT Online progress automatically, generate a Canvas access token:</p>
+      <ol style="font-size:13px; color:#94a3b8; margin:6px 0 10px; padding-left:18px; line-height:1.8;">
+        <li>Log in to <a href="https://lms.vitonline.in" target="_blank" style="color:var(--cyan)">lms.vitonline.in</a></li>
+        <li>Go to <strong>Account → Settings</strong></li>
+        <li>Scroll to <strong>Approved Integrations</strong> → click <strong>+ New Access Token</strong></li>
+        <li>Purpose: <code>Antigravity Engine</code></li>
+        <li>Copy the token and add to <code>.env</code>: <code>CANVAS_API_TOKEN=your_token</code></li>
+        <li>Restart Antigravity server</li>
+      </ol>
+      <div style="font-size:12px; color:var(--text3);">
+        Canvas API Policy: <a href="https://developerdocs.instructure.com/services/canvas#api-policy" target="_blank" style="color:var(--cyan);">developerdocs.instructure.com</a>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="canvas-stats-row">
+      <div class="cstat">
+        <div class="cstat-val" id="stat-courses">—</div>
+        <div class="cstat-lbl">Active Courses</div>
+      </div>
+      <div class="cstat">
+        <div class="cstat-val" id="stat-items" style="color:var(--green)">—</div>
+        <div class="cstat-lbl">Items Completed</div>
+      </div>
+      <div class="cstat">
+        <div class="cstat-val" id="stat-xp" style="color:var(--amber)">—</div>
+        <div class="cstat-lbl">Canvas XP Earned</div>
+      </div>
+      <div class="cstat">
+        <div class="cstat-val" id="stat-quizzes" style="color:#a5b4fc">—</div>
+        <div class="cstat-lbl">Quizzes Submitted</div>
+      </div>
+    </div>
+
+    <!-- Courses Grid -->
+    <h3 style="font-size:15px; font-weight:700; color:#e2e8f0; margin:0 0 12px;">📚 Active Courses</h3>
+    <div class="course-grid" id="course-grid">
+      <div class="empty-state" style="grid-column:1/-1;">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <p>Loading courses…</p>
+      </div>
+    </div>
+
+    <!-- Completion History -->
+    <div class="history-table-wrap">
+      <div class="history-table-hdr">
+        <h3>📋 Completion History</h3>
+        <span style="font-size:12px; color:var(--text3)" id="history-count"></span>
+      </div>
+      <div id="history-body">
+        <div class="empty-state">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <p>No completions tracked yet. Run a sync to import your Canvas progress.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-canvas" id="toast-canvas"></div>
+
+<script src="/static/shared.js"></script>
+<script>
+const ITEM_TYPE_COLORS = {
+  'Quiz': 'badge-quiz',
+  'Assignment': 'badge-assignment',
+  'ExternalTool': 'badge-video',
+  'Page': 'badge-video',
+  'File': 'badge-video',
+  'Discussion': 'badge-video',
+};
+
+function badgeClass(type, title) {
+  const t = (title || '').toUpperCase();
+  if (t.includes('CAT') || t.includes('FINAL') || t.includes('END TERM')) return 'badge-cat';
+  if (t.includes('ASSIGNMENT') || t.includes('PROJECT')) return 'badge-assignment';
+  if (t.includes('QUIZ') || t.includes('MCQ')) return 'badge-quiz';
+  return ITEM_TYPE_COLORS[type] || 'badge-video';
+}
+
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast-canvas');
+  el.textContent = msg;
+  el.className = `toast-canvas ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+async function checkStatus() {
+  try {
+    const r = await apiFetch('/api/canvas/status');
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('status-text');
+    const notice = document.getElementById('token-notice');
+
+    if (!r.token_configured) {
+      dot.className = 'status-dot red';
+      txt.textContent = 'Token not configured';
+      notice.classList.add('show');
+    } else if (r.token_valid) {
+      dot.className = 'status-dot green';
+      txt.textContent = 'Connected to lms.vitonline.in';
+    } else {
+      dot.className = 'status-dot amber';
+      txt.textContent = 'Token invalid — check .env';
+      notice.classList.add('show');
+    }
+  } catch(e) {
+    document.getElementById('status-dot').className = 'status-dot red';
+    document.getElementById('status-text').textContent = 'Canvas unreachable';
+  }
+}
+
+async function loadCourses() {
+  const grid = document.getElementById('course-grid');
+  try {
+    const courses = await apiFetch('/api/canvas/courses');
+    document.getElementById('stat-courses').textContent = courses.length;
+
+    if (!courses.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <p>No active courses found. Ensure your Canvas token is valid and you are enrolled.</p>
+      </div>`;
+      return;
+    }
+
+    const maxXP = Math.max(...courses.map(c => c.xp_earned || 0), 1);
+    grid.innerHTML = courses.map(c => `
+      <div class="course-card">
+        <div class="course-card-name">${c.name}</div>
+        <div class="course-card-code">${c.course_code || ''}</div>
+        <div style="display:flex; align-items:baseline; gap:8px;">
+          <div class="course-card-xp">+${(c.xp_earned || 0).toLocaleString()}</div>
+          <div class="course-card-items" style="font-size:12px;">XP • ${c.items_done || 0} items</div>
+        </div>
+        <div class="course-bar-wrap"><div class="course-bar" style="width:${Math.max(4, Math.round((c.xp_earned||0)/maxXP*100))}%"></div></div>
+      </div>
+    `).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load courses</p></div>`;
+  }
+}
+
+async function loadHistory() {
+  const wrap = document.getElementById('history-body');
+  try {
+    const history = await apiFetch('/api/canvas/history?limit=200');
+
+    // Update stats
+    const totalXP     = history.reduce((s, h) => s + (h.xp_awarded || 0), 0);
+    const quizzes     = history.filter(h => (h.item_type === 'Quiz') || ((h.item_title||'').toUpperCase().includes('QUIZ'))).length;
+    document.getElementById('stat-items').textContent   = history.length;
+    document.getElementById('stat-xp').textContent      = `+${totalXP.toLocaleString()}`;
+    document.getElementById('stat-quizzes').textContent = quizzes;
+    document.getElementById('history-count').textContent = `${history.length} items`;
+
+    if (!history.length) {
+      wrap.innerHTML = `<div class="empty-state">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <p>No completions tracked yet. Click <strong>Sync Now</strong> to import progress.</p>
+      </div>`;
+      return;
+    }
+
+    wrap.innerHTML = `<div style="overflow-x:auto">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Course</th>
+            <th>Type</th>
+            <th>XP</th>
+            <th>Completed</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${history.map(h => `
+            <tr>
+              <td style="max-width:280px; word-break:break-word">${h.item_title || '—'}</td>
+              <td style="font-size:12px; color:var(--text3)">${(h.course_name || '').substring(0, 35)}</td>
+              <td><span class="badge-type ${badgeClass(h.item_type, h.item_title)}">${h.item_type || 'Page'}</span></td>
+              <td class="xp-green">+${h.xp_awarded || 0}</td>
+              <td style="font-size:11px; color:var(--text3)">${(h.completed_at || '').substring(0,10)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load history</p></div>`;
+  }
+}
+
+async function triggerSync() {
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing…';
+  toast('Canvas sync initiated…', 'ok');
+  try {
+    const r = await apiFetch('/api/canvas/sync', { method: 'POST' });
+    const xp = r.xp_earned || 0;
+    const n  = r.new_completions || 0;
+    if (n > 0) {
+      toast(`✅ ${n} new items synced! +${xp} XP`, 'ok');
+    } else {
+      toast('✅ Already up-to-date — no new completions', 'ok');
+    }
+    await loadCourses();
+    await loadHistory();
+  } catch(e) {
+    toast('Sync failed — check token or connection', 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync Now';
+  }
+}
+
+async function apiFetch(url, opts = {}) {
+  const token = window.getAuthToken ? getAuthToken() : '';
+  const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+  const r = await fetch(url, { headers, ...opts });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${r.status}`);
+  }
+  return r.json();
+}
+
+// Init
+(async () => {
+  await checkStatus();
+  await Promise.all([loadCourses(), loadHistory()]);
+})();
+</script>
+</body>
+</html>

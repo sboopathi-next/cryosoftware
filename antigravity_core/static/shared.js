@@ -603,6 +603,7 @@ function injectMobileNavigation() {
         <a href="/exam" class="sheet-grid-item"><i class="fa-solid fa-square-root-variable" style="color:var(--indigo)"></i><span>Exam Editor</span></a>
         <a href="/teacher" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span></a>
         <a href="/teach" class="sheet-grid-item"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span></a>
+        <a href="/canvas" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#6366f1"></i><span>Canvas LMS</span></a>
         <a href="#" onclick="openSettings(); return false;" class="sheet-grid-item"><i class="fa-solid fa-gear" style="color:var(--text2)"></i><span>Settings</span></a>
       </div>
     </div>

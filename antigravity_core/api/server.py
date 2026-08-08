@@ -6,7 +6,7 @@ import sqlite3
 import datetime
 import httpx
 import secrets as _secrets
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
@@ -2952,5 +2952,85 @@ def api_get_meditation_logs(limit: int = 50):
         return get_meditation_logs(limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CANVAS LMS INTEGRATION (VIT Online — lms.vitonline.in)
+# ══════════════════════════════════════════════════════════════════════════════
+
+_canvas_engine = None
+
+def _get_canvas():
+    """Lazy singleton — missing token doesn't crash startup."""
+    global _canvas_engine
+    if _canvas_engine is None:
+        try:
+            from engine.canvas_sync import CanvasLMSSync
+            _canvas_engine = CanvasLMSSync()
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Canvas engine unavailable: {e}")
+    return _canvas_engine
+
+def _canvas_engine_sync_task():
+    try:
+        result = _get_canvas().sync_completed_items()
+        print(f"[Canvas BG] Sync done: {result.get('new_completions',0)} new items, +{result.get('xp_earned',0)} XP")
+    except Exception as e:
+        print(f"[Canvas BG] Sync error: {e}")
+
+
+@app.get("/canvas")
+def get_canvas_page():
+    return FileResponse(os.path.join(STATIC_DIR, "canvas.html"))
+
+
+@app.get("/api/canvas/status")
+def api_canvas_status():
+    token = os.getenv("CANVAS_API_TOKEN", "")
+    if not token:
+        return {"token_configured": False, "message": "CANVAS_API_TOKEN not set. Add it to .env.", "setup_url": "https://lms.vitonline.in/profile/settings"}
+    try:
+        engine = _get_canvas()
+        valid  = engine.check_token()
+        return {"token_configured": True, "token_valid": valid, "domain": "lms.vitonline.in", "message": "Token valid ✅" if valid else "Token invalid ❌"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/canvas/courses")
+def api_canvas_courses():
+    try:
+        return _get_canvas().get_courses_summary()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/canvas/history")
+def api_canvas_history(limit: int = 100):
+    try:
+        return _get_canvas().get_completion_history(limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/canvas/sync")
+def api_canvas_sync_post(background_tasks: BackgroundTasks):
+    """Async Canvas sync — runs in background, returns immediately."""
+    if not os.getenv("CANVAS_API_TOKEN", ""):
+        raise HTTPException(status_code=400, detail="CANVAS_API_TOKEN not configured.")
+    background_tasks.add_task(_canvas_engine_sync_task)
+    return {"status": "SYNC_INITIATED", "target": "https://lms.vitonline.in"}
+
+
+@app.get("/api/canvas/sync")
+def api_canvas_sync_get():
+    """Synchronous Canvas sync — returns full result (use for debugging)."""
+    if not os.getenv("CANVAS_API_TOKEN", ""):
+        raise HTTPException(status_code=400, detail="CANVAS_API_TOKEN not configured.")
+    try:
+        return _get_canvas().sync_completed_items()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
