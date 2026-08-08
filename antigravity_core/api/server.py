@@ -3045,5 +3045,47 @@ def api_canvas_progress():
         return {"is_syncing": False, "pct": 0, "status_message": str(e)}
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# HEALTH CONNECT & FITNESS SYNC INTEGRATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+class HealthPayload(BaseModel):
+    steps: int = 0
+    distance_km: float = 0.0
+    active_minutes: int = 0
+    sleep_hours: float = 0.0
+    resting_hr: Optional[int] = None
+    log_date: Optional[str] = None
+
+@app.post("/api/health_sync")
+def api_health_sync(payload: HealthPayload):
+    """
+    Automated or manual health & walking data synchronization endpoint.
+    Processes steps, distance, active minutes, sleep, and resting HR.
+    """
+    try:
+        from engine.database import process_health_sync
+        return process_health_sync(
+            steps=payload.steps,
+            distance_km=payload.distance_km,
+            active_minutes=payload.active_minutes,
+            sleep_hours=payload.sleep_hours,
+            resting_hr=payload.resting_hr,
+            log_date=payload.log_date
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/health_sync/history")
+def api_health_sync_history(limit: int = 50):
+    """Retrieve past health sync logs."""
+    try:
+        from engine.database import get_health_sync_history
+        return get_health_sync_history(limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 
 

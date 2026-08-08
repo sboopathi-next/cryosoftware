@@ -307,6 +307,11 @@
           <div class="checklist-lbl">Daily Reading</div>
           <div class="checklist-meta">Manual: +10 XP, +1 INT (Click to Log Pages)</div>
         </div>
+        <div class="checklist-item" id="chk-health" onclick="openHealthSyncModal()">
+          <div class="checklist-check"><i class="fa-solid fa-person-walking" style="color:var(--green)"></i></div>
+          <div class="checklist-lbl">Google Health & Walking Sync</div>
+          <div class="checklist-meta">Auto/Manual: Steps, Sleep, Active Mins & HR</div>
+        </div>
       </div>
     </div>
 
@@ -770,7 +775,92 @@ setInterval(loadDashboard, 30000);
     <div class="modal-body" style="max-height: 450px; overflow-y: auto;">
       <div id="hc-history-list" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
+<!-- HEALTH & FITNESS SYNC MODAL -->
+<div id="health-sync-modal" class="modal-mask hidden">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-hd">
+      <span><i class="fa-solid fa-heart-pulse" style="color:var(--rose); margin-right:6px;"></i>Google Health &amp; Fitness Sync</span>
+      <button class="modal-close" onclick="closeHealthSyncModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+      <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.25); border-radius:10px; padding:12px; font-size:12px; color:var(--text2); line-height:1.5;">
+        <strong style="color:#fff;"><i class="fa-solid fa-bolt" style="color:var(--amber);"></i> Health Data Impact:</strong>
+        <ul style="margin:4px 0 0 16px; padding:0; color:var(--text3);">
+          <li><strong>1,000 Steps:</strong> +10 XP, +1 WIL</li>
+          <li><strong>7.0+ Hours Sleep:</strong> +35% Cognitive Energy Recovery</li>
+          <li><strong>10 Active Minutes:</strong> +2 STR, +20 XP</li>
+          <li><strong>Resting HR (50-70 bpm):</strong> +1 HRT (Heart)</li>
+        </ul>
+      </div>
+      <div class="field">
+        <label>Daily Step Count</label>
+        <input type="number" id="hs-steps" placeholder="e.g. 8500" value="8000" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
+      </div>
+      <div class="grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="field">
+          <label>Distance (km)</label>
+          <input type="number" step="0.1" id="hs-dist" placeholder="e.g. 6.2" value="6.0" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
+        </div>
+        <div class="field">
+          <label>Active Minutes</label>
+          <input type="number" id="hs-active" placeholder="e.g. 45" value="40" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
+        </div>
+      </div>
+      <div class="grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="field">
+          <label>Sleep Duration (hours)</label>
+          <input type="number" step="0.1" id="hs-sleep" placeholder="e.g. 7.5" value="7.5" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
+        </div>
+        <div class="field">
+          <label>Resting HR (bpm)</label>
+          <input type="number" id="hs-hr" placeholder="e.g. 62" value="65" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="submitHealthSync()">
+          <i class="fa-solid fa-sync"></i> Sync Health Metrics
+        </button>
+      </div>
+      <div style="font-size:11px; color:var(--text3); margin-top:4px;">
+        💡 <strong>Automation API:</strong> POST JSON to <code>/api/health_sync</code> from Tasker / MacroDroid / Termux.
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+function openHealthSyncModal() {
+  document.getElementById('health-sync-modal').classList.remove('hidden');
+}
+function closeHealthSyncModal() {
+  document.getElementById('health-sync-modal').classList.add('hidden');
+}
+async function submitHealthSync() {
+  const steps = parseInt(document.getElementById('hs-steps').value) || 0;
+  const dist  = parseFloat(document.getElementById('hs-dist').value) || 0.0;
+  const active = parseInt(document.getElementById('hs-active').value) || 0;
+  const sleep  = parseFloat(document.getElementById('hs-sleep').value) || 0.0;
+  const hr     = parseInt(document.getElementById('hs-hr').value) || 0;
+
+  try {
+    const payload = { steps, distance_km: dist, active_minutes: active, sleep_hours: sleep, resting_hr: hr };
+    const r = await fetch('/api/health_sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.status === 'SUCCESS') {
+      alert(`✅ Health Data Synced!\n\n+${d.xp_awarded} XP\n+${d.wil_gained} WIL\n+${d.str_gained} STR\n+${d.energy_restored}% Energy Recovery`);
+      closeHealthSyncModal();
+      if (window.loadDashboard) loadDashboard();
+    } else {
+      alert('Error syncing health data: ' + (d.detail || 'Unknown error'));
+    }
+  } catch(e) {
+    alert('Sync request failed: ' + e.message);
+  }
+}
+</script>
 </body>
 </html>

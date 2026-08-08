@@ -516,11 +516,44 @@ def neon_delete_workout_by_id(log_id: int) -> dict:
             cur.execute("DELETE FROM pg_workout_log WHERE id = %s", (log_id,))
     return {"status": "success"}
 
-def neon_delete_workout_by_timestamp(timestamp: str) -> dict:
+def _init_pg_health_logs(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_health_logs (
+            id SERIAL PRIMARY KEY,
+            log_date TEXT NOT NULL,
+            steps INTEGER DEFAULT 0,
+            distance_km REAL DEFAULT 0.0,
+            active_minutes INTEGER DEFAULT 0,
+            sleep_hours REAL DEFAULT 0.0,
+            resting_hr INTEGER DEFAULT 0,
+            xp_awarded INTEGER DEFAULT 0,
+            wil_gained INTEGER DEFAULT 0,
+            str_gained INTEGER DEFAULT 0,
+            hrt_gained INTEGER DEFAULT 0,
+            energy_restored REAL DEFAULT 0.0,
+            created_at TEXT DEFAULT now()
+        );
+    """)
+
+def neon_save_health_log(log_date: str, steps: int, distance_km: float, active_minutes: int, sleep_hours: float, resting_hr: int, xp_awarded: int, wil_gained: int, str_gained: int, hrt_gained: int, energy_restored: float) -> dict:
     with _conn() as conn:
         with conn.cursor() as cur:
-            _init_pg_workout_log(cur)
-            cur.execute("DELETE FROM pg_workout_log WHERE timestamp = %s", (timestamp,))
-    return {"status": "success"}
+            _init_pg_health_logs(cur)
+            cur.execute("""
+                INSERT INTO pg_health_logs
+                (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored, _now()))
+            new_id = cur.fetchone()[0]
+    return {"id": new_id, "status": "success"}
+
+def neon_get_health_logs(limit: int = 50) -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_health_logs(cur)
+            cur.execute("SELECT * FROM pg_health_logs ORDER BY id DESC LIMIT %s", (limit,))
+            return [dict(r) for r in cur.fetchall()]
+
 
 

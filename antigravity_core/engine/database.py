@@ -3,6 +3,7 @@ import os
 import sqlite3
 import threading
 from datetime import date
+from typing import Optional, List, Dict
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if ROOT_DIR not in sys.path:
@@ -1343,6 +1344,121 @@ def get_meditation_logs(limit: int = 50) -> list:
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes: int = 0, sleep_hours: float = 0.0, resting_hr: Optional[int] = None, log_date: Optional[str] = None) -> dict:
+    """
+    Processes health metrics from Google Health Connect / MacroDroid / Termux / Manual Logger.
+    Calculates:
+    - Step Count: +10 XP & +1 WIL per 1,000 steps.
+    - Active Workout Minutes: +2 STR & +15 XP per 10 active mins (+2 XP / min).
+    - Sleep Recovery: +35% Cognitive Energy if sleep >= 7.0 hrs (+15% if >= 5.5 hrs).
+    - Resting HR: +1 HRT if resting HR in optimal range (50-70 bpm).
+    """
+    from datetime import date
+    log_date = log_date or date.today().isoformat()
+
+    step_xp    = (steps // 1000) * 10
+    wil_gained = steps // 1000
+    str_gained = (active_minutes // 10) * 2
+    active_xp  = active_minutes * 2
+    total_xp   = step_xp + active_xp
+
+    energy_restored = 0.0
+    if sleep_hours >= 7.0:
+        energy_restored = 35.0
+    elif sleep_hours >= 5.5:
+        energy_restored = 15.0
+
+    hrt_gained = 1 if (resting_hr and 50 <= resting_hr <= 70) else 0
+
+    state = get_state() or {}
+    if state:
+        state["xp"] = state.get("xp", 0) + total_xp
+        state["wil"] = state.get("wil", 10) + wil_gained
+        state["str"] = state.get("str", 10) + str_gained
+        state["heart"] = state.get("heart", 10) + hrt_gained
+        if energy_restored > 0:
+            state["energy"] = min(100.0, state.get("energy", 100.0) + energy_restored)
+        save_state(state)
+
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_health_log
+        neon_save_health_log(log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, total_xp, wil_gained, str_gained, hrt_gained, energy_restored)
+    else:
+        with _DB_WRITE_LOCK:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS health_sync_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    log_date TEXT NOT NULL,
+                    steps INTEGER DEFAULT 0,
+                    distance_km REAL DEFAULT 0.0,
+                    active_minutes INTEGER DEFAULT 0,
+                    sleep_hours REAL DEFAULT 0.0,
+                    resting_hr INTEGER DEFAULT 0,
+                    xp_awarded INTEGER DEFAULT 0,
+                    wil_gained INTEGER DEFAULT 0,
+                    str_gained INTEGER DEFAULT 0,
+                    hrt_gained INTEGER DEFAULT 0,
+                    energy_restored REAL DEFAULT 0.0,
+                    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                INSERT INTO health_sync_logs
+                (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, total_xp, wil_gained, str_gained, hrt_gained, energy_restored))
+            conn.commit()
+            conn.close()
+
+    log_activity_file("Health & Fitness Sync", f"Synced {steps:,} steps ({distance_km} km), {sleep_hours}h sleep, {active_minutes}m active. +{total_xp} XP, +{wil_gained} WIL, +{str_gained} STR, +{energy_restored}% Energy.")
+
+    return {
+        "status": "SUCCESS",
+        "log_date": log_date,
+        "steps": steps,
+        "distance_km": distance_km,
+        "active_minutes": active_minutes,
+        "sleep_hours": sleep_hours,
+        "xp_awarded": total_xp,
+        "wil_gained": wil_gained,
+        "str_gained": str_gained,
+        "hrt_gained": hrt_gained,
+        "energy_restored": energy_restored
+    }
+
+def get_health_sync_history(limit: int = 50) -> list:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_health_logs
+        return neon_get_health_logs(limit=limit)
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS health_sync_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            log_date TEXT NOT NULL,
+            steps INTEGER DEFAULT 0,
+            distance_km REAL DEFAULT 0.0,
+            active_minutes INTEGER DEFAULT 0,
+            sleep_hours REAL DEFAULT 0.0,
+            resting_hr INTEGER DEFAULT 0,
+            xp_awarded INTEGER DEFAULT 0,
+            wil_gained INTEGER DEFAULT 0,
+            str_gained INTEGER DEFAULT 0,
+            hrt_gained INTEGER DEFAULT 0,
+            energy_restored REAL DEFAULT 0.0,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("SELECT * FROM health_sync_logs ORDER BY id DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 
 
 
