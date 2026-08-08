@@ -438,6 +438,27 @@ def get_dashboard(request: Request):
 
 
 
+@app.get("/manifest.json")
+def get_manifest_route():
+    manifest_path = os.path.join(STATIC_DIR, "manifest.json")
+    if not os.path.exists(manifest_path):
+        manifest_path = os.path.join(ROOT_DIR, "static", "manifest.json")
+    return FileResponse(manifest_path, media_type="application/manifest+json")
+
+@app.get("/sw.js")
+def get_sw_route():
+    sw_path = os.path.join(STATIC_DIR, "sw.js")
+    if not os.path.exists(sw_path):
+        sw_path = os.path.join(ROOT_DIR, "static", "sw.js")
+    return FileResponse(sw_path, media_type="application/javascript")
+
+@app.get("/icon.svg")
+def get_icon_svg_route():
+    icon_path = os.path.join(STATIC_DIR, "icon.svg")
+    if not os.path.exists(icon_path):
+        icon_path = os.path.join(ROOT_DIR, "static", "icon.svg")
+    return FileResponse(icon_path, media_type="image/svg+xml")
+
 @app.get("/gym")
 def get_gym_page():
     return FileResponse(os.path.join(STATIC_DIR, "gym.html"))
