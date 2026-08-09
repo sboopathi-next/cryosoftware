@@ -25,6 +25,12 @@ for _p in [_ROOT_DIR, _CORE_DIR]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 SCOPES = [
     'https://www.googleapis.com/auth/fitness.activity.read',
     'https://www.googleapis.com/auth/fitness.body.read',

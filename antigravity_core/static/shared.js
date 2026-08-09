@@ -683,6 +683,54 @@ async function syncLeetCodeManual() {
   }
 }
 
+// ── Google Fit Cloud API Sync ────────────────────────────────
+async function syncGoogleFitCloudManual(btnEl = null) {
+  const btn = btnEl || document.getElementById('googlefit-sync-btn');
+  let originalHTML = '';
+  if (btn) {
+    originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Syncing...</span>';
+  }
+  toast('🏃 Querying Google Fit Cloud API...', 'info');
+
+  try {
+    const res = await apiFetch('/api/health_sync/google_fit', { method: 'POST' });
+    const d = await res.json();
+
+    if (d.setup_required) {
+      toast('⚠️ Google Fit Setup Needed: ' + d.message, 'warn');
+      if (window.openHealthSyncModal) window.openHealthSyncModal();
+    } else if (d.status === 'SUCCESS' || d.steps !== undefined) {
+      const stepsFormatted = (d.steps || 0).toLocaleString();
+      toast(`✅ Google Fit Synced! ${stepsFormatted} steps (${d.distance_km || 0} km) | +${d.xp_awarded || 0} XP, +${d.wil_gained || 0} WIL!`, 'ok');
+      
+      const chkHealth = document.getElementById('chk-health');
+      if (chkHealth) chkHealth.classList.add('done');
+      
+      if ((d.steps >= 1000 || (d.distance_km && d.distance_km >= 0.5)) && document.getElementById('chk-walk')) {
+        document.getElementById('chk-walk').classList.add('done');
+      }
+
+      if (window.loadDashboard) window.loadDashboard();
+      if (window.loadMiniStats) window.loadMiniStats();
+      if (window.closeHealthSyncModal) window.closeHealthSyncModal();
+    } else {
+      toast('Google Fit Sync: ' + (d.message || JSON.stringify(d)), 'err');
+    }
+  } catch(e) {
+    toast('Google Fit Sync Error: ' + e.message, 'err');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML || '<i class="fa-solid fa-rotate"></i> <span>Sync Fit</span>';
+    }
+  }
+}
+
+window.syncViaGoogleFitCloud = syncGoogleFitCloudManual;
+window.syncGoogleFitCloudManual = syncGoogleFitCloudManual;
+
 // ── Mobile Bottom Nav & Sheet Injection ───────────────────────
 function injectMobileNavigation() {
   if (document.querySelector('.mobile-bottom-nav')) return;
@@ -730,7 +778,7 @@ function injectMobileNavigation() {
         <a href="/exam" class="sheet-grid-item"><i class="fa-solid fa-square-root-variable" style="color:var(--indigo)"></i><span>Exam Editor</span></a>
         <a href="/teacher" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span></a>
         <a href="/teach" class="sheet-grid-item"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span></a>
-        <a href="/canvas" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#6366f1"></i><span>Canvas LMS</span></a>
+        <a href="#" onclick="syncGoogleFitCloudManual(this); return false;" class="sheet-grid-item"><i class="fa-solid fa-person-walking" style="color:#10b981"></i><span>Sync Fit</span></a>
         <a href="#" onclick="openSettings(); return false;" class="sheet-grid-item"><i class="fa-solid fa-gear" style="color:var(--text2)"></i><span>Settings</span></a>
       </div>
     </div>
