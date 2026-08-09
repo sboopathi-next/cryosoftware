@@ -519,6 +519,35 @@ def get_stoic_page():
 
 
 
+def check_and_update_streak(state: dict) -> dict:
+    """
+    Checks if ALL 7 daily accountability targets (Study, LeetCode, Gym, English, Reading, NoPMO, Cooking) are completed.
+    If so, immediately increments streak_days by +1 for today,
+    awards +100 Bonus XP and +35% Cognitive Energy!
+    """
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    all_accountability_targets = [
+        bool(state.get("study_completed", 0)),
+        bool(state.get("leetcode_completed", 0)),
+        bool(state.get("gym_completed", 0)),
+        bool(state.get("english_completed", 0)),
+        bool(state.get("reading_completed", 0)),
+        bool(state.get("nopmo_completed", 0)),
+        bool(state.get("cooking_completed", 0))
+    ]
+    if all(all_accountability_targets) and state.get("streak_last_incremented") != today_str:
+        current_streak = max(35, state.get("streak_days", 35))
+        state["streak_days"] = current_streak + 1
+        state["streak_last_incremented"] = today_str
+        state["energy"] = min(100.0, state.get("energy", 100.0) + 35.0)
+        from engine.database import add_xp, log_activity_file
+        add_xp(100)
+        log_activity_file("Daily Accountability 100% Mastery", f"ALL 7 accountability targets (Study, LeetCode, Gym, English, Reading, NoPMO, Cooking) finished for {today_str}! Streak incremented to {state['streak_days']} days. +100 XP Mastery Bonus!")
+        save_state(state)
+    return state
+
+
 def check_date_transition(state: dict) -> dict:
     import datetime
     today_str = datetime.date.today().isoformat()
@@ -532,46 +561,34 @@ def check_date_transition(state: dict) -> dict:
         except Exception as e:
             print(f"[Day Transition] Pre-check LeetCode sync failed: {e}")
             
-        failures = []
+        try:
+            last_dt = datetime.date.fromisoformat(last_update_str)
+            today_dt = datetime.date.fromisoformat(today_str)
+            elapsed_days = max(1, (today_dt - last_dt).days)
+        except Exception:
+            elapsed_days = 1
 
-        if not state.get("study_completed", 0):
-            failures.append("Daily Study (Syllabus)")
-        if not state.get("leetcode_completed", 0):
-            failures.append("Daily LeetCode Problem")
-        if not state.get("gym_completed", 0):
-            failures.append("Daily Gym/Physical Target")
-        if not state.get("english_completed", 0):
-            failures.append("Daily English Booster & Translation Practice")
-            
-        punishment_details = []
+        # Require ALL core discipline targets (Study, LeetCode, Gym, English) to be completed
+        mandatory_targets = [
+            bool(state.get("study_completed", 0)),
+            bool(state.get("leetcode_completed", 0)),
+            bool(state.get("gym_completed", 0)),
+            bool(state.get("english_completed", 0))
+        ]
+        all_completed = all(mandatory_targets)
         
-        if failures:
-            xp_penalty = len(failures) * 30
-            state["xp"] = max(0, state.get("xp", 0) - xp_penalty)
-            punishment_details.append(f"-{xp_penalty} XP")
-            
-            wil_penalty = len(failures) * 1
-            state["wil"] = max(5, state.get("wil", 10) - wil_penalty)
-            punishment_details.append(f"-{wil_penalty} WIL")
-            
-            energy_penalty = len(failures) * 15.0
-            state["energy"] = max(0.0, state.get("energy", 100.0) - energy_penalty)
-            punishment_details.append(f"-{energy_penalty}% Cognitive Energy")
-            
-            current_streak = state.get("streak_days", 28)
-            state["streak_days"] = max(28, current_streak)
-            punishment_details.append(f"Streak maintained ({state['streak_days']} days)")
-
-            
-            doing = f"Day Transition: Accountability Check FAIL for {last_update_str}"
-            accomplished = f"Failed targets: {', '.join(failures)}. Applied penalties: {', '.join(punishment_details)}."
+        if all_completed:
+            current_streak = max(33, state.get("streak_days", 33))
+            state["streak_days"] = current_streak + elapsed_days
+            state["energy"] = min(100.0, state.get("energy", 100.0) + 25.0)
+            doing = f"Day Transition: ALL Core Discipline Targets Passed for {last_update_str}"
+            accomplished = f"Completed ALL core targets! Streak incremented by +{elapsed_days}d to {state['streak_days']} days."
         else:
-            state["streak_days"] = state.get("streak_days", 0) + 1
-            state["energy"] = min(100.0, state.get("energy", 100.0) + 20.0)
-            
-            doing = f"Day Transition: Accountability Check PASS for {last_update_str}"
-            accomplished = f"Completed all core targets! Streak incremented to {state['streak_days']} days."
-            
+            current_streak = max(33, state.get("streak_days", 33))
+            state["streak_days"] = current_streak
+            doing = f"Day Transition: Partial Completion for {last_update_str}"
+            accomplished = f"Streak maintained at {state['streak_days']} days. Complete ALL core targets to increment."
+
         from engine.fatigue_governor import check_circuit_breaker
         check_circuit_breaker(state)
         
@@ -818,6 +835,9 @@ def get_stats():
         "reading_completed": bool(state.get("reading_completed", 0)),
         "reading_book": state.get("reading_book", "None"),
         "english_completed": bool(state.get("english_completed", 0)),
+        "walk_completed": bool(state.get("walk_completed", 0)),
+        "meditation_completed": bool(state.get("meditation_completed", 0)),
+        "mindos_completed": bool(state.get("mindos_completed", 0)),
         "neon_online": (lambda: (__import__('sync').is_online()))()
     }
 
@@ -1663,7 +1683,7 @@ def get_body_metrics():
 def toggle_checklist(payload: ChecklistTogglePayload):
     state = get_state()
     col = f"{payload.item}_completed"
-    if col not in ["gym_completed", "study_completed", "leetcode_completed", "cooking_completed", "nopmo_completed", "reading_completed", "english_completed"]:
+    if col not in ["gym_completed", "study_completed", "leetcode_completed", "cooking_completed", "nopmo_completed", "reading_completed", "english_completed", "walk_completed", "meditation_completed", "mindos_completed"]:
         raise HTTPException(status_code=400, detail="Invalid checklist item selection.")
         
     prev_val = bool(state.get(col, 0))
@@ -1682,6 +1702,16 @@ def toggle_checklist(payload: ChecklistTogglePayload):
         elif payload.item == "reading":
             xp_to_add = 10
             state["int"] = state.get("int", 10) + 1
+        elif payload.item == "walk":
+            xp_to_add = 15
+            state["wil"] = state.get("wil", 10) + 1
+        elif payload.item == "meditation":
+            xp_to_add = 20
+            state["stoic"] = state.get("stoic", 10) + 2
+            state["wil"] = state.get("wil", 10) + 1
+        elif payload.item == "mindos":
+            xp_to_add = 15
+            state["stoic"] = state.get("stoic", 10) + 1
         elif payload.item == "english":
             xp_to_add = 15
             state["wil"] = state.get("wil", 10) + 1
@@ -1714,6 +1744,7 @@ def toggle_checklist(payload: ChecklistTogglePayload):
         accomplished=f"Marked '{payload.item}' as {status_str}."
     )
     
+    state = check_and_update_streak(state)
     return {"status": "success", "state": get_stats()}
 
 @app.post("/api/reading/book")

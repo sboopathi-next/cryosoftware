@@ -73,7 +73,10 @@ def init_db():
         ("stoic", "INTEGER DEFAULT 10"),
         ("reading_completed", "INTEGER DEFAULT 0"),
         ("reading_book", "TEXT DEFAULT 'None'"),
-        ("english_completed", "INTEGER DEFAULT 0")
+        ("english_completed", "INTEGER DEFAULT 0"),
+        ("walk_completed", "INTEGER DEFAULT 0"),
+        ("meditation_completed", "INTEGER DEFAULT 0"),
+        ("mindos_completed", "INTEGER DEFAULT 0")
     ]
     for col_name, col_type in columns_to_add:
         try:
@@ -511,7 +514,10 @@ def save_state(state: dict):
                 stoic = ?,
                 reading_completed = ?,
                 reading_book = ?,
-                english_completed = ?
+                english_completed = ?,
+                walk_completed = ?,
+                meditation_completed = ?,
+                mindos_completed = ?
             WHERE id = (SELECT id FROM system_state ORDER BY id DESC LIMIT 1)
             """, (
                 state.get("level", 1),
@@ -535,7 +541,10 @@ def save_state(state: dict):
                 state.get("stoic", 10),
                 1 if state.get("reading_completed") else 0,
                 state.get("reading_book", "None"),
-                1 if state.get("english_completed") else 0
+                1 if state.get("english_completed") else 0,
+                1 if state.get("walk_completed") else 0,
+                1 if state.get("meditation_completed") else 0,
+                1 if state.get("mindos_completed") else 0
             ))
             conn.commit()
             conn.close()
@@ -1329,6 +1338,10 @@ def save_meditation_log(duration_mins: int, track_name: str) -> dict:
         conn.close()
     update_stat("stoic", 2)
     update_stat("wil", 1)
+    state = get_state()
+    if state:
+        state["meditation_completed"] = 1
+        save_state(state)
     new_state = update_stat("xp", 20)
     log_activity_file("Meditation Session Completed", f"Completed {duration_mins} minutes of focused meditation listening to '{track_name}'. Awarded +20 XP, +2 STC, +1 WIL.")
     return {"status": "success", "id": new_id, "earned_xp": 20, "earned_stc": 2, "earned_wil": 1, "level": new_state.get("level", 1), "xp": new_state.get("xp", 0)}
@@ -1378,6 +1391,8 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
         state["wil"] = state.get("wil", 10) + wil_gained
         state["str"] = state.get("str", 10) + str_gained
         state["heart"] = state.get("heart", 10) + hrt_gained
+        if steps >= 1000 or distance_km >= 0.5 or active_minutes >= 10:
+            state["walk_completed"] = 1
         if energy_restored > 0:
             state["energy"] = min(100.0, state.get("energy", 100.0) + energy_restored)
         save_state(state)

@@ -2,6 +2,10 @@
 .env
 .env.local
 login-config.json
+credentials.json
+token.json
+**/token.json
+**/credentials.json
 
 # Python cache & build artifacts
 __pycache__/

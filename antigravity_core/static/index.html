@@ -317,6 +317,21 @@
           <div class="checklist-lbl">Google Health & Walking Sync</div>
           <div class="checklist-meta">Auto/Manual: Steps, Sleep, Active Mins & HR</div>
         </div>
+        <div class="checklist-item" id="chk-walk" onclick="toggleChecklistItem('walk')">
+          <div class="checklist-check"><i class="fa-solid fa-person-walking" style="color:var(--green)"></i></div>
+          <div class="checklist-lbl">Daily Road / Park Walk (1,000+ Steps)</div>
+          <div class="checklist-meta">Auto/Manual: Log 1,000+ Steps (+15 XP, +1 WIL)</div>
+        </div>
+        <div class="checklist-item" id="chk-meditation" onclick="toggleChecklistItem('meditation')">
+          <div class="checklist-check"><i class="fa-solid fa-spa" style="color:var(--cyan)"></i></div>
+          <div class="checklist-lbl">Daily 5-Min Focused Meditation</div>
+          <div class="checklist-meta">Manual/Audio: Log 5+ Min Meditation (+20 XP, +2 STC, +1 WIL)</div>
+        </div>
+        <div class="checklist-item" id="chk-mindos" onclick="toggleChecklistItem('mindos')">
+          <div class="checklist-check"><i class="fa-solid fa-brain" style="color:var(--purple)"></i></div>
+          <div class="checklist-lbl">Daily Mind OS Reality Check</div>
+          <div class="checklist-meta">Manual: CBT Reality Check or Grounding (+15 XP, +1 STC)</div>
+        </div>
       </div>
     </div>
 
@@ -392,6 +407,9 @@ async function loadDashboard() {
     toggleDone('chk-cooking', d.cooking_completed);
     toggleDone('chk-nopmo', d.nopmo_completed);
     toggleDone('chk-reading', d.reading_completed);
+    toggleDone('chk-walk', d.walk_completed);
+    toggleDone('chk-meditation', d.meditation_completed);
+    toggleDone('chk-mindos', d.mindos_completed);
     
     const bookLbl = document.getElementById('reading-book-lbl');
     if (bookLbl) bookLbl.textContent = d.reading_book || 'None';
