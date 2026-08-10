@@ -417,6 +417,7 @@ async function loadDashboard() {
     toggleDone('chk-walk', d.walk_completed);
     toggleDone('chk-meditation', d.meditation_completed);
     toggleDone('chk-mindos', d.mindos_completed);
+    toggleDone('chk-health', d.health_completed);
     
     const bookLbl = document.getElementById('reading-book-lbl');
     if (bookLbl) bookLbl.textContent = d.reading_book || 'None';

@@ -42,7 +42,11 @@ DEFAULT_STATE = {
     "reading_completed": False,
     "english_completed": False,
     "leetcode_completed": False,
-    "study_completed": False
+    "study_completed": False,
+    "walk_completed": 0,
+    "meditation_completed": 0,
+    "mindos_completed": 0,
+    "health_completed": 0
 }
 
 def get_db_connection():
@@ -289,29 +293,107 @@ def get_today_ist_str() -> str:
 
 def check_date_transition(state: dict) -> dict:
     """
-    Checks if a new day has started in IST timezone. Updates energy and resets daily metrics.
+    Checks if a new day has started in IST timezone.
+    Calculates the streak, updates energy, resets daily metrics, and writes to activity log.
     """
+    if not state:
+        return state
     today_str = get_today_ist_str()
     last_update_str = state.get("last_update", "")
     
     if last_update_str and last_update_str != today_str:
+        # Pre-check LeetCode sync to prevent losing streak
+        try:
+            from antigravity_core.engine.leetcode_sync import sync_leetcode
+            sync_leetcode()
+            # Reload state after sync
+            try:
+                from state import load_state_file
+                file_state = load_state_file()
+                if file_state:
+                    state.update(file_state)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"[Day Transition] Pre-check LeetCode sync failed: {e}")
+
+        # Calculate elapsed days
+        try:
+            import datetime
+            last_dt = datetime.date.fromisoformat(last_update_str)
+            today_dt = datetime.date.fromisoformat(today_str)
+            elapsed_days = max(1, (today_dt - last_dt).days)
+        except Exception:
+            elapsed_days = 1
+
+        # Require ALL core discipline targets (Study, LeetCode, Gym, English) to be completed
+        mandatory_targets = [
+            bool(state.get("study_completed", False)),
+            bool(state.get("leetcode_completed", False)),
+            bool(state.get("gym_completed", False)),
+            bool(state.get("english_completed", False))
+        ]
+        all_completed = all(mandatory_targets)
+        
+        if all_completed:
+            current_streak = max(33, state.get("streak_days", 33))
+            state["streak_days"] = current_streak + elapsed_days
+            state["energy"] = min(100.0, state.get("energy", 100.0) + 25.0)
+            doing = f"Day Transition: ALL Core Discipline Targets Passed for {last_update_str}"
+            accomplished = f"Completed ALL core targets! Streak incremented by +{elapsed_days}d to {state['streak_days']} days."
+        else:
+            current_streak = max(33, state.get("streak_days", 33))
+            state["streak_days"] = current_streak
+            doing = f"Day Transition: Partial Completion for {last_update_str}"
+            failures = []
+            if not state.get("study_completed", False): failures.append("Study")
+            if not state.get("leetcode_completed", False): failures.append("LeetCode")
+            if not state.get("gym_completed", False): failures.append("Gym")
+            if not state.get("english_completed", False): failures.append("English")
+            accomplished = f"Streak maintained at {state['streak_days']} days. Missing: {', '.join(failures)}."
+
+        # Write check-in to activity log file
+        try:
+            import datetime
+            timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_entry = f"\n## {timestamp_str} check-in\n- **Current Activity**: {doing}\n- **Accomplished**: {accomplished}\n"
+            import os
+            core_dir = os.path.dirname(os.path.abspath(__file__))
+            log_path = os.path.join(core_dir, "antigravity_core", "data", "activity_log.md")
+            if not os.path.exists(os.path.dirname(log_path)):
+                log_path = os.path.join(core_dir, "data", "activity_log.md")
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(log_entry)
+        except Exception as e:
+            print(f"[State] Day transition log error: {e}")
+
         # Reset daily checklist items for the new day
         state["completed_quests_today"] = []
-        state["gym_completed"] = False
-        state["study_completed"] = False
-        state["leetcode_completed"] = False
-        state["cooking_completed"] = False
-        state["nopmo_completed"] = False
-        state["reading_completed"] = False
-        state["english_completed"] = False
+        state["gym_completed"] = 0
+        state["study_completed"] = 0
+        state["leetcode_completed"] = 0
+        state["cooking_completed"] = 0
+        state["nopmo_completed"] = 0
+        state["reading_completed"] = 0
+        state["english_completed"] = 0
+        state["walk_completed"] = 0
+        state["meditation_completed"] = 0
+        state["mindos_completed"] = 0
+        state["health_completed"] = 0
         state["daily_telemetry"] = {
             "study_hours": 0.0,
             "gym_hours": 0.0,
             "dopamine_rewards": 0
         }
+        
+        # Check circuit breaker
+        check_circuit_breaker(state)
+        
         state["last_update"] = today_str
         save_state(state)
+        
     elif not last_update_str:
         state["last_update"] = today_str
         save_state(state)
+        
     return state

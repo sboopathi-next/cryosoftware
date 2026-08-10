@@ -549,65 +549,7 @@ def check_and_update_streak(state: dict) -> dict:
 
 
 def check_date_transition(state: dict) -> dict:
-    import datetime
-    today_str = datetime.date.today().isoformat()
-    last_update_str = state.get("last_update")
-    
-    if last_update_str and last_update_str != today_str:
-        try:
-            from engine.leetcode_sync import sync_leetcode
-            sync_leetcode()
-            state = get_state()
-        except Exception as e:
-            print(f"[Day Transition] Pre-check LeetCode sync failed: {e}")
-            
-        try:
-            last_dt = datetime.date.fromisoformat(last_update_str)
-            today_dt = datetime.date.fromisoformat(today_str)
-            elapsed_days = max(1, (today_dt - last_dt).days)
-        except Exception:
-            elapsed_days = 1
-
-        # Require ALL core discipline targets (Study, LeetCode, Gym, English) to be completed
-        mandatory_targets = [
-            bool(state.get("study_completed", 0)),
-            bool(state.get("leetcode_completed", 0)),
-            bool(state.get("gym_completed", 0)),
-            bool(state.get("english_completed", 0))
-        ]
-        all_completed = all(mandatory_targets)
-        
-        if all_completed:
-            current_streak = max(33, state.get("streak_days", 33))
-            state["streak_days"] = current_streak + elapsed_days
-            state["energy"] = min(100.0, state.get("energy", 100.0) + 25.0)
-            doing = f"Day Transition: ALL Core Discipline Targets Passed for {last_update_str}"
-            accomplished = f"Completed ALL core targets! Streak incremented by +{elapsed_days}d to {state['streak_days']} days."
-        else:
-            current_streak = max(33, state.get("streak_days", 33))
-            state["streak_days"] = current_streak
-            doing = f"Day Transition: Partial Completion for {last_update_str}"
-            accomplished = f"Streak maintained at {state['streak_days']} days. Complete ALL core targets to increment."
-
-        from engine.fatigue_governor import check_circuit_breaker
-        check_circuit_breaker(state)
-        
-        log_activity_file(doing, accomplished)
-        
-        state["gym_completed"] = 0
-        state["study_completed"] = 0
-        state["leetcode_completed"] = 0
-        state["cooking_completed"] = 0
-        state["nopmo_completed"] = 0
-        state["reading_completed"] = 0
-        state["english_completed"] = 0
-        state["last_update"] = today_str
-        save_state(state)
-        
-    elif not last_update_str:
-        state["last_update"] = today_str
-        save_state(state)
-        
+    # Day transition is handled automatically in state.py at database state loading level
     return state
 
 
@@ -838,6 +780,7 @@ def get_stats():
         "walk_completed": bool(state.get("walk_completed", 0)),
         "meditation_completed": bool(state.get("meditation_completed", 0)),
         "mindos_completed": bool(state.get("mindos_completed", 0)),
+        "health_completed": bool(state.get("health_completed", 0)),
         "neon_online": (lambda: (__import__('sync').is_online()))()
     }
 
@@ -1683,7 +1626,7 @@ def get_body_metrics():
 def toggle_checklist(payload: ChecklistTogglePayload):
     state = get_state()
     col = f"{payload.item}_completed"
-    if col not in ["gym_completed", "study_completed", "leetcode_completed", "cooking_completed", "nopmo_completed", "reading_completed", "english_completed", "walk_completed", "meditation_completed", "mindos_completed"]:
+    if col not in ["gym_completed", "study_completed", "leetcode_completed", "cooking_completed", "nopmo_completed", "reading_completed", "english_completed", "walk_completed", "meditation_completed", "mindos_completed", "health_completed"]:
         raise HTTPException(status_code=400, detail="Invalid checklist item selection.")
         
     prev_val = bool(state.get(col, 0))
@@ -1716,6 +1659,9 @@ def toggle_checklist(payload: ChecklistTogglePayload):
             xp_to_add = 15
             state["wil"] = state.get("wil", 10) + 1
             state["int"] = state.get("int", 10) + 1
+        elif payload.item == "health":
+            xp_to_add = 15
+            state["wil"] = state.get("wil", 10) + 1
     elif not payload.value and prev_val:
         if payload.item == "cooking":
             xp_to_remove = 10
@@ -1729,6 +1675,9 @@ def toggle_checklist(payload: ChecklistTogglePayload):
             xp_to_remove = 15
             state["wil"] = max(10, state.get("wil", 10) - 1)
             state["int"] = max(10, state.get("int", 10) - 1)
+        elif payload.item == "health":
+            xp_to_remove = 15
+            state["wil"] = max(10, state.get("wil", 10) - 1)
             
     if xp_to_remove > 0:
         state["xp"] = max(0, state.get("xp", 0) - xp_to_remove)

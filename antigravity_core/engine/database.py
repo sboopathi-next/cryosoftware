@@ -412,29 +412,6 @@ def calculate_xp_required(level: int) -> int:
     return int(100 * (level ** 1.5))
 
 def check_date_transition_db(state: dict) -> dict:
-    if not state:
-        return state
-    today_str = date.today().isoformat()
-    last_update_str = state.get("last_update", "")
-    if last_update_str and last_update_str != today_str:
-        state["completed_quests_today"] = []
-        state["gym_completed"] = 0
-        state["study_completed"] = 0
-        state["leetcode_completed"] = 0
-        state["cooking_completed"] = 0
-        state["nopmo_completed"] = 0
-        state["reading_completed"] = 0
-        state["english_completed"] = 0
-        state["daily_telemetry"] = {
-            "study_hours": 0.0,
-            "gym_hours": 0.0,
-            "dopamine_rewards": 0
-        }
-        state["last_update"] = today_str
-        save_state(state)
-    elif not last_update_str:
-        state["last_update"] = today_str
-        save_state(state)
     return state
 
 def get_state() -> dict:
@@ -1391,6 +1368,7 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
         state["wil"] = state.get("wil", 10) + wil_gained
         state["str"] = state.get("str", 10) + str_gained
         state["heart"] = state.get("heart", 10) + hrt_gained
+        state["health_completed"] = 1
         if steps >= 1000 or distance_km >= 0.5 or active_minutes >= 10:
             state["walk_completed"] = 1
         if energy_restored > 0:
