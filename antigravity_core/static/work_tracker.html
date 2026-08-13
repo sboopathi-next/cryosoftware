@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Office Work Tracker</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow-y: auto; padding: 20px; }
+.wt-container { max-width: 1000px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 16px; padding-bottom: 80px; }
+.wt-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.wt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.wt-stat-box { background: #0a0d1e; border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+.wt-stat-lbl { font-size: 10px; font-family: var(--ff-mono); color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+.wt-stat-val { font-family: var(--ff-brand); font-size: 24px; font-weight: 900; color: var(--text1); margin-top: 4px; }
+.wt-stat-sub { font-size: 11px; color: var(--green); margin-top: 2px; }
+.wt-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.wt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.wt-table th { font-family: var(--ff-mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
+.wt-table td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+@media(max-width: 700px) {
+  .wt-form-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a></li>
+      <li><a href="/work-tracker" class="active"><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i><span>Work Tracker</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">XP</span></a></li>
+      <li><a href="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="wt-container">
+      <!-- Page Header -->
+      <div class="page-head">
+        <div>
+          <div class="page-title"><i class="fa-solid fa-briefcase" style="color:var(--indigo); margin-right:8px;"></i> Office Work Tracker</div>
+          <div class="page-sub">Log daily office work · Earn exponential category mastery XP · Build AGI &amp; INT</div>
+        </div>
+      </div>
+
+      <!-- Stats Overview -->
+      <div class="wt-grid">
+        <div class="wt-stat-box">
+          <div class="wt-stat-lbl">Total Work Hours</div>
+          <div class="wt-stat-val" id="st-total-hrs">0.0h</div>
+          <div class="wt-stat-sub" id="st-total-logs">0 log entries</div>
+        </div>
+        <div class="wt-stat-box">
+          <div class="wt-stat-lbl">Active Categories</div>
+          <div class="wt-stat-val" id="st-total-cats" style="color:var(--indigo);">0</div>
+          <div class="wt-stat-sub">Domain Focus</div>
+        </div>
+        <div class="wt-stat-box">
+          <div class="wt-stat-lbl">Peak Multiplier</div>
+          <div class="wt-stat-val" id="st-peak-mult" style="color:var(--amber);">1.25x</div>
+          <div class="wt-stat-sub">Exponential Mastery</div>
+        </div>
+        <div class="wt-stat-box">
+          <div class="wt-stat-lbl">Total Work XP</div>
+          <div class="wt-stat-val" id="st-total-xp" style="color:var(--green);">0</div>
+          <div class="wt-stat-sub">Level Progress</div>
+        </div>
+      </div>
+
+      <!-- Work Log Entry Form -->
+      <div class="wt-card">
+        <div class="card-title" style="margin-bottom:12px;">
+          <i class="fa-solid fa-plus-circle" style="color:var(--indigo);"></i> Log Office Work Session
+        </div>
+        <form onsubmit="submitWorkPageForm(event)">
+          <div class="wt-form-grid">
+            <div class="field">
+              <label>Work Item ID (Key)</label>
+              <input type="text" id="pg-wt-id" placeholder="e.g. JIRA-8921 or TASK-101" required style="background:#0a0d1e; border:1px solid var(--border); border-radius:7px; color:#fff; padding:9px 12px; font-size:13px;">
+            </div>
+            <div class="field">
+              <label>Category</label>
+              <input type="text" id="pg-wt-cat" placeholder="e.g. API Integration, Frontend UI" required style="background:#0a0d1e; border:1px solid var(--border); border-radius:7px; color:#fff; padding:9px 12px; font-size:13px;">
+            </div>
+            <div class="field">
+              <label>Hours Spent</label>
+              <input type="number" id="pg-wt-hrs" placeholder="e.g. 2.5" step="0.1" min="0.1" max="24" required style="background:#0a0d1e; border:1px solid var(--border); border-radius:7px; color:#fff; padding:9px 12px; font-size:13px;">
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Work Description</label>
+            <input type="text" id="pg-wt-desc" placeholder="Detailed description of accomplishments..." required style="background:#0a0d1e; border:1px solid var(--border); border-radius:7px; color:#fff; padding:9px 12px; font-size:13px;">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="padding:12px; font-size:14px; background:linear-gradient(135deg,var(--indigo),#4f46e5); border:none;">
+            <i class="fa-solid fa-bolt"></i> Log Work &amp; Earn Compound XP
+          </button>
+        </form>
+      </div>
+
+      <!-- Category Depth Breakdown -->
+      <div class="wt-card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fa-solid fa-chart-pie" style="color:var(--amber);"></i> Category Mastery &amp; Exponential Multipliers</div>
+        <div id="pg-cat-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:10px;">
+          <div style="color:var(--text3); font-size:12px;">No categories tracked yet.</div>
+        </div>
+      </div>
+
+      <!-- History Table -->
+      <div class="wt-card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fa-solid fa-list-check"></i> Work Session History</div>
+        <div style="overflow-x:auto;">
+          <table class="wt-table">
+            <thead>
+              <tr>
+                <th>LOG ID</th>
+                <th>WORK ITEM KEY</th>
+                <th>CATEGORY</th>
+                <th>DESCRIPTION</th>
+                <th>DATE</th>
+                <th>HOURS</th>
+                <th>XP EARNED</th>
+              </tr>
+            </thead>
+            <tbody id="pg-work-tbl">
+              <tr><td colspan="7" style="text-align:center; padding:16px; color:var(--text3);">Loading work session history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js"></script>
+<script>
+async function loadWorkTrackerPage() {
+  try {
+    const res = await fetch("/api/work_tracker/logs?limit=100");
+    if (!res.ok) return;
+    const data = await res.json();
+    renderWorkTrackerPage(data);
+  } catch (e) {
+    console.error("Failed to load work tracker logs:", e);
+  }
+}
+
+function renderWorkTrackerPage(data) {
+  const logs = data.logs || [];
+  const summary = data.category_summary || {};
+  
+  let totalHours = 0;
+  let totalXP = 0;
+  let peakMult = 1.25;
+
+  logs.forEach(l => {
+    totalHours += parseFloat(l.hours || 0);
+    totalXP += parseFloat(l.xp_awarded || 0);
+  });
+
+  document.getElementById("st-total-hrs").textContent = totalHours.toFixed(1) + "h";
+  document.getElementById("st-total-logs").textContent = logs.length + " log entries";
+  document.getElementById("st-total-cats").textContent = Object.keys(summary).length;
+  document.getElementById("st-total-xp").textContent = Math.round(totalXP);
+
+  // Category grid
+  const catGrid = document.getElementById("pg-cat-grid");
+  if (catGrid) {
+    if (!Object.keys(summary).length) {
+      catGrid.innerHTML = '<div style="color:var(--text3); font-size:12px;">No categories tracked yet.</div>';
+    } else {
+      let html = "";
+      for (const [cat, stats] of Object.entries(summary)) {
+        if (stats.multiplier > peakMult) peakMult = stats.multiplier;
+        html += `
+          <div style="background:#0a0d1e; border:1px solid rgba(99,102,241,0.3); border-radius:10px; padding:12px;">
+            <div style="font-size:11px; color:var(--indigo); font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${cat}</div>
+            <div style="font-family:var(--ff-brand); font-size:20px; font-weight:800; color:#fff; margin-top:4px;">${stats.total_hours}h</div>
+            <div style="font-size:10px; color:var(--text3); margin-top:2px;">${stats.total_logs} log(s)</div>
+            <div style="font-size:11px; color:var(--green); font-weight:bold; margin-top:4px;">⚡ ${stats.multiplier}x Multiplier</div>
+          </div>
+        `;
+      }
+      catGrid.innerHTML = html;
+    }
+  }
+  document.getElementById("st-peak-mult").textContent = peakMult.toFixed(2) + "x";
+
+  // Table
+  const tbl = document.getElementById("pg-work-tbl");
+  if (tbl) {
+    if (!logs.length) {
+      tbl.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--text3);">No work logged yet. Use the form above to log your first session!</td></tr>';
+      return;
+    }
+    tbl.innerHTML = logs.map(l => `
+      <tr>
+        <td style="font-family:var(--ff-mono); color:var(--text3);">#${l.workLogId || l.id || '-'}</td>
+        <td style="font-family:var(--ff-mono); color:var(--indigo); font-weight:bold;">${l.workItemId}</td>
+        <td style="font-weight:600;">${l.category}</td>
+        <td style="color:var(--text2); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${l.description}</td>
+        <td style="font-family:var(--ff-mono); color:var(--text3);">${l.workDate || '-'}</td>
+        <td style="font-weight:bold;">${l.hours}h</td>
+        <td style="color:var(--green); font-family:var(--ff-mono); font-weight:bold;">+${l.xp_awarded} XP</td>
+      </tr>
+    `).join('');
+  }
+}
+
+async function submitWorkPageForm(e) {
+  e.preventDefault();
+  const item = document.getElementById("pg-wt-id").value.trim();
+  const cat = document.getElementById("pg-wt-cat").value.trim();
+  const hrs = parseFloat(document.getElementById("pg-wt-hrs").value);
+  const desc = document.getElementById("pg-wt-desc").value.trim();
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  try {
+    const res = await fetch("/api/work_tracker/log_work", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workItemId: item,
+        description: desc,
+        workDate: todayStr,
+        Category: cat,
+        hours: hrs
+      })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      toast(d.message || "Office Work Logged!", "ok");
+      document.getElementById("pg-wt-id").value = "";
+      document.getElementById("pg-wt-cat").value = "";
+      document.getElementById("pg-wt-hrs").value = "";
+      document.getElementById("pg-wt-desc").value = "";
+      loadWorkTrackerPage();
+    } else {
+      toast(d.detail || "Error logging office work.", "err");
+    }
+  } catch (err) {
+    toast("Network error logging work.", "err");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadWorkTrackerPage);
+</script>
+</body>
+</html>

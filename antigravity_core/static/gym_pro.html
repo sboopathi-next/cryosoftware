@@ -198,49 +198,6 @@ body, .app { height: 100vh; overflow: hidden; }
           <button class="btn btn-ghost btn-sm" onclick="quickReset()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
         </div>
 
-        <!-- REAL-TIME GYMPRO TIMER & MANUAL OVERRIDE -->
-        <div class="card" style="background:#0a0d1e; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <div style="font-family:var(--ff-brand); font-weight:800; font-size:15px; color:var(--amber);">
-              <i class="fa-solid fa-stopwatch" style="margin-right:6px"></i> GymPro Live Stopwatch &amp; Logger
-            </div>
-            <span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">REALTIME</span>
-          </div>
-
-          <div style="background:#060818; border:1px solid var(--border); border-radius:10px; padding:18px; text-align:center; margin-bottom:14px;">
-            <div id="gp-timer-disp" style="font-family:var(--ff-mono); font-size:38px; font-weight:900; color:var(--cyan); letter-spacing:2px; margin-bottom:12px;">00:00</div>
-            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-              <button id="gp-btn-start" onclick="gpStartTimer()" class="btn btn-sm" style="background:#10b981; color:#fff; font-weight:bold; border:none; padding:8px 18px;">
-                <i class="fa-solid fa-play"></i> Start
-              </button>
-              <button id="gp-btn-pause" onclick="gpPauseTimer()" class="btn btn-sm" style="background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:8px 18px; display:none;">
-                <i class="fa-solid fa-pause"></i> Pause
-              </button>
-              <button onclick="gpSaveTimerWorkout()" class="btn btn-sm" style="background:linear-gradient(135deg,var(--indigo),var(--blue)); color:#fff; font-weight:bold; border:none; padding:8px 18px;">
-                <i class="fa-solid fa-floppy-disk"></i> Save Workout
-              </button>
-              <button onclick="gpResetTimer()" class="btn btn-ghost btn-sm" style="color:var(--text3);">
-                <i class="fa-solid fa-rotate-left"></i> Reset
-              </button>
-            </div>
-          </div>
-
-          <!-- Manual Workout Entry Override -->
-          <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px; padding:12px;">
-            <div style="font-size:11px; font-family:var(--ff-mono); color:var(--text3); margin-bottom:8px; text-transform:uppercase;">Manual Entry Override</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:8px;">
-              <input type="number" id="gp-manual-mins" placeholder="Duration (mins)" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
-              <select id="gp-manual-type" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
-                <option value="Strength Training">Strength Training</option>
-                <option value="Cardio / Running">Cardio / Running</option>
-                <option value="Calisthenics">Calisthenics</option>
-                <option value="CrossFit / HIIT">CrossFit / HIIT</option>
-              </select>
-              <button onclick="gpSaveManualWorkout()" class="btn btn-sm" style="background:var(--purple); color:#fff; font-weight:bold; border:none; padding:7px 14px;">Log Manual</button>
-            </div>
-          </div>
-        </div>
-
         <div class="ex-pick-row">
           <div class="field"><label>Category</label><select id="lg-cat" onchange="lgLoadEx()"><option value="">— Muscle Group —</option></select></div>
           <div class="field"><label>Exercise</label><select id="lg-ex" onchange="lgExSelected()"><option value="">— Exercise —</option></select></div>
@@ -270,7 +227,24 @@ body, .app { height: 100vh; overflow: hidden; }
         <div class="start-hint" id="start-hint"><i class="fa-solid fa-hand-pointer"></i><p>Pick muscle group &amp; exercise, then tap Add Set</p></div>
         <div id="log-extra" style="display:none;margin-top:12px">
           <div class="row-2 gap-md">
-            <div class="field"><label>Duration (min)</label><input type="number" id="lg-dur" value="45" min="1" max="300"></div>
+            <div class="field">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="margin:0;">Duration (min)</label>
+                <div style="display:flex; gap:4px; align-items:center;">
+                  <span id="lg-timer-disp" style="font-family:var(--ff-mono); font-size:11px; font-weight:bold; color:var(--cyan); margin-right:4px;">00:00</span>
+                  <button id="lg-btn-start" type="button" onclick="gpStartTimer()" class="btn btn-ghost btn-sm" style="font-size:10px; color:var(--green); padding:2px 6px;">
+                    <i class="fa-solid fa-play"></i> Start
+                  </button>
+                  <button id="lg-btn-pause" type="button" onclick="gpPauseTimer()" class="btn btn-ghost btn-sm" style="font-size:10px; color:var(--amber); padding:2px 6px; display:none;">
+                    <i class="fa-solid fa-pause"></i> Pause
+                  </button>
+                  <button type="button" onclick="gpResetTimer()" class="btn btn-ghost btn-sm" style="font-size:10px; color:var(--text3); padding:2px 4px;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                </div>
+              </div>
+              <input type="number" id="lg-dur" value="45" min="1" max="300">
+            </div>
             <div class="field"><label>Notes</label><input type="text" id="lg-var" placeholder="e.g. paused reps..."></div>
           </div>
           <button class="btn btn-primary btn-full" style="margin-top:12px;padding:13px;font-size:14px" onclick="lgSubmit()">
@@ -402,32 +376,37 @@ function gpFmtTime(sec) {
 function gpStartTimer() {
   if (gpIsActive) return;
   gpIsActive = true;
-  document.getElementById('gp-btn-start').style.display = 'none';
-  document.getElementById('gp-btn-pause').style.display = 'inline-flex';
+  const btnStart = document.getElementById('lg-btn-start');
+  const btnPause = document.getElementById('lg-btn-pause');
+  if (btnStart) btnStart.style.display = 'none';
+  if (btnPause) btnPause.style.display = 'inline-flex';
   gpTimerInterval = setInterval(() => {
     gpSeconds++;
-    document.getElementById('gp-timer-disp').textContent = gpFmtTime(gpSeconds);
+    const disp = document.getElementById('lg-timer-disp');
+    if (disp) disp.textContent = gpFmtTime(gpSeconds);
+    const durInp = document.getElementById('lg-dur');
+    if (durInp) {
+      durInp.value = Math.max(1, Math.round(gpSeconds / 60));
+    }
   }, 1000);
 }
 
 function gpPauseTimer() {
   gpIsActive = false;
   clearInterval(gpTimerInterval);
-  document.getElementById('gp-btn-start').style.display = 'inline-flex';
-  document.getElementById('gp-btn-pause').style.display = 'none';
+  const btnStart = document.getElementById('lg-btn-start');
+  const btnPause = document.getElementById('lg-btn-pause');
+  if (btnStart) btnStart.style.display = 'inline-flex';
+  if (btnPause) btnPause.style.display = 'none';
 }
 
 function gpResetTimer() {
   gpPauseTimer();
   gpSeconds = 0;
-  document.getElementById('gp-timer-disp').textContent = '00:00';
-}
-
-async function gpSaveTimerWorkout() {
-  const mins = Math.max(1, Math.round(gpSeconds / 60));
-  const type = document.getElementById('gp-manual-type')?.value || 'Strength Training';
-  await sendGymProPayload(mins, type, false);
-  gpResetTimer();
+  const disp = document.getElementById('lg-timer-disp');
+  if (disp) disp.textContent = '00:00';
+  const durInp = document.getElementById('lg-dur');
+  if (durInp) durInp.value = '45';
 }
 
 async function gpSaveManualWorkout() {

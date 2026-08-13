@@ -777,7 +777,7 @@ function injectMobileNavigation() {
         <a href="/exam" class="sheet-grid-item"><i class="fa-solid fa-square-root-variable" style="color:var(--indigo)"></i><span>Exam Editor</span></a>
         <a href="/teacher" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span></a>
         <a href="/teach" class="sheet-grid-item"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span></a>
-        <a href="#" onclick="syncGoogleFitCloudManual(this); return false;" class="sheet-grid-item"><i class="fa-solid fa-person-walking" style="color:#10b981"></i><span>Sync Fit</span></a>
+        <a href="/work-tracker" class="sheet-grid-item"><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i><span>Work Tracker</span></a>
         <a href="#" onclick="openSettings(); return false;" class="sheet-grid-item"><i class="fa-solid fa-gear" style="color:var(--text2)"></i><span>Settings</span></a>
       </div>
     </div>
@@ -1015,6 +1015,19 @@ function injectDesktopSidebarNav() {
   const nav = document.querySelector('.nav');
   if (!nav) return;
   const pathname = window.location.pathname.replace(/\/$/, '') || '/';
+
+  // 0. Ensure Work Tracker is inserted right after Canvas LMS (/canvas)
+  if (!nav.querySelector('a[href="/work-tracker"]')) {
+    const canvasLi = nav.querySelector('a[href="/canvas"]')?.closest('li');
+    const li = document.createElement('li');
+    const activeClass = (pathname === '/work-tracker' || pathname === '/work_tracker' || pathname === '/work_tracker.html') ? 'class="active"' : '';
+    li.innerHTML = `<a href="/work-tracker" ${activeClass}><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i><span>Work Tracker</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">XP</span></a>`;
+    if (canvasLi && canvasLi.nextSibling) {
+      nav.insertBefore(li, canvasLi.nextSibling);
+    } else {
+      nav.appendChild(li);
+    }
+  }
 
   // 1. Ensure Gym Pro is inserted right after Study Path (/syllabus)
   if (!nav.querySelector('a[href="/gym-pro"]')) {

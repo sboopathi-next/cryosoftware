@@ -517,6 +517,11 @@ def get_teacher_page():
 def get_stoic_page():
     return FileResponse(os.path.join(STATIC_DIR, "stoic.html"))
 
+@app.get("/work-tracker")
+@app.get("/work_tracker")
+def get_work_tracker_page():
+    return FileResponse(os.path.join(STATIC_DIR, "work_tracker.html"))
+
 
 
 
