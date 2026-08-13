@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Antigravity — Office Work Analytics Report</title>
+<title>Antigravity — Office Work Analytics & Calendar Report</title>
 <link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
 <link rel="stylesheet" href="/static/style.css">
 <style>
@@ -16,6 +16,17 @@ body, .app { height: 100vh; overflow: hidden; }
 .wt-stat-lbl { font-size: 10px; font-family: var(--ff-mono); color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
 .wt-stat-val { font-family: var(--ff-brand); font-size: 24px; font-weight: 900; color: var(--text1); margin-top: 4px; }
 .wt-stat-sub { font-size: 11px; color: var(--green); margin-top: 2px; }
+
+/* Calendar Widget */
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
+.cal-day-hdr { font-family: var(--ff-mono); font-size: 10px; color: var(--text3); text-align: center; padding: 4px 0; text-transform: uppercase; }
+.cal-tile { background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; padding: 8px 4px; min-height: 52px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; }
+.cal-tile:hover { border-color: var(--indigo); background: rgba(99,102,241,0.08); }
+.cal-tile.active { border-color: var(--cyan); background: rgba(6,182,212,0.15); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
+.cal-tile.has-work { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.12); }
+.cal-date-num { font-family: var(--ff-mono); font-size: 11px; color: var(--text2); font-weight: bold; }
+.cal-work-badge { font-size: 9px; font-family: var(--ff-mono); background: var(--indigo); color: #fff; padding: 1px 5px; border-radius: 4px; font-weight: bold; margin-top: 2px; }
+
 .wt-filter-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .wt-filter-bar input, .wt-filter-bar select { background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 8px 12px; font-size: 12px; }
 .wt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -51,14 +62,14 @@ body, .app { height: 100vh; overflow: hidden; }
   <main class="main">
     <div class="wt-container">
       <!-- Page Header -->
-      <div class="page-head" style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="page-head" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div>
-          <div class="page-title"><i class="fa-solid fa-briefcase" style="color:var(--indigo); margin-right:8px;"></i> Office Work Analytics &amp; Mastery Report</div>
-          <div class="page-sub">Real-time domain yield metrics · Exponential XP analytics · Stat attribute distribution</div>
+          <div class="page-title"><i class="fa-solid fa-briefcase" style="color:var(--indigo); margin-right:8px;"></i> Office Work Analytics &amp; Calendar Report</div>
+          <div class="page-sub">Interactive daily activity calendar · Domain depth summary · Auto API ingestion</div>
         </div>
-        <div style="text-align:right;">
+        <div>
           <span class="nav-badge" style="background:rgba(16,185,129,0.15); color:var(--green); border-color:rgba(16,185,129,0.3); font-family:var(--ff-mono); font-size:11px;">
-            <i class="fa-solid fa-satellite-dish" style="margin-right:4px;"></i> API Log Ingestion Active
+            <i class="fa-solid fa-satellite-dish" style="margin-right:4px;"></i> API Live Sync Active
           </span>
         </div>
       </div>
@@ -71,14 +82,9 @@ body, .app { height: 100vh; overflow: hidden; }
           <div class="wt-stat-sub" id="st-total-logs">0 logs recorded</div>
         </div>
         <div class="wt-stat-box">
-          <div class="wt-stat-lbl">Active Categories</div>
+          <div class="wt-stat-lbl">Active Domains</div>
           <div class="wt-stat-val" id="st-total-cats" style="color:var(--indigo);">0</div>
-          <div class="wt-stat-sub">Domain Focus</div>
-        </div>
-        <div class="wt-stat-box">
-          <div class="wt-stat-lbl">Peak Multiplier</div>
-          <div class="wt-stat-val" id="st-peak-mult" style="color:var(--amber);">1.25x</div>
-          <div class="wt-stat-sub">Exponential Mastery</div>
+          <div class="wt-stat-sub">Specializations</div>
         </div>
         <div class="wt-stat-box">
           <div class="wt-stat-lbl">Total Work XP</div>
@@ -92,25 +98,54 @@ body, .app { height: 100vh; overflow: hidden; }
         </div>
       </div>
 
-      <!-- Category Depth Breakdown Report -->
+      <!-- Interactive Calendar Report Widget -->
       <div class="wt-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-          <div class="card-title"><i class="fa-solid fa-chart-pie" style="color:var(--amber);"></i> Category Mastery &amp; Multipliers</div>
-          <div style="font-size:11px; color:var(--text3); font-family:var(--ff-mono);">Formula: 1 + 0.25 × (1.20)^Streak</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div class="card-title"><i class="fa-solid fa-calendar-days" style="color:var(--cyan);"></i> Work Activity Calendar</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span id="cal-month-title" style="font-family:var(--ff-mono); font-size:12px; color:var(--text2); font-weight:bold;">August 2026</span>
+            <button id="btn-clear-date" onclick="selectCalendarDate(null)" class="btn btn-ghost btn-sm" style="display:none; font-size:10px; color:var(--cyan);">
+              <i class="fa-solid fa-xmark"></i> Show All Dates
+            </button>
+          </div>
         </div>
-        <div id="pg-cat-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:12px;">
-          <div style="color:var(--text3); font-size:12px;">No office work categories tracked yet.</div>
+        
+        <div class="cal-grid">
+          <div class="cal-day-hdr">Sun</div>
+          <div class="cal-day-hdr">Mon</div>
+          <div class="cal-day-hdr">Tue</div>
+          <div class="cal-day-hdr">Wed</div>
+          <div class="cal-day-hdr">Thu</div>
+          <div class="cal-day-hdr">Fri</div>
+          <div class="cal-day-hdr">Sat</div>
+        </div>
+        <div class="cal-grid" id="cal-tiles-container">
+          <!-- Dynamically populated date tiles -->
         </div>
       </div>
 
-      <!-- Comprehensive History Report Table -->
+      <!-- Domain Focus Breakdown Grid (Cleaned of raw multipliers) -->
+      <div class="wt-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <div class="card-title"><i class="fa-solid fa-layer-group" style="color:var(--amber);"></i> Domain Specialization Depth</div>
+          <div style="font-size:11px; color:var(--text3); font-family:var(--ff-mono);">Yield Rewards Applied Automatically</div>
+        </div>
+        <div id="pg-cat-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px;">
+          <div style="color:var(--text3); font-size:12px;">No work domains logged yet.</div>
+        </div>
+      </div>
+
+      <!-- History Report Table -->
       <div class="wt-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-          <div class="card-title"><i class="fa-solid fa-list-check" style="color:var(--indigo);"></i> Work Session Logs Report</div>
+          <div class="card-title">
+            <i class="fa-solid fa-list-check" style="color:var(--indigo);"></i> Work Session Logs
+            <span id="filter-date-badge" class="nav-badge" style="display:none; background:rgba(6,182,212,0.15); color:var(--cyan); border-color:rgba(6,182,212,0.3); margin-left:8px;"></span>
+          </div>
           <div class="wt-filter-bar" style="margin:0;">
-            <input type="text" id="wt-search" placeholder="Search Work Item ID or text..." oninput="filterLogsTable()">
+            <input type="text" id="wt-search" placeholder="Search Item ID or description..." oninput="filterLogsTable()">
             <select id="wt-cat-select" onchange="filterLogsTable()">
-              <option value="">All Categories</option>
+              <option value="">All Domains</option>
             </select>
           </div>
         </div>
@@ -121,7 +156,7 @@ body, .app { height: 100vh; overflow: hidden; }
               <tr>
                 <th>LOG ID</th>
                 <th>WORK ITEM KEY</th>
-                <th>CATEGORY</th>
+                <th>DOMAIN</th>
                 <th>DESCRIPTION</th>
                 <th>DATE</th>
                 <th>HOURS</th>
@@ -142,17 +177,102 @@ body, .app { height: 100vh; overflow: hidden; }
 <script src="/static/shared.js"></script>
 <script>
 let allWorkLogs = [];
+let selectedDateStr = null;
+let dateWorkMap = {}; // dateStr -> { hours, count, xp }
 
 async function loadWorkTrackerReport() {
   try {
-    const res = await fetch("/api/work_tracker/logs?limit=200");
+    const res = await fetch("/api/work_tracker/logs?limit=300");
     if (!res.ok) return;
     const data = await res.json();
     allWorkLogs = data.logs || [];
+    processWorkData(data);
+    renderCalendar();
     renderWorkTrackerReport(data);
   } catch (e) {
     console.error("Failed to load work tracker logs report:", e);
   }
+}
+
+function processWorkData(data) {
+  dateWorkMap = {};
+  allWorkLogs.forEach(l => {
+    const d = l.workDate || (l.logged_at ? l.logged_at.split('T')[0] : null);
+    if (!d) return;
+    if (!dateWorkMap[d]) {
+      dateWorkMap[d] = { hours: 0, count: 0, xp: 0 };
+    }
+    dateWorkMap[d].hours += parseFloat(l.hours || 0);
+    dateWorkMap[d].count += 1;
+    dateWorkMap[d].xp += parseFloat(l.xp_awarded || 0);
+  });
+}
+
+function renderCalendar() {
+  const container = document.getElementById("cal-tiles-container");
+  if (!container) return;
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  document.getElementById("cal-month-title").textContent = `${monthNames[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let html = "";
+
+  // Blank tiles before day 1
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div style="background:transparent; min-height:48px;"></div>';
+  }
+
+  // Days of month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const workData = dateWorkMap[dateStr];
+    const hasWork = !!workData;
+    const isSelected = selectedDateStr === dateStr;
+
+    const tileClass = `cal-tile ${hasWork ? 'has-work' : ''} ${isSelected ? 'active' : ''}`;
+    const badgeHtml = hasWork ? `<div class="cal-work-badge">${workData.hours.toFixed(1)}h</div>` : '';
+
+    html += `
+      <div class="${tileClass}" onclick="selectCalendarDate('${dateStr}')">
+        <div class="cal-date-num">${day}</div>
+        ${badgeHtml}
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+function selectCalendarDate(dateStr) {
+  if (selectedDateStr === dateStr) {
+    selectedDateStr = null; // Toggle off if clicked again
+  } else {
+    selectedDateStr = dateStr;
+  }
+
+  const clearBtn = document.getElementById("btn-clear-date");
+  const dateBadge = document.getElementById("filter-date-badge");
+
+  if (selectedDateStr) {
+    if (clearBtn) clearBtn.style.display = "inline-flex";
+    if (dateBadge) {
+      dateBadge.style.display = "inline-flex";
+      dateBadge.textContent = `Date: ${selectedDateStr}`;
+    }
+  } else {
+    if (clearBtn) clearBtn.style.display = "none";
+    if (dateBadge) dateBadge.style.display = "none";
+  }
+
+  renderCalendar();
+  filterLogsTable();
 }
 
 function renderWorkTrackerReport(data) {
@@ -161,7 +281,6 @@ function renderWorkTrackerReport(data) {
   
   let totalHours = 0;
   let totalXP = 0;
-  let peakMult = 1.25;
 
   logs.forEach(l => {
     totalHours += parseFloat(l.hours || 0);
@@ -178,37 +297,35 @@ function renderWorkTrackerReport(data) {
   document.getElementById("st-total-stats").textContent = `+${totalAGI + totalINT}`;
   document.getElementById("st-stats-sub").textContent = `+${totalAGI} AGI · +${totalINT} INT`;
 
-  // Category Selector options
+  // Domain Selector options
   const catSel = document.getElementById("wt-cat-select");
   if (catSel) {
     const currentVal = catSel.value;
-    catSel.innerHTML = '<option value="">All Categories</option>' + 
+    catSel.innerHTML = '<option value="">All Domains</option>' + 
       Object.keys(summary).map(c => `<option value="${escHTML(c)}">${escHTML(c)}</option>`).join('');
     catSel.value = currentVal;
   }
 
-  // Category grid
+  // Domain Specialization Grid (Cleaned of raw 1.25x text)
   const catGrid = document.getElementById("pg-cat-grid");
   if (catGrid) {
     if (!Object.keys(summary).length) {
-      catGrid.innerHTML = '<div style="color:var(--text3); font-size:12px;">No work categories logged yet.</div>';
+      catGrid.innerHTML = '<div style="color:var(--text3); font-size:12px;">No work domains logged yet.</div>';
     } else {
       let html = "";
       for (const [cat, stats] of Object.entries(summary)) {
-        if (stats.multiplier > peakMult) peakMult = stats.multiplier;
         html += `
           <div style="background:#0a0d1e; border:1px solid rgba(99,102,241,0.3); border-radius:10px; padding:14px;">
             <div style="font-size:11px; color:var(--indigo); font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHTML(cat)}</div>
             <div style="font-family:var(--ff-brand); font-size:22px; font-weight:900; color:#fff; margin-top:4px;">${stats.total_hours}h</div>
-            <div style="font-size:10px; color:var(--text3); margin-top:2px;">${stats.total_logs} session(s)</div>
-            <div style="font-size:11px; color:var(--green); font-weight:bold; margin-top:6px;">⚡ ${stats.multiplier}x Multiplier</div>
+            <div style="font-size:10px; color:var(--text3); margin-top:2px;">${stats.total_logs} logged session(s)</div>
+            <div style="font-size:11px; color:var(--green); font-weight:bold; margin-top:6px;">⚡ Deep Mastery Active</div>
           </div>
         `;
       }
       catGrid.innerHTML = html;
     }
   }
-  document.getElementById("st-peak-mult").textContent = peakMult.toFixed(2) + "x";
 
   filterLogsTable();
 }
@@ -218,18 +335,20 @@ function filterLogsTable() {
   const catFilter = document.getElementById("wt-cat-select")?.value || "";
 
   const filtered = allWorkLogs.filter(l => {
+    const logDate = l.workDate || (l.logged_at ? l.logged_at.split('T')[0] : null);
+    const matchDate = !selectedDateStr || logDate === selectedDateStr;
     const matchCat = !catFilter || l.category === catFilter;
     const matchQuery = !query || 
       (l.workItemId || "").toLowerCase().includes(query) || 
       (l.description || "").toLowerCase().includes(query) || 
       (l.category || "").toLowerCase().includes(query);
-    return matchCat && matchQuery;
+    return matchDate && matchCat && matchQuery;
   });
 
   const tbl = document.getElementById("pg-work-tbl");
   if (tbl) {
     if (!filtered.length) {
-      tbl.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--text3);">No matching work logs found.</td></tr>';
+      tbl.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--text3);">${selectedDateStr ? 'No work logs for ' + selectedDateStr : 'No matching work logs found.'}</td></tr>`;
       return;
     }
     tbl.innerHTML = filtered.map(l => `

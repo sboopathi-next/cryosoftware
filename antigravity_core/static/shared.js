@@ -868,7 +868,8 @@ async function triggerManualSync() {
 
 // ── Dashboard Sub-Tabs for Mobile ────────────────────────────
 function initDashboardMobileTabs() {
-  // Only execute on main dashboard page
+  // Only execute on main dashboard page on mobile screens (width <= 768)
+  if (window.innerWidth > 768) return;
   const pathname = window.location.pathname.replace(/\/$/, '') || '/';
   if (pathname !== '/' && pathname !== '/index.html') return;
 
@@ -1069,7 +1070,7 @@ async function loadMiniStats() {
     injectFloatingStatsBar();
     injectMobileNavigation();
     injectDesktopSidebarNav();
-    // initDashboardMobileTabs(); // Disabled to preserve 3-split dashboard layout
+    initDashboardMobileTabs();
     initGymMobileTabs();
     initJournalMobileTabs();
     renderVoiceControls();

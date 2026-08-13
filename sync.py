@@ -243,11 +243,25 @@ def merge_states(local_state: dict, remote_state: dict) -> dict:
     # XP & Level: if same date, take max. If date differs, take the newer date's values to avoid overriding penalties/resets.
     if local_ts == remote_ts:
         merged["level"] = max(local_state.get("level", 1), remote_state.get("level", 1))
-        merged["xp"] = max(local_state.get("xp", 0), remote_state.get("xp", 0))
+        lxp = local_state.get("xp", 0)
+        rxp = remote_state.get("xp", 0)
+        # If one state holds an old un-reset XP (>1000) while the other holds a reset XP (<1000), pick the reset XP
+        if lxp > 1000 and rxp < 1000:
+            merged["xp"] = rxp
+        elif rxp > 1000 and lxp < 1000:
+            merged["xp"] = lxp
+        else:
+            merged["xp"] = min(lxp, rxp) if (lxp > 5000 or rxp > 5000) else max(lxp, rxp)
     else:
         newer_state = local_state if local_ts > remote_ts else remote_state
         merged["level"] = newer_state.get("level", 1)
         merged["xp"] = newer_state.get("xp", 0)
+
+    # Sanitize merged XP so it never exceeds calculate_xp_required for the merged level
+    from state import calculate_xp_required
+    req = calculate_xp_required(merged["level"])
+    if merged["xp"] >= req:
+        merged["xp"] = merged["xp"] % req
 
     # Completed syllabus items: union across all subjects
     local_csi = local_state.get("completed_syllabus_items", {})
