@@ -81,7 +81,7 @@ IST = timezone(timedelta(hours=5, minutes=30))
 def has_solved_leetcode_today(username: str = LEETCODE_USERNAME) -> bool:
     """
     Checks if the user has an accepted submission on the current IST calendar date,
-    or within the last 28 hours (to handle late-night 00:00 - 05:30 AM IST submissions).
+    or during an active early-night session (between 00:00 and 05:30 AM IST).
     """
     submissions = fetch_leetcode_recent_ac(username, limit=15)
     if not submissions:
@@ -101,13 +101,9 @@ def has_solved_leetcode_today(username: str = LEETCODE_USERNAME) -> bool:
             # Check 1: Solved on current IST date
             if sub_date == today_ist_date:
                 return True
-                
-            # Check 2: Solved within last 28 hours (covers sliding window)
-            if now_timestamp - sub_time < 28 * 3600:
-                return True
 
-            # Check 3: Late night IST window (between 00:00 and 05:30 AM IST)
-            if sub_date == yesterday_ist_date and now_ist.hour < 6:
+            # Check 2: Late night IST window (between 00:00 and 05:30 AM IST, submission within last 10 hours)
+            if sub_date == yesterday_ist_date and now_ist.hour < 6 and (now_timestamp - sub_time < 10 * 3600):
                 return True
         except (ValueError, TypeError, Exception):
             continue

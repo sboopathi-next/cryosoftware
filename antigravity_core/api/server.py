@@ -2,6 +2,7 @@ import os
 import csv
 import json
 import re
+import math
 import sqlite3
 import datetime
 import httpx
@@ -695,9 +696,17 @@ def get_vertex_access_token():
 
 # ─── AI Chat & Governance ─────────────────────────────────────────────────────────────
 
+@app.get("/api/status")
+@app.get("/api/dashboard")
 @app.get("/stats")
 def get_stats():
     """Yields a clean JSON map of the entire system state for widget querying."""
+    try:
+        from engine.leetcode_sync import sync_leetcode
+        sync_leetcode()
+    except Exception as e:
+        print(f"[LeetCode Auto Sync] Status check sync error: {e}")
+
     state = get_state()
     if not state:
         raise HTTPException(status_code=500, detail="Database state not initialized.")
@@ -3092,6 +3101,267 @@ def api_leetcode_sync(username: Optional[str] = None):
         return sync_leetcode(username=uname, force=True)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GYMPRO STOPWATCH & MANUAL LOGGING
+# ══════════════════════════════════════════════════════════════════════════════
+
+class GymProLogPayload(BaseModel):
+    duration_minutes: float
+    workout_type: str = "Strength Training"
+    is_manual: bool = False
+    notes: Optional[str] = ""
+
+@app.post("/api/gympro/log_workout")
+def log_gympro_workout(data: GymProLogPayload):
+    try:
+        mins = max(1.0, float(data.duration_minutes))
+        base_xp = int((mins / 10.0) * 5)
+        str_gain = int(mins / 10.0) * 2
+        wil_gain = 5 if mins >= 30 else 2
+        
+        state = get_state() or {}
+        if state:
+            state["str"] = state.get("str", 10) + str_gain
+            state["wil"] = state.get("wil", 10) + wil_gain
+            state["energy"] = min(100.0, state.get("energy", 100.0) + 20.0)
+            state["gym_completed"] = 1
+            save_state(state)
+        add_xp(base_xp)
+
+        log_activity_file("GymPro Workout Logged", f"{'Manual' if data.is_manual else 'Timer'} Workout: {data.workout_type} ({mins} mins). +{base_xp} XP, +{str_gain} STR, +{wil_gain} WIL.")
+
+        if not IS_SERVERLESS:
+            with _DB_WRITE_LOCK:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS gym_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        duration_minutes REAL,
+                        workout_type TEXT,
+                        is_manual INTEGER,
+                        notes TEXT,
+                        xp_awarded INTEGER,
+                        logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                cursor.execute("""
+                    INSERT INTO gym_logs (duration_minutes, workout_type, is_manual, notes, xp_awarded)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (mins, data.workout_type, 1 if data.is_manual else 0, data.notes or "", base_xp))
+                conn.commit()
+                conn.close()
+
+        return {
+            "status": "SUCCESS",
+            "xp_earned": base_xp,
+            "str_gained": str_gain,
+            "wil_gained": wil_gain,
+            "message": f"Gym Session Recorded! +{base_xp} XP | +{str_gain} STR"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OFFICE WORK TRACKER & EXPONENTIAL XP ENGINE
+# ══════════════════════════════════════════════════════════════════════════════
+
+class WorkLogPayload(BaseModel):
+    workItemId: str
+    description: str
+    workDate: str
+    Category: str
+    hours: float
+
+@app.post("/api/work_tracker/log_work")
+def log_office_work(payload: WorkLogPayload):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        category = payload.Category.strip()
+        hours = max(0.1, float(payload.hours))
+        
+        # Get total previous logs in this same category
+        cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))
+        category_count = cursor.fetchone()[0] or 0
+        
+        base_xp_per_hour = 40.0
+        # Exponential Multiplier Equation: 1 + 0.25 * (1.20 ^ min(category_count, 15))
+        multiplier = 1.0 + (0.25 * math.pow(1.20, min(category_count, 15)))
+        xp_earned = round(hours * base_xp_per_hour * multiplier, 2)
+        category_streak = category_count + 1
+        
+        cursor.execute("""
+            INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (payload.workItemId.strip(), payload.description, payload.workDate, category, hours, xp_earned, category_streak))
+        conn.commit()
+        work_log_id = cursor.lastrowid
+        conn.close()
+
+        # Update Player Stats (AGI & INT boost)
+        agi_boost = int(hours * 2)
+        int_boost = int(hours * 1)
+        
+        state = get_state() or {}
+        if state:
+            state["agi"] = state.get("agi", 10) + agi_boost
+            state["int"] = state.get("int", 10) + int_boost
+            save_state(state)
+        add_xp(int(xp_earned))
+        
+        log_activity_file("Office Work Logged", f"Logged work item '{payload.workItemId}' [Log ID #{work_log_id}] ({category}, {hours}h). Mastery Depth: Lvl {category_streak}. +{xp_earned} XP, +{agi_boost} AGI, +{int_boost} INT.")
+        
+        return {
+            "status": "SUCCESS",
+            "workLogId": work_log_id,
+            "workItemId": payload.workItemId,
+            "xp_awarded": xp_earned,
+            "category": category,
+            "category_streak": category_streak,
+            "stat_boosts": {"AGI": f"+{agi_boost}", "INT": f"+{int_boost}"},
+            "message": f"Work Logged! Category Depth Level: {category_streak} | Log #{work_log_id} | Earned +{xp_earned} XP!"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/work_tracker/logs")
+def get_office_work_logs(limit: int = 50):
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM office_work_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
+        logs = [dict(r) for r in cursor.fetchall()]
+        
+        # Compute Category summary stats
+        cursor.execute("SELECT category, COUNT(*) as cnt, SUM(hours) as total_hrs FROM office_work_logs GROUP BY category")
+        cat_rows = cursor.fetchall()
+        conn.close()
+        
+        summary = {}
+        for r in cat_rows:
+            cat = r["category"]
+            cnt = r["cnt"] or 0
+            mult = round(1.0 + (0.25 * math.pow(1.20, min(cnt - 1, 15))), 2)
+            summary[cat] = {
+                "total_logs": cnt,
+                "total_hours": round(r["total_hrs"] or 0, 1),
+                "multiplier": mult
+            }
+            
+        return {"status": "SUCCESS", "logs": logs, "category_summary": summary}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MIND OS API ENDPOINTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+class MindMeditationPayload(BaseModel):
+    duration_mins: int
+    track_name: str
+
+class MindRuminationPayload(BaseModel):
+    trigger_convo: str
+    intensity: int = 5
+    duration_mins: int = 10
+    distress_score: int = 5
+    grounding_used: int = 0
+    alternative_thought: Optional[str] = ""
+
+class MindRealityCheckPayload(BaseModel):
+    trigger_event: str
+    my_interpretation: str
+    evidence_for: Optional[str] = ""
+    evidence_against: Optional[str] = ""
+    alternative_explanation: Optional[str] = ""
+    verified_outcome: Optional[str] = "Pending"
+    distortions: Optional[str] = ""
+
+class MindRelationshipPayload(BaseModel):
+    person_name: str
+    trust_score: int = 5
+    leave_urge: int = 0
+    closeness: int = 5
+    last_interaction_date: Optional[str] = ""
+    notes: Optional[str] = ""
+    status: Optional[str] = "Active"
+
+@app.post("/api/mind_os/meditation")
+def api_mind_os_meditation(payload: MindMeditationPayload):
+    try:
+        from engine.database import save_meditation_log
+        res = save_meditation_log(payload.duration_mins, payload.track_name)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/mind_os/rumination")
+def api_mind_os_rumination(payload: MindRuminationPayload):
+    try:
+        from engine.database import save_rumination_log
+        res = save_rumination_log(
+            payload.trigger_convo,
+            payload.intensity,
+            payload.duration_mins,
+            payload.distress_score,
+            payload.grounding_used,
+            payload.alternative_thought or ""
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/mind_os/reality_check")
+def api_mind_os_reality_check(payload: MindRealityCheckPayload):
+    try:
+        from engine.database import save_reality_check
+        res = save_reality_check(
+            payload.trigger_event,
+            payload.my_interpretation,
+            payload.evidence_for or "",
+            payload.evidence_against or "",
+            payload.alternative_explanation or "",
+            payload.verified_outcome or "Pending",
+            payload.distortions or ""
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/mind_os/relationship")
+def api_mind_os_relationship(payload: MindRelationshipPayload):
+    try:
+        from engine.database import save_relationship
+        res = save_relationship(
+            payload.person_name,
+            payload.trust_score,
+            payload.leave_urge,
+            payload.closeness,
+            payload.last_interaction_date or "",
+            payload.notes or "",
+            payload.status or "Active"
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/mind_os/summary")
+def api_mind_os_summary():
+    try:
+        from engine.database import get_mind_summary
+        return get_mind_summary()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

@@ -394,8 +394,62 @@ def init_db():
     )
     """)
 
+    # 19. Office Work Logs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS office_work_logs (
+        workLogId INTEGER PRIMARY KEY AUTOINCREMENT,
+        workItemId TEXT,
+        description TEXT,
+        workDate TEXT,
+        category TEXT,
+        hours REAL,
+        xp_awarded REAL,
+        category_streak INTEGER,
+        logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    try:
+        cursor.execute("PRAGMA table_info(office_work_logs)")
+        cols = [r[1] for r in cursor.fetchall()]
+        if cols and "workLogId" not in cols:
+            cursor.execute("ALTER TABLE office_work_logs RENAME TO _office_work_logs_old")
+            cursor.execute("""
+                CREATE TABLE office_work_logs (
+                    workLogId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    workItemId TEXT,
+                    description TEXT,
+                    workDate TEXT,
+                    category TEXT,
+                    hours REAL,
+                    xp_awarded REAL,
+                    category_streak INTEGER,
+                    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak, logged_at)
+                SELECT workItemId, description, workDate, category, hours, xp_awarded, category_streak, logged_at FROM _office_work_logs_old
+            """)
+            cursor.execute("DROP TABLE _office_work_logs_old")
+    except Exception as e:
+        print(f"[DB] Migration note for office_work_logs: {e}")
+
+    # 20. Gym Logs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS gym_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        duration_minutes REAL,
+        workout_type TEXT,
+        is_manual INTEGER,
+        notes TEXT,
+        xp_awarded INTEGER,
+        logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     conn.commit()
     conn.close()
+
 
 
 def get_db_connection():
@@ -1160,6 +1214,10 @@ def save_reality_check(trigger_event: str, my_interpretation: str, evidence_for:
         new_id = cursor.lastrowid
         conn.close()
     update_stat("xp", 15)
+    state = get_state()
+    if state:
+        state["mindos_completed"] = 1
+        save_state(state)
     log_activity_file("CBT Reality Check Completed", f"Reframed thought: '{my_interpretation}' -> '{alternative_explanation}'. Awarded +15 XP.")
     return {"status": "success", "id": new_id, "earned_xp": 15}
 
@@ -1190,6 +1248,10 @@ def save_rumination_log(trigger_convo: str, intensity: int, duration_mins: int, 
         result = neon_save_rumination_log(trigger_convo, intensity, duration_mins, distress_score, grounding_used, alternative_thought)
         update_stat("stoic", 2)
         update_stat("xp", 10)
+        state = get_state()
+        if state:
+            state["mindos_completed"] = 1
+            save_state(state)
         log_activity_file("Rumination Grounded", f"Managed mental replay. Gained +2 STC, +10 XP.")
         return {"status": "success", "id": result["id"], "earned_stc": 2, "earned_xp": 10}
     from datetime import datetime
@@ -1208,6 +1270,10 @@ def save_rumination_log(trigger_convo: str, intensity: int, duration_mins: int, 
         conn.close()
     update_stat("stoic", 2)
     update_stat("xp", 10)
+    state = get_state()
+    if state:
+        state["mindos_completed"] = 1
+        save_state(state)
     log_activity_file("Rumination Grounded", f"Managed mental replay from conversation: '{trigger_convo}'. Gained +2 STC, +10 XP.")
     return {"status": "success", "id": new_id, "earned_stc": 2, "earned_xp": 10}
 
@@ -1227,6 +1293,10 @@ def save_relationship(person_name: str, trust_score: int, leave_urge: int, close
     if IS_SERVERLESS:
         from engine.neon_db import neon_save_relationship
         result = neon_save_relationship(person_name, trust_score, leave_urge, closeness, last_interaction_date, notes, status)
+        state = get_state()
+        if state:
+            state["mindos_completed"] = 1
+            save_state(state)
         log_activity_file("Relationship Profile Updated", f"Updated alignment for {person_name}. Trust: {trust_score}/10.")
         return {"status": "success", "person_name": person_name}
     from datetime import datetime
@@ -1242,6 +1312,10 @@ def save_relationship(person_name: str, trust_score: int, leave_urge: int, close
         """, (person_name.strip(), trust_score, leave_urge, closeness, last_interaction_date, notes, status, today, timestamp))
         conn.commit()
         conn.close()
+    state = get_state()
+    if state:
+        state["mindos_completed"] = 1
+        save_state(state)
     log_activity_file("Relationship Profile Updated", f"Updated alignment for {person_name}. Trust: {trust_score}/10, Leave Urge: {leave_urge}/10, Closeness: {closeness}/10.")
     return {"status": "success", "person_name": person_name}
 
@@ -1296,6 +1370,11 @@ def save_meditation_log(duration_mins: int, track_name: str) -> dict:
         result = neon_save_meditation_log(duration_mins, track_name)
         update_stat("stoic", 2)
         update_stat("wil", 1)
+        state = get_state()
+        if state:
+            state["meditation_completed"] = 1
+            state["mindos_completed"] = 1
+            save_state(state)
         new_state = update_stat("xp", 20)
         log_activity_file("Meditation Session Completed", f"Completed {duration_mins} mins. +20 XP, +2 STC, +1 WIL.")
         return {"status": "success", "id": result["id"], "earned_xp": 20, "earned_stc": 2, "earned_wil": 1, "level": new_state.get("level", 1), "xp": new_state.get("xp", 0)}
@@ -1318,10 +1397,12 @@ def save_meditation_log(duration_mins: int, track_name: str) -> dict:
     state = get_state()
     if state:
         state["meditation_completed"] = 1
+        state["mindos_completed"] = 1
         save_state(state)
     new_state = update_stat("xp", 20)
     log_activity_file("Meditation Session Completed", f"Completed {duration_mins} minutes of focused meditation listening to '{track_name}'. Awarded +20 XP, +2 STC, +1 WIL.")
     return {"status": "success", "id": new_id, "earned_xp": 20, "earned_stc": 2, "earned_wil": 1, "level": new_state.get("level", 1), "xp": new_state.get("xp", 0)}
+
 
 def get_meditation_logs(limit: int = 50) -> list:
     if IS_SERVERLESS:

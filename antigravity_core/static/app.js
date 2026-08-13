@@ -720,14 +720,113 @@ function showToast(message, type = 'info') {
     }, 3500);
 }
 
+// ─── OFFICE WORK TRACKER ──────────────────────────────────────────────────
+async function fetchWorkTrackerLogs() {
+    try {
+        const res = await fetch('/api/work_tracker/logs');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderWorkTracker(data);
+    } catch (e) {
+        console.warn('Could not fetch work tracker logs:', e);
+    }
+}
+
+function renderWorkTracker(data) {
+    const logs = data.logs || [];
+    const summary = data.category_summary || {};
+    
+    // Category Grid
+    const grid = document.getElementById('work-cat-grid');
+    if (grid) {
+        let html = `
+            <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">
+                <div style="font-size:10px; color:var(--text3); font-family:var(--ff-mono);">TOTAL LOGS</div>
+                <div style="font-family:var(--ff-brand); font-size:18px; font-weight:800; color:var(--text1);">${logs.length}</div>
+            </div>
+        `;
+        for (const [cat, stats] of Object.entries(summary)) {
+            html += `
+                <div style="background:#0a0d1e; border:1px solid rgba(99,102,241,0.3); border-radius:8px; padding:10px;">
+                    <div style="font-size:10px; color:var(--indigo); font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${cat}</div>
+                    <div style="font-family:var(--ff-brand); font-size:16px; font-weight:800; color:#fff;">${stats.total_hours}h</div>
+                    <div style="font-size:9px; color:var(--green); margin-top:2px;">⚡ ${stats.multiplier}x Yield</div>
+                </div>
+            `;
+        }
+        grid.innerHTML = html;
+    }
+
+    // Logs Table
+    const tbl = document.getElementById('work-logs-tbl');
+    if (tbl) {
+        if (!logs.length) {
+            tbl.innerHTML = `<tr><td colspan="5" style="padding:12px; text-align:center; color:var(--text3);">No office work logged yet.</td></tr>`;
+            return;
+        }
+        tbl.innerHTML = logs.slice(0, 15).map(log => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:8px 6px; font-family:var(--ff-mono); color:var(--indigo); font-weight:bold;">${log.workItemId}</td>
+                <td style="padding:8px 6px; font-weight:600;">${log.category}</td>
+                <td style="padding:8px 6px; color:var(--text3); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${log.description}</td>
+                <td style="padding:8px 6px; font-weight:bold;">${log.hours}h</td>
+                <td style="padding:8px 6px; color:var(--green); font-family:var(--ff-mono); font-weight:bold;">+${log.xp_awarded} XP</td>
+            </tr>
+        `).join('');
+    }
+}
+
+async function submitWorkTrackerForm(e) {
+    e.preventDefault();
+    const item = document.getElementById('wt-id').value.trim();
+    const cat = document.getElementById('wt-cat').value.trim();
+    const hrs = parseFloat(document.getElementById('wt-hrs').value);
+    const desc = document.getElementById('wt-desc').value.trim();
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    try {
+        const res = await fetch('/api/work_tracker/log_work', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                workItemId: item,
+                description: desc,
+                workDate: todayStr,
+                Category: cat,
+                hours: hrs
+            })
+        });
+        const d = await res.json();
+        if (res.ok) {
+            if (typeof showToast === 'function') showToast(d.message || 'Office Work Logged!');
+            else alert(d.message);
+            document.getElementById('wt-id').value = '';
+            document.getElementById('wt-cat').value = '';
+            document.getElementById('wt-hrs').value = '';
+            document.getElementById('wt-desc').value = '';
+            fetchWorkTrackerLogs();
+            fetchStatus();
+        } else {
+            if (typeof showToast === 'function') showToast(d.detail || 'Error logging office work.');
+            else alert(d.detail);
+        }
+    } catch (err) {
+        if (typeof showToast === 'function') showToast('Network error submitting work log.');
+        else alert('Network error');
+    }
+}
+
 // ─── INITIALIZATION ─────────────────────────────────────────────────────────
 async function initializeDashboard() {
     await fetchStatus();
     // Load syllabus eagerly for Gate progress bars on dashboard
     await fetchSyllabus();
     await fetchLogs();
+    await fetchWorkTrackerLogs();
 }
 
 window.addEventListener('DOMContentLoaded', initializeDashboard);
 setInterval(fetchStatus, 30000);
 setInterval(fetchLogs, 30000);
+setInterval(fetchWorkTrackerLogs, 30000);
+

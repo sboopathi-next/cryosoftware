@@ -735,19 +735,19 @@ window.syncGoogleFitCloudManual = syncGoogleFitCloudManual;
 function injectMobileNavigation() {
   if (document.querySelector('.mobile-bottom-nav')) return;
 
-  // 1. Create and inject bottom nav container (Home, Canvas, Study, Gym Pro, More)
+  // 1. Create and inject bottom nav container (1. Dashboard, 2. Canvas, 3. GymPro, 4. MindOS, 5. More)
   const bottomNav = document.createElement('div');
   bottomNav.className = 'mobile-bottom-nav';
   bottomNav.innerHTML = `
-    <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
+    <a href="/" class="mobile-nav-item" data-path="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
     <a href="/canvas" class="mobile-nav-item" data-path="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas</span></a>
-    <a href="/syllabus" class="mobile-nav-item" data-path="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study</span></a>
-    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-dumbbell"></i><span>Gym Pro</span></a>
+    <a href="/gym-pro" class="mobile-nav-item" data-path="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span></a>
+    <a href="/mind-os" class="mobile-nav-item" data-path="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
     <button class="mobile-nav-item" id="mobile-more-btn"><i class="fa-solid fa-bars"></i><span>More</span></button>
   `;
   document.body.appendChild(bottomNav);
 
-  // 2. Create and inject overlay and sheet drawer
+  // 2. Create and inject overlay and sheet drawer (holding all remaining module links)
   const overlay = document.createElement('div');
   overlay.className = 'mobile-bottom-sheet-overlay';
   overlay.id = 'mobile-sheet-overlay';
@@ -764,10 +764,9 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
-        <a href="/canvas" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a>
-        <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
+        <a href="/syllabus" class="sheet-grid-item"><i class="fa-solid fa-book-open" style="color:var(--indigo)"></i><span>Study Path</span></a>
+        <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-dumbbell" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
         <a href="/system" class="sheet-grid-item"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span></a>
-        <a href="/mind-os" class="sheet-grid-item"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a>
         <a href="/journal" class="sheet-grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a>
         <a href="/english" class="sheet-grid-item"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span></a>
         <a href="/badlog" class="sheet-grid-item"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span></a>

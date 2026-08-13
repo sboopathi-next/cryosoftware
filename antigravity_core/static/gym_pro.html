@@ -197,6 +197,50 @@ body, .app { height: 100vh; overflow: hidden; }
           <div><div class="log-title">Log Workout</div><div class="log-sub" id="day-label">—</div></div>
           <button class="btn btn-ghost btn-sm" onclick="quickReset()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
         </div>
+
+        <!-- REAL-TIME GYMPRO TIMER & MANUAL OVERRIDE -->
+        <div class="card" style="background:#0a0d1e; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-family:var(--ff-brand); font-weight:800; font-size:15px; color:var(--amber);">
+              <i class="fa-solid fa-stopwatch" style="margin-right:6px"></i> GymPro Live Stopwatch &amp; Logger
+            </div>
+            <span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">REALTIME</span>
+          </div>
+
+          <div style="background:#060818; border:1px solid var(--border); border-radius:10px; padding:18px; text-align:center; margin-bottom:14px;">
+            <div id="gp-timer-disp" style="font-family:var(--ff-mono); font-size:38px; font-weight:900; color:var(--cyan); letter-spacing:2px; margin-bottom:12px;">00:00</div>
+            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+              <button id="gp-btn-start" onclick="gpStartTimer()" class="btn btn-sm" style="background:#10b981; color:#fff; font-weight:bold; border:none; padding:8px 18px;">
+                <i class="fa-solid fa-play"></i> Start
+              </button>
+              <button id="gp-btn-pause" onclick="gpPauseTimer()" class="btn btn-sm" style="background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:8px 18px; display:none;">
+                <i class="fa-solid fa-pause"></i> Pause
+              </button>
+              <button onclick="gpSaveTimerWorkout()" class="btn btn-sm" style="background:linear-gradient(135deg,var(--indigo),var(--blue)); color:#fff; font-weight:bold; border:none; padding:8px 18px;">
+                <i class="fa-solid fa-floppy-disk"></i> Save Workout
+              </button>
+              <button onclick="gpResetTimer()" class="btn btn-ghost btn-sm" style="color:var(--text3);">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Workout Entry Override -->
+          <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px; padding:12px;">
+            <div style="font-size:11px; font-family:var(--ff-mono); color:var(--text3); margin-bottom:8px; text-transform:uppercase;">Manual Entry Override</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:8px;">
+              <input type="number" id="gp-manual-mins" placeholder="Duration (mins)" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
+              <select id="gp-manual-type" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
+                <option value="Strength Training">Strength Training</option>
+                <option value="Cardio / Running">Cardio / Running</option>
+                <option value="Calisthenics">Calisthenics</option>
+                <option value="CrossFit / HIIT">CrossFit / HIIT</option>
+              </select>
+              <button onclick="gpSaveManualWorkout()" class="btn btn-sm" style="background:var(--purple); color:#fff; font-weight:bold; border:none; padding:7px 14px;">Log Manual</button>
+            </div>
+          </div>
+        </div>
+
         <div class="ex-pick-row">
           <div class="field"><label>Category</label><select id="lg-cat" onchange="lgLoadEx()"><option value="">— Muscle Group —</option></select></div>
           <div class="field"><label>Exercise</label><select id="lg-ex" onchange="lgExSelected()"><option value="">— Exercise —</option></select></div>
@@ -345,6 +389,81 @@ function buildFilters(){const cats=[...new Set(allHistory.map(l=>l.Category||l.c
 function filterHistory(cat,btn){curFilter=cat;document.querySelectorAll('#filt-row .filt-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderHistory(allHistory,cat);}
 function renderHistory(logs,cat){const filtered=cat==='all'?logs:logs.filter(l=>(l.Category||l.category)===cat);const c=document.getElementById('hist-list');if(!filtered.length){c.innerHTML='<div class="empty-s"><i class="fa-solid fa-dumbbell"></i><p>No workouts in this category</p></div>';return;}c.innerHTML=filtered.slice(0,80).map(log=>{const ex=log.Workout||log.workout||'--',cat2=log.Category||log.category||'--',ts=log.Timestamp||log.timestamp||'',sStr=log.Sets||log.sets||'',dur=log.Duration_Minutes||log.duration_minutes||'--',id=log.id;const parsed=parseSetsStr(sStr),vol=parsed.reduce((t,s)=>t+s.weight*s.reps,0),bestRM=parsed.reduce((b,s)=>{const v=s.weight*(1+s.reps/30);return v>b?v:b;},0);const c2l=cat2.toLowerCase(),bc=c2l.includes('chest')?'#6366f1':c2l.includes('back')?'#3b82f6':c2l.includes('shoulder')?'#8b5cf6':c2l.includes('bicep')?'#10b981':c2l.includes('tricep')?'#06b6d4':c2l.includes('leg')?'#f59e0b':c2l.includes('core')?'#ef4444':'#6366f1';return`<div class="hc" style="border-left-color:${bc}"><div class="hc-top"><div><div class="hc-ex">${ex}</div><div class="hc-cat">${cat2}</div></div><div class="hc-date2">${fmtDt(ts)}</div></div><div class="hc-sets">${fmtSetsUI(sStr)}</div><div class="hc-meta">${vol>0?`<div class="hc-m">Vol: <b>${Math.round(vol)}kg</b></div>`:''}${bestRM>0?`<div class="hc-m">1RM: <b>${Math.round(bestRM)}kg</b></div>`:''}${dur&&dur!='--'?`<div class="hc-m">Dur: <b>${dur}min</b></div>`:''}</div><button class="hc-d" onclick="delEntry('${ts}',${id||'null'})"><i class="fa-solid fa-trash-can"></i></button></div>`;}).join('');}
 async function delEntry(ts,id){if(!confirm('Delete this workout log?'))return;try{const r=await fetch('/api/workouts/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({Timestamp:ts,id})});if(r.ok){toast('Deleted!','ok');allHistory=allHistory.filter(l=>(l.Timestamp||l.timestamp)!==ts);renderHistory(allHistory,curFilter);}else toast('Failed to delete','err');}catch(e){toast('Network error','err');}}
+let gpTimerInterval = null;
+let gpSeconds = 0;
+let gpIsActive = false;
+
+function gpFmtTime(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function gpStartTimer() {
+  if (gpIsActive) return;
+  gpIsActive = true;
+  document.getElementById('gp-btn-start').style.display = 'none';
+  document.getElementById('gp-btn-pause').style.display = 'inline-flex';
+  gpTimerInterval = setInterval(() => {
+    gpSeconds++;
+    document.getElementById('gp-timer-disp').textContent = gpFmtTime(gpSeconds);
+  }, 1000);
+}
+
+function gpPauseTimer() {
+  gpIsActive = false;
+  clearInterval(gpTimerInterval);
+  document.getElementById('gp-btn-start').style.display = 'inline-flex';
+  document.getElementById('gp-btn-pause').style.display = 'none';
+}
+
+function gpResetTimer() {
+  gpPauseTimer();
+  gpSeconds = 0;
+  document.getElementById('gp-timer-disp').textContent = '00:00';
+}
+
+async function gpSaveTimerWorkout() {
+  const mins = Math.max(1, Math.round(gpSeconds / 60));
+  const type = document.getElementById('gp-manual-type')?.value || 'Strength Training';
+  await sendGymProPayload(mins, type, false);
+  gpResetTimer();
+}
+
+async function gpSaveManualWorkout() {
+  const inp = document.getElementById('gp-manual-mins')?.value;
+  const mins = parseFloat(inp);
+  if (!mins || mins <= 0) {
+    if (typeof toast === 'function') toast('Enter valid workout duration in minutes', 'err');
+    else alert('Enter valid workout duration in minutes');
+    return;
+  }
+  const type = document.getElementById('gp-manual-type')?.value || 'Strength Training';
+  await sendGymProPayload(mins, type, true);
+  document.getElementById('gp-manual-mins').value = '';
+}
+
+async function sendGymProPayload(mins, type, isManual) {
+  try {
+    const res = await fetch('/api/gympro/log_workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ duration_minutes: mins, workout_type: type, is_manual: isManual })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      if (typeof toast === 'function') toast(d.message || 'Gym Session Recorded! +XP awarded.', 'ok');
+      else alert(d.message);
+    } else {
+      if (typeof toast === 'function') toast(d.detail || 'Error logging workout', 'err');
+      else alert(d.detail);
+    }
+  } catch (e) {
+    if (typeof toast === 'function') toast('Network error logging workout', 'err');
+    else alert('Network error');
+  }
+}
+
 loadGymOpts();
 syncPending();
 </script>
