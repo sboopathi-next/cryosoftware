@@ -343,57 +343,7 @@
       </div>
     </div>
 
-    <!-- OFFICE WORK TRACKER & EXPONENTIAL XP ENGINE -->
-    <div class="card" style="margin-bottom: 16px;">
-      <div class="card-title flex-between">
-        <span><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i> Office Work Tracker &amp; Exponential Mastery</span>
-        <span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">EXPONENTIAL XP</span>
-      </div>
-      <p class="text-muted" style="font-size: 11px; margin-bottom: 12px; color: var(--text3);">
-        Log daily office tasks via API (`POST /api/work_tracker/log_work`). Mastery multipliers compound exponentially with category focus.
-      </p>
 
-      <!-- Category Multipliers Grid -->
-      <div id="work-cat-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 14px;">
-        <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">
-          <div style="font-size:10px; color:var(--text3); font-family:var(--ff-mono);">TOTAL LOGS</div>
-          <div style="font-family:var(--ff-brand); font-size:18px; font-weight:800; color:var(--text1);" id="work-total-cnt">0</div>
-        </div>
-      </div>
-
-      <!-- Quick Work Log Form -->
-      <form id="work-log-form" onsubmit="submitWorkTrackerForm(event)" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
-          <input type="text" id="wt-id" placeholder="Work Item ID (e.g. JIRA-101)" required style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
-          <input type="text" id="wt-cat" placeholder="Category (e.g. API Integration)" required style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
-          <input type="number" id="wt-hrs" placeholder="Hours (e.g. 2.5)" step="0.1" min="0.1" max="24" required style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
-        </div>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="wt-desc" placeholder="Work Description..." required style="flex:1; background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:7px 10px; font-size:12px;">
-          <button type="submit" class="btn btn-sm" style="background:linear-gradient(135deg,var(--indigo),var(--blue)); color:#fff; font-weight:bold; border:none; padding:7px 16px;">
-            <i class="fa-solid fa-bolt"></i> Log Work
-          </button>
-        </div>
-      </form>
-
-      <!-- Work Logs Recent Table -->
-      <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:12px;">
-          <thead>
-            <tr style="border-bottom:1px solid var(--border); color:var(--text3); font-family:var(--ff-mono); text-align:left;">
-              <th style="padding:6px;">KEY</th>
-              <th style="padding:6px;">CATEGORY</th>
-              <th style="padding:6px;">DESCRIPTION</th>
-              <th style="padding:6px;">HOURS</th>
-              <th style="padding:6px;">XP EARNED</th>
-            </tr>
-          </thead>
-          <tbody id="work-logs-tbl" style="color:var(--text2);">
-            <tr><td colspan="5" style="padding:12px; text-align:center; color:var(--text3);">No office work logged yet.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
     <!-- GATE PROGRESS -->
     <div class="card">

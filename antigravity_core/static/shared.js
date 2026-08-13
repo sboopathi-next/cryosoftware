@@ -879,26 +879,23 @@ function initDashboardMobileTabs() {
   const statsGrid = document.querySelector('.stats-grid');
   const cards = Array.from(main.querySelectorAll(':scope > .card'));
   
-  if (!statsGrid || cards.length < 2) return;
+  if (!statsGrid || cards.length < 1) return;
 
-  // Stats Grid, Daily Checklist (cards[0]), and Course Progress (cards[1])
+  // Stats Grid and Daily Checklist (cards[0])
   const checklistCard = cards[0]; 
-  const progressCard = cards[1];
 
   statsGrid.classList.add('dashboard-section', 'section-stats');
   checklistCard.classList.add('dashboard-section', 'section-checklist');
-  progressCard.classList.add('dashboard-section', 'section-progress');
 
   // Set default active tab
   statsGrid.classList.add('active');
 
-  // Create mobile tab container
+  // Create mobile tab container with 2 tabs: Stats and Tasks
   const tabContainer = document.createElement('div');
   tabContainer.className = 'dashboard-mobile-tabs';
   tabContainer.innerHTML = `
     <button class="db-tab active" data-sec="stats"><i class="fa-solid fa-chart-simple"></i>Stats</button>
     <button class="db-tab" data-sec="checklist"><i class="fa-solid fa-list-check"></i>Tasks</button>
-    <button class="db-tab" data-sec="progress"><i class="fa-solid fa-graduation-cap"></i>Syllabus</button>
   `;
 
   // Insert tabs before statsGrid
@@ -915,7 +912,6 @@ function initDashboardMobileTabs() {
       const sec = btn.getAttribute('data-sec');
       if (sec === 'stats') statsGrid.classList.add('active');
       if (sec === 'checklist') checklistCard.classList.add('active');
-      if (sec === 'progress') progressCard.classList.add('active');
     });
   });
 }
