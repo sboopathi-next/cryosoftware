@@ -881,17 +881,14 @@ function initDashboardMobileTabs() {
 
   if (!statsGrid || cards.length < 1) return;
 
-  // Stats Grid and Daily Checklist (cards[0]), Progress (cards[1])
+  // Stats Grid and Daily Checklist (cards[0])
   const checklistCard = cards[0];
-  const progressCard = cards[1];
 
   statsGrid.classList.add('dashboard-section', 'section-stats');
-  if (progressCard) progressCard.classList.add('dashboard-section', 'section-stats');
   checklistCard.classList.add('dashboard-section', 'section-checklist');
 
   // Set default active tab
   statsGrid.classList.add('active');
-  if (progressCard) progressCard.classList.add('active');
 
   // Create mobile tab container with 2 tabs: Stats and Tasks
   const tabContainer = document.createElement('div');
@@ -913,13 +910,8 @@ function initDashboardMobileTabs() {
       main.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
 
       const sec = btn.getAttribute('data-sec');
-      if (sec === 'stats') {
-        statsGrid.classList.add('active');
-        if (progressCard) progressCard.classList.add('active');
-      }
-      if (sec === 'checklist') {
-        checklistCard.classList.add('active');
-      }
+      if (sec === 'stats') statsGrid.classList.add('active');
+      if (sec === 'checklist') checklistCard.classList.add('active');
     });
   });
 }
