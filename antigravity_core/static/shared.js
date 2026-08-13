@@ -59,7 +59,7 @@ async function apiFetch(url, options = {}) {
 
 // ── Active nav link ──────────────────────────────────────────
 
-(function(){
+(function () {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   document.querySelectorAll('.nav a').forEach(a => {
     const href = a.getAttribute('href').replace(/\/$/, '') || '/';
@@ -108,9 +108,9 @@ function getSanitizedGroqModel() {
 
 const GROQ_MODELS = [
   { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile 🔥 Flagship (70B)' },
-  { value: 'llama-3.1-8b-instant',    label: 'llama-3.1-8b-instant ⚡ Fast (8B)' },
-  { value: 'gemma2-9b-it',            label: 'gemma2-9b-it 🎯 Google Gemma' },
-  { value: 'mixtral-8x7b-32768',      label: 'mixtral-8x7b-32768 🌀 Mixtral 8x7B' }
+  { value: 'llama-3.1-8b-instant', label: 'llama-3.1-8b-instant ⚡ Fast (8B)' },
+  { value: 'gemma2-9b-it', label: 'gemma2-9b-it 🎯 Google Gemma' },
+  { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768 🌀 Mixtral 8x7B' }
 ];
 
 function _buildGroqModelOptions(selected) {
@@ -184,7 +184,7 @@ async function saveWorkstationSettings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groq_api_key: groqKey, groq_model: groqModel })
       });
-    } catch(e) {
+    } catch (e) {
       console.warn('[Settings] Could not sync Groq API key to server DB:', e);
     }
   }
@@ -334,7 +334,7 @@ function primeSpeechSynthesis() {
     const dummy = new SpeechSynthesisUtterance(' ');
     dummy.volume = 0.01;
     window.speechSynthesis.speak(dummy);
-  } catch(_) {}
+  } catch (_) { }
 }
 
 function cleanTextForSpeech(text) {
@@ -362,7 +362,7 @@ function extractValuableAISpeech(replyText) {
 
   // Split into sentences
   const sentences = rawClean.match(/[^.!?]+[.!?]+/g) || [rawClean];
-  
+
   // Filter out standalone titles/headers (e.g., "TODAYS BATTLE PLAN", "THE ENGINE OF ALL MACHINE LEARNING")
   const valuableSentences = sentences.filter(s => {
     const trimmed = s.trim();
@@ -401,13 +401,13 @@ function speakVoice(text, forceInterrupt = false, moodObj = null) {
     const targetRate = moodObj && moodObj.rate ? moodObj.rate : null;
 
     const pickFemale = (moodObj && moodObj.gender === 'female') ? true :
-                       (moodObj && moodObj.gender === 'male') ? false :
-                       ((moodObj && moodObj.warmth > 6) ? true : (Math.random() < 0.4));
+      (moodObj && moodObj.gender === 'male') ? false :
+        ((moodObj && moodObj.warmth > 6) ? true : (Math.random() < 0.4));
     let selectedVoice = null;
 
     if (pickFemale) {
-      selectedVoice = enVoices.find(v => 
-        v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Hazel') || 
+      selectedVoice = enVoices.find(v =>
+        v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Hazel') ||
         v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Google UK English Female')
       );
       if (selectedVoice) {
@@ -423,8 +423,8 @@ function speakVoice(text, forceInterrupt = false, moodObj = null) {
     }
 
     if (!selectedVoice) {
-      selectedVoice = enVoices.find(v => 
-        v.name.includes('Male') || v.name.includes('David') || v.name.includes('James') || 
+      selectedVoice = enVoices.find(v =>
+        v.name.includes('Male') || v.name.includes('David') || v.name.includes('James') ||
         v.name.includes('George') || v.name.includes('Google UK English Male')
       ) || enVoices[0];
       if (selectedVoice) {
@@ -478,7 +478,7 @@ function checkLevelUpEvent(newLevel) {
 function renderVoiceControls() {
   const footer = document.querySelector('.sidebar-footer');
   if (!footer) return;
-  
+
   if (document.getElementById('voice-toggle-btn')) {
     updateVoiceUI();
     return;
@@ -489,14 +489,14 @@ function renderVoiceControls() {
   btn.className = 'btn-ico';
   btn.title = 'Toggle Voice Demon (Click to Mute/Unmute)';
   btn.onclick = toggleVoiceMute;
-  
+
   const settingsBtn = footer.querySelector('button');
   if (settingsBtn) {
     footer.insertBefore(btn, settingsBtn);
   } else {
     footer.appendChild(btn);
   }
-  
+
   updateVoiceUI();
 }
 
@@ -512,7 +512,7 @@ function updateVoiceUI() {
 function startVoiceDaemonTimer() {
   if (window._voiceDaemonTimerStarted) return;
   window._voiceDaemonTimerStarted = true;
-  
+
   setInterval(() => {
     if (!isVoiceMuted()) {
       const phrase = STOIC_PHRASES[Math.floor(Math.random() * STOIC_PHRASES.length)];
@@ -570,7 +570,7 @@ function makeElementDraggable(elmnt) {
         elmnt.style.left = left + 'px';
         elmnt.style.right = 'auto';
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   const dragHandle = elmnt.querySelector('.drag-handle') || elmnt;
@@ -673,7 +673,7 @@ async function syncLeetCodeManual() {
     } else {
       toast('LeetCode sync error: ' + (d.message || 'Check connection'), 'err');
     }
-  } catch(e) {
+  } catch (e) {
     toast('LeetCode sync request failed: ' + e.message, 'err');
   } finally {
     if (btn) {
@@ -704,10 +704,10 @@ async function syncGoogleFitCloudManual(btnEl = null) {
     } else if (d.status === 'SUCCESS' || d.steps !== undefined) {
       const stepsFormatted = (d.steps || 0).toLocaleString();
       toast(`✅ Google Fit Synced! ${stepsFormatted} steps (${d.distance_km || 0} km) | +${d.xp_awarded || 0} XP, +${d.wil_gained || 0} WIL!`, 'ok');
-      
+
       const chkHealth = document.getElementById('chk-health');
       if (chkHealth) chkHealth.classList.add('done');
-      
+
       if ((d.steps >= 1000 || (d.distance_km && d.distance_km >= 0.5)) && document.getElementById('chk-walk')) {
         document.getElementById('chk-walk').classList.add('done');
       }
@@ -718,7 +718,7 @@ async function syncGoogleFitCloudManual(btnEl = null) {
     } else {
       toast('Google Fit Sync: ' + (d.message || JSON.stringify(d)), 'err');
     }
-  } catch(e) {
+  } catch (e) {
     toast('Google Fit Sync Error: ' + e.message, 'err');
   } finally {
     if (btn) {
@@ -805,7 +805,7 @@ function injectMobileNavigation() {
   // 4. Bind Toggle events
   const moreBtn = document.getElementById('mobile-more-btn');
   const closeBtn = document.getElementById('mobile-sheet-close');
-  
+
   function openSheet() {
     overlay.classList.add('active');
     sheet.classList.add('active');
@@ -854,7 +854,7 @@ async function triggerManualSync() {
       }
       if (text) text.textContent = originalText;
     }
-  } catch(e) {
+  } catch (e) {
     toast('Sync failed: Network error', 'err');
     if (icon) {
       icon.className = originalClass;
@@ -878,17 +878,20 @@ function initDashboardMobileTabs() {
 
   const statsGrid = document.querySelector('.stats-grid');
   const cards = Array.from(main.querySelectorAll(':scope > .card'));
-  
+
   if (!statsGrid || cards.length < 1) return;
 
-  // Stats Grid and Daily Checklist (cards[0])
-  const checklistCard = cards[0]; 
+  // Stats Grid and Daily Checklist (cards[0]), Progress (cards[1])
+  const checklistCard = cards[0];
+  const progressCard = cards[1];
 
   statsGrid.classList.add('dashboard-section', 'section-stats');
+  if (progressCard) progressCard.classList.add('dashboard-section', 'section-stats');
   checklistCard.classList.add('dashboard-section', 'section-checklist');
 
   // Set default active tab
   statsGrid.classList.add('active');
+  if (progressCard) progressCard.classList.add('active');
 
   // Create mobile tab container with 2 tabs: Stats and Tasks
   const tabContainer = document.createElement('div');
@@ -908,10 +911,15 @@ function initDashboardMobileTabs() {
       btn.classList.add('active');
 
       main.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
-      
+
       const sec = btn.getAttribute('data-sec');
-      if (sec === 'stats') statsGrid.classList.add('active');
-      if (sec === 'checklist') checklistCard.classList.add('active');
+      if (sec === 'stats') {
+        statsGrid.classList.add('active');
+        if (progressCard) progressCard.classList.add('active');
+      }
+      if (sec === 'checklist') {
+        checklistCard.classList.add('active');
+      }
     });
   });
 }
@@ -954,7 +962,7 @@ function initGymMobileTabs() {
       btn.classList.add('active');
 
       gymLayout.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
-      
+
       const sec = btn.getAttribute('data-sec');
       if (sec === 'log') formCard.classList.add('active');
       if (sec === 'history') historyCard.classList.add('active');
@@ -1000,7 +1008,7 @@ function initJournalMobileTabs() {
       btn.classList.add('active');
 
       journalGrid.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
-      
+
       const sec = btn.getAttribute('data-sec');
       if (sec === 'log') formCard.classList.add('active');
       if (sec === 'history') historyCard.classList.add('active');
@@ -1085,20 +1093,20 @@ async function loadMiniStats() {
     const syncText = document.getElementById('sync-text');
     if (syncIcon && syncText) {
       if (d.neon_online) {
-         syncIcon.className = 'fa-solid fa-circle';
-         syncIcon.style.color = 'var(--green)';
-         syncText.textContent = 'Online';
+        syncIcon.className = 'fa-solid fa-circle';
+        syncIcon.style.color = 'var(--green)';
+        syncText.textContent = 'Online';
       } else {
-         syncIcon.className = 'fa-solid fa-triangle-exclamation';
-         syncIcon.style.color = 'var(--amber)';
-         syncText.textContent = 'Offline';
+        syncIcon.className = 'fa-solid fa-triangle-exclamation';
+        syncIcon.style.color = 'var(--amber)';
+        syncText.textContent = 'Offline';
       }
     }
 
     if (d.level) {
       checkLevelUpEvent(d.level);
     }
-  } catch(_) {}
+  } catch (_) { }
 }
 
 if (document.readyState === 'loading') {
