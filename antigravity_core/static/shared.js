@@ -1069,7 +1069,7 @@ async function loadMiniStats() {
     injectFloatingStatsBar();
     injectMobileNavigation();
     injectDesktopSidebarNav();
-    initDashboardMobileTabs();
+    // initDashboardMobileTabs(); // Disabled to preserve 3-split dashboard layout
     initGymMobileTabs();
     initJournalMobileTabs();
     renderVoiceControls();
