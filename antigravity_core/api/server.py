@@ -3196,6 +3196,21 @@ def auto_categorize_work_with_groq(description: str, work_item_id: str, default_
         except Exception:
             pass
 
+    if not groq_key:
+        try:
+            import psycopg2
+            from config import DATABASE_URL
+            nconn = psycopg2.connect(DATABASE_URL)
+            ncur = nconn.cursor()
+            ncur.execute("SELECT value FROM user_app_settings WHERE key = 'groq_api_key'")
+            row = ncur.fetchone()
+            ncur.close()
+            nconn.close()
+            if row and row[0]:
+                groq_key = row[0].strip()
+        except Exception:
+            pass
+
     if not groq_key or not description:
         return default_cat or "General"
 
@@ -3222,7 +3237,8 @@ def auto_categorize_work_with_groq(description: str, work_item_id: str, default_
             data=json.dumps(req_data).encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {groq_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Antigravity/1.0"
             },
             method="POST"
         )
