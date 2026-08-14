@@ -203,7 +203,11 @@ def sync_leetcode(username: str = LEETCODE_USERNAME, force: bool = False) -> dic
             state["leetcode_completed"] = 1
             save_state(state)
     else:
-        print("[LeetCode Sync] No new solves detected.")
+        print("[LeetCode Sync] No solves detected today. Resetting daily checklist item to uncompleted.")
+        state = get_state()
+        if state.get("leetcode_completed"):
+            state["leetcode_completed"] = 0
+            save_state(state)
 
     return {
         "status": "success",
