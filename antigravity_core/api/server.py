@@ -3192,16 +3192,14 @@ def log_office_work(payload: WorkLogPayload):
         hours = max(0.1, float(payload.hours))
         work_item_id = payload.workItemId.strip()
         
+        # 1. Write to local SQLite DB
         with _DB_WRITE_LOCK:
             conn = get_db_connection()
             cursor = conn.cursor()
-            
-            # Get total previous logs in this same category
             cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))
             category_count = cursor.fetchone()[0] or 0
             
             base_xp_per_hour = 40.0
-            # Exponential Multiplier Equation: 1 + 0.25 * (1.20 ^ min(category_count, 15))
             multiplier = 1.0 + (0.25 * math.pow(1.20, min(category_count, 15)))
             xp_earned = round(hours * base_xp_per_hour * multiplier, 2)
             category_streak = category_count + 1
@@ -3213,6 +3211,13 @@ def log_office_work(payload: WorkLogPayload):
             conn.commit()
             work_log_id = cursor.lastrowid
             conn.close()
+
+        # 2. Write to Neon PostgreSQL DB if online / serverless
+        try:
+            from engine.neon_db import neon_log_office_work
+            neon_log_office_work(work_item_id, payload.description, payload.workDate, category, hours, xp_earned, category_streak)
+        except Exception as ne:
+            print(f"[Work Log Neon Sync Note] {ne}")
 
         # Update Player Stats (AGI & INT boost)
         agi_boost = int(hours * 2)
@@ -3243,30 +3248,38 @@ def log_office_work(payload: WorkLogPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/work_tracker/logs")
-def get_office_work_logs(limit: int = 50):
+def get_office_work_logs(limit: int = 300):
     try:
-        with _DB_WRITE_LOCK:
-            conn = get_db_connection()
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM office_work_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
-            logs = [dict(r) for r in cursor.fetchall()]
-            
-            # Compute Category summary stats
-            cursor.execute("SELECT category, COUNT(*) as cnt, SUM(hours) as total_hrs FROM office_work_logs GROUP BY category")
-            cat_rows = cursor.fetchall()
-            conn.close()
+        logs = []
+        # Try Neon PostgreSQL DB first
+        try:
+            from engine.neon_db import neon_get_office_work_logs
+            logs = neon_get_office_work_logs(limit=limit)
+        except Exception as ne:
+            print(f"[Work Log Neon Read Note] {ne}")
+
+        # Fallback to local SQLite DB if Neon returns empty or fails
+        if not logs:
+            with _DB_WRITE_LOCK:
+                conn = get_db_connection()
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM office_work_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
+                logs = [dict(r) for r in cursor.fetchall()]
+                conn.close()
         
+        # Compute Category summary stats dynamically from logs
         summary = {}
-        for r in cat_rows:
-            cat = r["category"]
-            cnt = r["cnt"] or 0
-            mult = round(1.0 + (0.25 * math.pow(1.20, min(cnt - 1, 15))), 2)
-            summary[cat] = {
-                "total_logs": cnt,
-                "total_hours": round(r["total_hrs"] or 0, 1),
-                "multiplier": mult
-            }
+        for l in logs:
+            cat = l.get("category", "General")
+            if cat not in summary:
+                summary[cat] = {"total_logs": 0, "total_hours": 0.0, "multiplier": 1.0}
+            summary[cat]["total_logs"] += 1
+            summary[cat]["total_hours"] = round(summary[cat]["total_hours"] + float(l.get("hours", 0)), 1)
+
+        for cat, s in summary.items():
+            cnt = s["total_logs"]
+            s["multiplier"] = round(1.0 + (0.25 * math.pow(1.20, min(cnt - 1, 15))), 2)
             
         return {"status": "SUCCESS", "logs": logs, "category_summary": summary}
     except Exception as e:

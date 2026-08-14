@@ -522,12 +522,47 @@ def neon_save_health_log(log_date: str, steps: int, distance_km: float, active_m
             new_id = cur.fetchone()[0]
     return {"id": new_id, "status": "success"}
 
-def neon_get_health_logs(limit: int = 50) -> list:
+def _init_pg_office_work_logs(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_office_work_logs (
+            id SERIAL PRIMARY KEY,
+            workitemid VARCHAR(255),
+            description TEXT,
+            workdate VARCHAR(50),
+            category VARCHAR(100),
+            hours NUMERIC(5,2),
+            xp_awarded NUMERIC(8,2),
+            category_streak INT,
+            logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+
+def neon_log_office_work(work_item_id: str, description: str, work_date: str, category: str, hours: float, xp_awarded: float, category_streak: int) -> int:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_office_work_logs(cur)
+            cur.execute("""
+                INSERT INTO pg_office_work_logs (workitemid, description, workdate, category, hours, xp_awarded, category_streak)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak))
+            new_id = cur.fetchone()[0]
+            return new_id
+
+def neon_get_office_work_logs(limit: int = 300) -> list:
     with _conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            _init_pg_health_logs(cur)
-            cur.execute("SELECT * FROM pg_health_logs ORDER BY id DESC LIMIT %s", (limit,))
-            return [dict(r) for r in cur.fetchall()]
+            _init_pg_office_work_logs(cur)
+            cur.execute("""
+                SELECT id, workitemid AS "workItemId", description, workdate AS "workDate", category, hours, xp_awarded, category_streak, logged_at 
+                FROM pg_office_work_logs ORDER BY id DESC LIMIT %s
+            """, (limit,))
+            rows = [dict(r) for r in cur.fetchall()]
+            for r in rows:
+                if r.get("hours") is not None: r["hours"] = float(r["hours"])
+                if r.get("xp_awarded") is not None: r["xp_awarded"] = float(r["xp_awarded"])
+                if r.get("logged_at") is not None: r["logged_at"] = str(r["logged_at"])
+            return rows
 
 
 
