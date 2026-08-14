@@ -86,5 +86,26 @@ def test_all():
 
     print("\n=== ALL VERIFICATION TESTS PASSED SUCCESSFULLY! ===")
 
+    # Clean up test rows so test suite leaves production database 100% clean
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM office_work_logs WHERE category = ?", (cat,))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+    try:
+        import psycopg2
+        from config import DATABASE_URL
+        nconn = psycopg2.connect(DATABASE_URL)
+        ncur = nconn.cursor()
+        ncur.execute("DELETE FROM pg_office_work_logs WHERE category = %s", (cat,))
+        nconn.commit()
+        ncur.close()
+        nconn.close()
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     test_all()
