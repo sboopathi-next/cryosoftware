@@ -1197,6 +1197,10 @@ def save_reality_check(trigger_event: str, my_interpretation: str, evidence_for:
         from engine.neon_db import neon_save_reality_check
         result = neon_save_reality_check(trigger_event, my_interpretation, evidence_for, evidence_against, alternative_explanation, verified_outcome, distortions)
         update_stat("xp", 15)
+        state = get_state()
+        if state:
+            state["mindos_completed"] = 1
+            save_state(state)
         log_activity_file("CBT Reality Check Completed", f"Reframed thought: '{my_interpretation}' -> '{alternative_explanation}'. Awarded +15 XP.")
         return {"status": "success", "id": result["id"], "earned_xp": 15}
     from datetime import datetime

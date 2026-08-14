@@ -3181,32 +3181,38 @@ class WorkLogPayload(BaseModel):
     Category: str
     hours: float
 
+
+
+
+
 @app.post("/api/work_tracker/log_work")
 def log_office_work(payload: WorkLogPayload):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         category = payload.Category.strip()
         hours = max(0.1, float(payload.hours))
+        work_item_id = payload.workItemId.strip()
         
-        # Get total previous logs in this same category
-        cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))
-        category_count = cursor.fetchone()[0] or 0
-        
-        base_xp_per_hour = 40.0
-        # Exponential Multiplier Equation: 1 + 0.25 * (1.20 ^ min(category_count, 15))
-        multiplier = 1.0 + (0.25 * math.pow(1.20, min(category_count, 15)))
-        xp_earned = round(hours * base_xp_per_hour * multiplier, 2)
-        category_streak = category_count + 1
-        
-        cursor.execute("""
-            INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (payload.workItemId.strip(), payload.description, payload.workDate, category, hours, xp_earned, category_streak))
-        conn.commit()
-        work_log_id = cursor.lastrowid
-        conn.close()
+        with _DB_WRITE_LOCK:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Get total previous logs in this same category
+            cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))
+            category_count = cursor.fetchone()[0] or 0
+            
+            base_xp_per_hour = 40.0
+            # Exponential Multiplier Equation: 1 + 0.25 * (1.20 ^ min(category_count, 15))
+            multiplier = 1.0 + (0.25 * math.pow(1.20, min(category_count, 15)))
+            xp_earned = round(hours * base_xp_per_hour * multiplier, 2)
+            category_streak = category_count + 1
+            
+            cursor.execute("""
+                INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (work_item_id, payload.description, payload.workDate, category, hours, xp_earned, category_streak))
+            conn.commit()
+            work_log_id = cursor.lastrowid
+            conn.close()
 
         # Update Player Stats (AGI & INT boost)
         agi_boost = int(hours * 2)
@@ -3219,12 +3225,12 @@ def log_office_work(payload: WorkLogPayload):
             save_state(state)
         add_xp(int(xp_earned))
         
-        log_activity_file("Office Work Logged", f"Logged work item '{payload.workItemId}' [Log ID #{work_log_id}] ({category}, {hours}h). Mastery Depth: Lvl {category_streak}. +{xp_earned} XP, +{agi_boost} AGI, +{int_boost} INT.")
+        log_activity_file("Office Work Logged", f"Logged work item '{work_item_id}' [Log ID #{work_log_id}] ({category}, {hours}h). Mastery Depth: Lvl {category_streak}. +{xp_earned} XP, +{agi_boost} AGI, +{int_boost} INT.")
         
         return {
             "status": "SUCCESS",
             "workLogId": work_log_id,
-            "workItemId": payload.workItemId,
+            "workItemId": work_item_id,
             "xp_awarded": xp_earned,
             "category": category,
             "category_streak": category_streak,
@@ -3239,16 +3245,17 @@ def log_office_work(payload: WorkLogPayload):
 @app.get("/api/work_tracker/logs")
 def get_office_work_logs(limit: int = 50):
     try:
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM office_work_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
-        logs = [dict(r) for r in cursor.fetchall()]
-        
-        # Compute Category summary stats
-        cursor.execute("SELECT category, COUNT(*) as cnt, SUM(hours) as total_hrs FROM office_work_logs GROUP BY category")
-        cat_rows = cursor.fetchall()
-        conn.close()
+        with _DB_WRITE_LOCK:
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM office_work_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
+            logs = [dict(r) for r in cursor.fetchall()]
+            
+            # Compute Category summary stats
+            cursor.execute("SELECT category, COUNT(*) as cnt, SUM(hours) as total_hrs FROM office_work_logs GROUP BY category")
+            cat_rows = cursor.fetchall()
+            conn.close()
         
         summary = {}
         for r in cat_rows:
