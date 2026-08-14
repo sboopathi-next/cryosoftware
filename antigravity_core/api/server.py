@@ -3177,20 +3177,90 @@ def log_gympro_workout(data: GymProLogPayload):
 class WorkLogPayload(BaseModel):
     workItemId: str
     description: str
-    workDate: str
-    Category: str
-    hours: float
+    workDate: Optional[str] = None
+    Category: Optional[str] = None
+    category: Optional[str] = None
+    hours: Union[float, str]
 
+def auto_categorize_work_with_groq(description: str, work_item_id: str, default_cat: str) -> str:
+    groq_key = os.environ.get("GROQ_API_KEY", "").strip()
+    if not groq_key:
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT value FROM settings WHERE key = 'groq_api_key'")
+            row = cur.fetchone()
+            conn.close()
+            if row and row[0]:
+                groq_key = row[0].strip()
+        except Exception:
+            pass
 
+    if not groq_key or not description:
+        return default_cat or "General"
 
+    try:
+        import urllib.request
+        import json
+        req_data = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a tech lead. Categorize office work items into clean, professional 1-3 word engineering domain categories (e.g. 'Automation & Workflows', 'Backend Engineering', 'Database & SQL', 'API Integration', 'Frontend & UI', 'DevOps & Cloud', 'AI & Machine Learning'). Output ONLY the category name string."
+                },
+                {
+                    "role": "user",
+                    "content": f"Work Item: {work_item_id}\nDescription: {description}\nProvided Category: {default_cat}"
+                }
+            ],
+            "max_tokens": 15,
+            "temperature": 0.1
+        }
+        req = urllib.request.Request(
+            "https://api.groq.com/openai/v1/chat/completions",
+            data=json.dumps(req_data).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {groq_key}",
+                "Content-Type": "application/json"
+            },
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=3.5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            cat = data["choices"][0]["message"]["content"].strip().strip('"').strip("'")
+            if cat and len(cat) <= 40:
+                return cat
+    except Exception as e:
+        print(f"[Groq Auto-Category Note] {e} -> fallback to '{default_cat}'")
 
+    return default_cat or "General"
 
 @app.post("/api/work_tracker/log_work")
 def log_office_work(payload: WorkLogPayload):
     try:
-        category = payload.Category.strip()
-        hours = max(0.1, float(payload.hours))
+        raw_category = (payload.Category or payload.category or "General").strip()
         work_item_id = payload.workItemId.strip()
+        
+        # Groq AI Auto Categorization with seamless fallback
+        category = auto_categorize_work_with_groq(payload.description, work_item_id, raw_category)
+        
+        # Parse hours safely whether passed as float or string (e.g. "2")
+        raw_hours = str(payload.hours).replace("h", "").strip()
+        hours = max(0.1, float(raw_hours))
+        
+        # Sanitize ISO timestamp workDate (e.g. "2026-07-27T15:30:00.0000000" -> "2026-07-27")
+        raw_date = (payload.workDate or "").strip()
+        if "T" in raw_date:
+            work_date = raw_date.split("T")[0]
+        elif " " in raw_date:
+            work_date = raw_date.split(" ")[0]
+        else:
+            work_date = raw_date
+            
+        if not work_date:
+            import datetime as _dt
+            work_date = _dt.date.today().isoformat()
         
         # 1. Write to local SQLite DB
         with _DB_WRITE_LOCK:
@@ -3207,7 +3277,7 @@ def log_office_work(payload: WorkLogPayload):
             cursor.execute("""
                 INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (work_item_id, payload.description, payload.workDate, category, hours, xp_earned, category_streak))
+            """, (work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak))
             conn.commit()
             work_log_id = cursor.lastrowid
             conn.close()
@@ -3215,7 +3285,7 @@ def log_office_work(payload: WorkLogPayload):
         # 2. Write to Neon PostgreSQL DB if online / serverless
         try:
             from engine.neon_db import neon_log_office_work
-            neon_log_office_work(work_item_id, payload.description, payload.workDate, category, hours, xp_earned, category_streak)
+            neon_log_office_work(work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak)
         except Exception as ne:
             print(f"[Work Log Neon Sync Note] {ne}")
 

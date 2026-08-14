@@ -65,7 +65,7 @@ body, .app { height: 100vh; overflow: hidden; }
       <div class="page-head" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div>
           <div class="page-title"><i class="fa-solid fa-briefcase" style="color:var(--indigo); margin-right:8px;"></i> Office Work Analytics &amp; Calendar Report</div>
-          <div class="page-sub">Interactive daily activity calendar · Domain depth summary · Auto API ingestion</div>
+          <div class="page-sub">Interactive daily activity calendar · Groq AI domain categorization · Auto API ingestion</div>
         </div>
         <div>
           <span class="nav-badge" style="background:rgba(16,185,129,0.15); color:var(--green); border-color:rgba(16,185,129,0.3); font-family:var(--ff-mono); font-size:11px;">
@@ -98,13 +98,15 @@ body, .app { height: 100vh; overflow: hidden; }
         </div>
       </div>
 
-      <!-- Interactive Calendar Report Widget -->
+      <!-- Interactive Calendar Report Widget with Month Navigation -->
       <div class="wt-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div class="card-title"><i class="fa-solid fa-calendar-days" style="color:var(--cyan);"></i> Work Activity Calendar</div>
           <div style="display:flex; gap:8px; align-items:center;">
-            <span id="cal-month-title" style="font-family:var(--ff-mono); font-size:12px; color:var(--text2); font-weight:bold;">August 2026</span>
-            <button id="btn-clear-date" onclick="selectCalendarDate(null)" class="btn btn-ghost btn-sm" style="display:none; font-size:10px; color:var(--cyan);">
+            <button onclick="changeCalMonth(-1)" class="btn btn-ghost btn-sm" style="padding:4px 8px;" title="Previous Month"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="cal-month-title" style="font-family:var(--ff-mono); font-size:13px; color:var(--text1); font-weight:bold; min-width:110px; text-align:center;">August 2026</span>
+            <button onclick="changeCalMonth(1)" class="btn btn-ghost btn-sm" style="padding:4px 8px;" title="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
+            <button id="btn-clear-date" onclick="selectCalendarDate(null)" class="btn btn-ghost btn-sm" style="display:none; font-size:10px; color:var(--cyan); margin-left:6px;">
               <i class="fa-solid fa-xmark"></i> Show All Dates
             </button>
           </div>
@@ -128,7 +130,7 @@ body, .app { height: 100vh; overflow: hidden; }
       <div class="wt-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
           <div class="card-title"><i class="fa-solid fa-layer-group" style="color:var(--amber);"></i> Domain Specialization Depth</div>
-          <div style="font-size:11px; color:var(--text3); font-family:var(--ff-mono);">Yield Rewards Applied Automatically</div>
+          <div style="font-size:11px; color:var(--text3); font-family:var(--ff-mono);">Groq AI Auto-Categorized</div>
         </div>
         <div id="pg-cat-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px;">
           <div style="color:var(--text3); font-size:12px;">No work domains logged yet.</div>
@@ -180,6 +182,9 @@ let allWorkLogs = [];
 let selectedDateStr = null;
 let dateWorkMap = {}; // dateStr -> { hours, count, xp }
 
+let currentCalYear = new Date().getFullYear();
+let currentCalMonth = new Date().getMonth(); // 0-indexed
+
 async function loadWorkTrackerReport() {
   try {
     const res = await fetch("/api/work_tracker/logs?limit=300");
@@ -196,31 +201,55 @@ async function loadWorkTrackerReport() {
 
 function processWorkData(data) {
   dateWorkMap = {};
+  let latestDate = null;
+
   allWorkLogs.forEach(l => {
-    const d = l.workDate || (l.logged_at ? l.logged_at.split('T')[0] : null);
-    if (!d) return;
+    const rawDate = l.workDate || (l.logged_at ? l.logged_at.split('T')[0].split(' ')[0] : null);
+    if (!rawDate) return;
+    const d = rawDate.split('T')[0].split(' ')[0]; // Sanitize ISO timestamp
     if (!dateWorkMap[d]) {
       dateWorkMap[d] = { hours: 0, count: 0, xp: 0 };
     }
     dateWorkMap[d].hours += parseFloat(l.hours || 0);
     dateWorkMap[d].count += 1;
     dateWorkMap[d].xp += parseFloat(l.xp_awarded || 0);
+
+    if (!latestDate || d > latestDate) latestDate = d;
   });
+
+  // Automatically focus calendar on the most recent log's month if available
+  if (latestDate && latestDate.includes('-')) {
+    const parts = latestDate.split('-');
+    const logYear = parseInt(parts[0], 10);
+    const logMonth = parseInt(parts[1], 10) - 1;
+    if (!isNaN(logYear) && !isNaN(logMonth)) {
+      currentCalYear = logYear;
+      currentCalMonth = logMonth;
+    }
+  }
+}
+
+function changeCalMonth(delta) {
+  currentCalMonth += delta;
+  if (currentCalMonth < 0) {
+    currentCalMonth = 11;
+    currentCalYear--;
+  } else if (currentCalMonth > 11) {
+    currentCalMonth = 0;
+    currentCalYear++;
+  }
+  renderCalendar();
 }
 
 function renderCalendar() {
   const container = document.getElementById("cal-tiles-container");
   if (!container) return;
 
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
-
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  document.getElementById("cal-month-title").textContent = `${monthNames[month]} ${year}`;
+  document.getElementById("cal-month-title").textContent = `${monthNames[currentCalMonth]} ${currentCalYear}`;
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+  const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
 
   let html = "";
 
@@ -231,7 +260,7 @@ function renderCalendar() {
 
   // Days of month
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const dateStr = `${currentCalYear}-${(currentCalMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     const workData = dateWorkMap[dateStr];
     const hasWork = !!workData;
     const isSelected = selectedDateStr === dateStr;
@@ -335,7 +364,9 @@ function filterLogsTable() {
   const catFilter = document.getElementById("wt-cat-select")?.value || "";
 
   const filtered = allWorkLogs.filter(l => {
-    const logDate = l.workDate || (l.logged_at ? l.logged_at.split('T')[0] : null);
+    const rawDate = l.workDate || (l.logged_at ? l.logged_at.split('T')[0].split(' ')[0] : null);
+    const logDate = rawDate ? rawDate.split('T')[0].split(' ')[0] : null;
+
     const matchDate = !selectedDateStr || logDate === selectedDateStr;
     const matchCat = !catFilter || l.category === catFilter;
     const matchQuery = !query || 
@@ -351,17 +382,21 @@ function filterLogsTable() {
       tbl.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--text3);">${selectedDateStr ? 'No work logs for ' + selectedDateStr : 'No matching work logs found.'}</td></tr>`;
       return;
     }
-    tbl.innerHTML = filtered.map(l => `
-      <tr>
-        <td style="font-family:var(--ff-mono); color:var(--text3);">#${l.workLogId || l.id || '-'}</td>
-        <td style="font-family:var(--ff-mono); color:var(--indigo); font-weight:bold;">${escHTML(l.workItemId)}</td>
-        <td style="font-weight:600;">${escHTML(l.category)}</td>
-        <td style="color:var(--text2); max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHTML(l.description)}</td>
-        <td style="font-family:var(--ff-mono); color:var(--text3);">${l.workDate || '-'}</td>
-        <td style="font-weight:bold;">${l.hours}h</td>
-        <td style="color:var(--green); font-family:var(--ff-mono); font-weight:bold;">+${l.xp_awarded} XP</td>
-      </tr>
-    `).join('');
+    tbl.innerHTML = filtered.map(l => {
+      const rawDate = l.workDate || (l.logged_at ? l.logged_at.split('T')[0].split(' ')[0] : '-');
+      const cleanDate = rawDate ? rawDate.split('T')[0].split(' ')[0] : '-';
+      return `
+        <tr>
+          <td style="font-family:var(--ff-mono); color:var(--text3);">#${l.workLogId || l.id || '-'}</td>
+          <td style="font-family:var(--ff-mono); color:var(--indigo); font-weight:bold;">${escHTML(l.workItemId)}</td>
+          <td style="font-weight:600;">${escHTML(l.category)}</td>
+          <td style="color:var(--text2); max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHTML(l.description)}</td>
+          <td style="font-family:var(--ff-mono); color:var(--text3);">${cleanDate}</td>
+          <td style="font-weight:bold;">${l.hours}h</td>
+          <td style="color:var(--green); font-family:var(--ff-mono); font-weight:bold;">+${l.xp_awarded} XP</td>
+        </tr>
+      `;
+    }).join('');
   }
 }
 
