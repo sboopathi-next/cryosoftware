@@ -3296,6 +3296,9 @@ def log_office_work(payload: WorkLogPayload):
         with _DB_WRITE_LOCK:
             conn = get_db_connection()
             cursor = conn.cursor()
+            cursor.execute("SELECT id FROM office_work_logs WHERE workItemId = ? AND (workDate = ? OR workDate LIKE ?)", (work_item_id, work_date, f"{work_date}%"))
+            existing = cursor.fetchone()
+            
             cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))
             category_count = cursor.fetchone()[0] or 0
             
@@ -3304,12 +3307,21 @@ def log_office_work(payload: WorkLogPayload):
             xp_earned = round(hours * base_xp_per_hour * multiplier, 2)
             category_streak = category_count + 1
             
-            cursor.execute("""
-                INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak))
-            conn.commit()
-            work_log_id = cursor.lastrowid
+            if existing:
+                cursor.execute("""
+                    UPDATE office_work_logs 
+                    SET description = ?, category = ?, hours = ?
+                    WHERE id = ?
+                """, (payload.description, category, hours, existing[0]))
+                conn.commit()
+                work_log_id = existing[0]
+            else:
+                cursor.execute("""
+                    INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak))
+                conn.commit()
+                work_log_id = cursor.lastrowid
             conn.close()
 
         # 2. Write to Neon PostgreSQL DB if online / serverless
