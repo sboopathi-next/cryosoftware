@@ -3088,6 +3088,20 @@ def api_health_sync_google_fit():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/health_sync/reauth")
+@app.post("/api/health_sync/reauth")
+def api_health_sync_reauth():
+    """Triggers interactive Google Fit OAuth re-authentication to refresh expired credentials."""
+    try:
+        from engine.reauth_google_fit import perform_reauth
+        success = perform_reauth()
+        if success:
+            return {"status": "SUCCESS", "message": "Google Health Fit OAuth credentials refreshed successfully!"}
+        else:
+            return {"status": "ERROR", "message": "Google Health Fit OAuth re-authentication failed."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # LEETCODE MANUAL TRIGGER & TIMEZONE SYNC
