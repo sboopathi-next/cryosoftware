@@ -104,9 +104,31 @@ def get_fit_service():
                 print(f"[GoogleFit] Serverless refresh error: {e}")
                 creds = None
 
-    # 3. Interactive local fallback if refresh token is missing
+    # Auto-generate credentials.json from env vars if missing
+    cred_path = find_file("credentials.json")
+    if not cred_path and client_id and client_secret:
+        cred_path = os.path.join(_CORE_DIR, "data", "credentials.json")
+        try:
+            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
+            with open(cred_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "installed": {
+                        "client_id": client_id,
+                        "project_id": "cryosoftware",
+                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                        "token_uri": "https://oauth2.googleapis.com/token",
+                        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                        "client_secret": client_secret,
+                        "redirect_uris": ["http://localhost"]
+                    }
+                }, f, indent=2)
+            print(f"[GoogleFit] Generated credentials.json at {cred_path}")
+        except Exception as e:
+            print(f"[GoogleFit] Error generating credentials.json: {e}")
+
+    # 3. Interactive local fallback if refresh token is expired/invalid
     if not creds or not creds.valid:
-        cred_path = find_file("credentials.json")
+        cred_path = find_file("credentials.json") or cred_path
         if cred_path:
             try:
                 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -116,6 +138,22 @@ def get_fit_service():
                 with open(token_path, "w") as token_file:
                     token_file.write(creds.to_json())
                 print(f"[GoogleFit] ✅ token.json saved to {token_path}")
+                
+                # Update GOOGLE_FIT_REFRESH_TOKEN in .env if fresh token obtained
+                if creds.refresh_token:
+                    env_file = os.path.join(_ROOT_DIR, ".env")
+                    if os.path.exists(env_file):
+                        try:
+                            with open(env_file, "r", encoding="utf-8") as f:
+                                env_content = f.read()
+                            if "GOOGLE_FIT_REFRESH_TOKEN=" in env_content:
+                                import re
+                                env_content = re.sub(r'GOOGLE_FIT_REFRESH_TOKEN\s*=\s*".*?"', f'GOOGLE_FIT_REFRESH_TOKEN="{creds.refresh_token}"', env_content)
+                                with open(env_file, "w", encoding="utf-8") as f:
+                                    f.write(env_content)
+                                print("[GoogleFit] ✅ Updated GOOGLE_FIT_REFRESH_TOKEN in .env file!")
+                        except Exception as ee:
+                            print(f"[GoogleFit Note] Could not update .env: {ee}")
             except Exception as e:
                 print(f"[GoogleFit] Local auth error: {e}")
                 return None
