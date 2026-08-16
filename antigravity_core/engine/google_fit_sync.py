@@ -64,7 +64,7 @@ def get_fit_service():
         from google.auth.transport.requests import Request
         from googleapiclient.discovery import build
     except ImportError as e:
-        print(f"[GoogleFit] ❌ Missing libraries: {e}. Run 'pip install google-auth-oauthlib google-api-python-client'")
+        print(f"[GoogleFit] [ERROR] Missing libraries: {e}. Run 'pip install google-auth-oauthlib google-api-python-client'")
         return None
 
     client_id     = os.getenv("GOOGLE_FIT_CLIENT_ID", DEFAULT_CLIENT_ID)
@@ -126,8 +126,8 @@ def get_fit_service():
         except Exception as e:
             print(f"[GoogleFit] Error generating credentials.json: {e}")
 
-    # 3. Interactive local fallback if refresh token is expired/invalid
-    if not creds or not creds.valid:
+    # 3. Interactive local fallback only if running interactively in CLI
+    if (not creds or not creds.valid) and sys.stdin.isatty():
         cred_path = find_file("credentials.json") or cred_path
         if cred_path:
             try:
@@ -137,7 +137,7 @@ def get_fit_service():
                 os.makedirs(os.path.dirname(token_path), exist_ok=True)
                 with open(token_path, "w") as token_file:
                     token_file.write(creds.to_json())
-                print(f"[GoogleFit] ✅ token.json saved to {token_path}")
+                print(f"[GoogleFit] [OK] token.json saved to {token_path}")
                 
                 # Update GOOGLE_FIT_REFRESH_TOKEN in .env if fresh token obtained
                 if creds.refresh_token:
@@ -151,7 +151,7 @@ def get_fit_service():
                                 env_content = re.sub(r'GOOGLE_FIT_REFRESH_TOKEN\s*=\s*".*?"', f'GOOGLE_FIT_REFRESH_TOKEN="{creds.refresh_token}"', env_content)
                                 with open(env_file, "w", encoding="utf-8") as f:
                                     f.write(env_content)
-                                print("[GoogleFit] ✅ Updated GOOGLE_FIT_REFRESH_TOKEN in .env file!")
+                                print("[GoogleFit] [OK] Updated GOOGLE_FIT_REFRESH_TOKEN in .env file!")
                         except Exception as ee:
                             print(f"[GoogleFit Note] Could not update .env: {ee}")
             except Exception as e:
@@ -159,7 +159,7 @@ def get_fit_service():
                 return None
 
     if not creds:
-        print("[GoogleFit] ❌ Unable to authenticate Google Fit service.")
+        print("[GoogleFit] [ERROR] Unable to authenticate Google Fit service.")
         return None
 
     return build('fitness', 'v1', credentials=creds)
@@ -173,7 +173,7 @@ def sync_daily_fitness() -> Dict[str, Any]:
     if not service:
         return {
             "status": "ERROR",
-            "message": "Google Fitness API service unavailable. Ensure credentials.json is present.",
+            "message": "Google Fitness API token expired or invalid. Please re-authenticate at /api/health_sync/reauth or update GOOGLE_FIT_REFRESH_TOKEN in .env.",
             "setup_required": True
         }
 
