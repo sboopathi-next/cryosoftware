@@ -7,6 +7,7 @@ Mind OS, human connections, stoic logs) read/write here instead.
 """
 
 import datetime
+from typing import Optional
 import psycopg2
 import psycopg2.extras
 
@@ -537,24 +538,38 @@ def _init_pg_office_work_logs(cur):
         );
     """)
 
-def neon_log_office_work(work_item_id: str, description: str, work_date: str, category: str, hours: float, xp_awarded: float, category_streak: int) -> int:
+def neon_log_office_work(work_item_id: str, description: str, work_date: str, category: str, hours: float, xp_awarded: float, category_streak: int, work_log_id: Optional[int] = None) -> int:
     with _conn() as conn:
         with conn.cursor() as cur:
             _init_pg_office_work_logs(cur)
-            cur.execute("""
-                INSERT INTO pg_office_work_logs (workitemid, description, workdate, category, hours, xp_awarded, category_streak)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING id;
-            """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak))
-            new_id = cur.fetchone()[0]
-            return new_id
+            existing = None
+            if work_log_id is not None:
+                cur.execute("SELECT id FROM pg_office_work_logs WHERE id = %s", (work_log_id,))
+                existing = cur.fetchone()
+            
+            if existing:
+                cur.execute("""
+                    UPDATE pg_office_work_logs
+                    SET workitemid = %s, description = %s, workdate = %s, category = %s, hours = %s, xp_awarded = %s, category_streak = %s
+                    WHERE id = %s
+                    RETURNING id;
+                """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak, existing[0]))
+                return existing[0]
+            else:
+                cur.execute("""
+                    INSERT INTO pg_office_work_logs (workitemid, description, workdate, category, hours, xp_awarded, category_streak)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id;
+                """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak))
+                new_id = cur.fetchone()[0]
+                return new_id
 
 def neon_get_office_work_logs(limit: int = 300) -> list:
     with _conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             _init_pg_office_work_logs(cur)
             cur.execute("""
-                SELECT id, workitemid AS "workItemId", description, workdate AS "workDate", category, hours, xp_awarded, category_streak, logged_at 
+                SELECT id AS "workLogId", id, workitemid AS "workItemId", description, workdate AS "workDate", category, hours, xp_awarded, category_streak, logged_at 
                 FROM pg_office_work_logs ORDER BY id DESC LIMIT %s
             """, (limit,))
             rows = [dict(r) for r in cur.fetchall()]

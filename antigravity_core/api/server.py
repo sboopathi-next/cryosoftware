@@ -3189,6 +3189,8 @@ def log_gympro_workout(data: GymProLogPayload):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class WorkLogPayload(BaseModel):
+    workLogId: Optional[Union[int, str]] = None
+    worklogId: Optional[Union[int, str]] = None
     workItemId: str
     description: str
     workDate: Optional[str] = None
@@ -3293,11 +3295,21 @@ def log_office_work(payload: WorkLogPayload):
             work_date = _dt.date.today().isoformat()
         
         # 1. Write to local SQLite DB
+        raw_target_id = payload.workLogId if payload.workLogId is not None else payload.worklogId
+        target_work_log_id = None
+        if raw_target_id is not None and str(raw_target_id).strip():
+            try:
+                target_work_log_id = int(str(raw_target_id).strip())
+            except (ValueError, TypeError):
+                target_work_log_id = None
+
         with _DB_WRITE_LOCK:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM office_work_logs WHERE workItemId = ? AND (workDate = ? OR workDate LIKE ?)", (work_item_id, work_date, f"{work_date}%"))
-            existing = cursor.fetchone()
+            existing = None
+            if target_work_log_id is not None:
+                cursor.execute("SELECT workLogId FROM office_work_logs WHERE workLogId = ?", (target_work_log_id,))
+                existing = cursor.fetchone()
             
             cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))
             category_count = cursor.fetchone()[0] or 0
@@ -3310,11 +3322,12 @@ def log_office_work(payload: WorkLogPayload):
             if existing:
                 cursor.execute("""
                     UPDATE office_work_logs 
-                    SET description = ?, category = ?, hours = ?
-                    WHERE id = ?
-                """, (payload.description, category, hours, existing[0]))
+                    SET description = ?, category = ?, hours = ?, workItemId = ?, workDate = ?
+                    WHERE workLogId = ?
+                """, (payload.description, category, hours, work_item_id, work_date, existing[0]))
                 conn.commit()
                 work_log_id = existing[0]
+                action = "UPDATED"
             else:
                 cursor.execute("""
                     INSERT INTO office_work_logs (workItemId, description, workDate, category, hours, xp_awarded, category_streak)
@@ -3322,12 +3335,13 @@ def log_office_work(payload: WorkLogPayload):
                 """, (work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak))
                 conn.commit()
                 work_log_id = cursor.lastrowid
+                action = "CREATED"
             conn.close()
 
         # 2. Write to Neon PostgreSQL DB if online / serverless
         try:
             from engine.neon_db import neon_log_office_work
-            neon_log_office_work(work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak)
+            neon_log_office_work(work_item_id, payload.description, work_date, category, hours, xp_earned, category_streak, work_log_id=target_work_log_id)
         except Exception as ne:
             print(f"[Work Log Neon Sync Note] {ne}")
 
@@ -3346,13 +3360,14 @@ def log_office_work(payload: WorkLogPayload):
         
         return {
             "status": "SUCCESS",
+            "action": action,
             "workLogId": work_log_id,
             "workItemId": work_item_id,
             "xp_awarded": xp_earned,
             "category": category,
             "category_streak": category_streak,
             "stat_boosts": {"AGI": f"+{agi_boost}", "INT": f"+{int_boost}"},
-            "message": f"Work Logged! Category Depth Level: {category_streak} | Log #{work_log_id} | Earned +{xp_earned} XP!"
+            "message": f"Work Logged ({action.capitalize()})! Category Depth Level: {category_streak} | Log #{work_log_id} | Earned +{xp_earned} XP!"
         }
     except HTTPException:
         raise
