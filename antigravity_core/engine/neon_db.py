@@ -364,13 +364,13 @@ def neon_get_workout_history(limit: str = None) -> list:
                 cur.execute(
                     "SELECT timestamp AS \"Timestamp\", category AS \"Category\", workout AS \"Workout\", "
                     "variations AS \"Variations\", sets AS \"Sets\", duration_minutes AS \"Duration_Minutes\", id "
-                    "FROM pg_workout_log ORDER BY id DESC"
+                    "FROM pg_workout_log ORDER BY timestamp DESC, id DESC"
                 )
             else:
                 cur.execute(
                     "SELECT timestamp AS \"Timestamp\", category AS \"Category\", workout AS \"Workout\", "
                     "variations AS \"Variations\", sets AS \"Sets\", duration_minutes AS \"Duration_Minutes\", id "
-                    "FROM pg_workout_log ORDER BY id DESC LIMIT 50"
+                    "FROM pg_workout_log ORDER BY timestamp DESC, id DESC LIMIT 100"
                 )
             return [dict(r) for r in cur.fetchall()]
 
