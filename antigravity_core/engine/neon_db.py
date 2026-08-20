@@ -637,6 +637,15 @@ def neon_get_task_streaks() -> dict:
                 """, (cutoff,))
                 rows = cur.fetchall() or []
 
+                # Also get lifetime total_done for each task
+                cur.execute("""
+                    SELECT task_key, COUNT(*) as total
+                    FROM pg_task_daily_log
+                    WHERE completed = 1
+                    GROUP BY task_key
+                """)
+                total_counts = {r["task_key"]: int(r["total"]) for r in cur.fetchall() or []}
+
         by_task = defaultdict(dict)
         for r in rows:
             by_task[r["task_key"]][r["log_date"]] = bool(r["completed"])
@@ -649,16 +658,32 @@ def neon_get_task_streaks() -> dict:
                 d = (today - timedelta(days=i)).isoformat()
                 last_30.append({"date": d, "done": day_map.get(d, False)})
 
-            current_streak = 0
-            check_day = today
-            while True:
-                ds = check_day.isoformat()
-                if day_map.get(ds, False):
-                    current_streak += 1
-                    check_day = check_day - timedelta(days=1)
-                else:
-                    break
+            done_today     = bool(day_map.get(today.isoformat(), False))
+            done_yesterday = bool(day_map.get((today - timedelta(days=1)).isoformat(), False))
 
+            # Current streak calculation:
+            # - If done today: count backwards starting from today
+            # - If not done today, but done yesterday: streak is alive (pending today's checkoff), count from yesterday
+            # - If neither today nor yesterday: streak is broken (0)
+            current_streak = 0
+            if done_today:
+                check_day = today
+                while True:
+                    if day_map.get(check_day.isoformat(), False):
+                        current_streak += 1
+                        check_day = check_day - timedelta(days=1)
+                    else:
+                        break
+            elif done_yesterday:
+                check_day = today - timedelta(days=1)
+                while True:
+                    if day_map.get(check_day.isoformat(), False):
+                        current_streak += 1
+                        check_day = check_day - timedelta(days=1)
+                    else:
+                        break
+
+            # Best streak (sliding window over 120 days)
             best_streak = 0
             run = 0
             for i in range(120):
@@ -669,13 +694,15 @@ def neon_get_task_streaks() -> dict:
                 else:
                     run = 0
 
-            total_done  = sum(1 for v in day_map.values() if v)
-            done_today  = bool(day_map.get(today.isoformat(), False))
-            yesterday   = (today - timedelta(days=1)).isoformat()
+            total_done = total_counts.get(tk, sum(1 for v in day_map.values() if v))
             has_history = total_done > 0
+
+            # missed_yesterday: only True if had an active streak (completed day before yesterday) and failed yesterday
+            day_before_yesterday = (today - timedelta(days=2)).isoformat()
+            had_recent_streak = bool(day_map.get(day_before_yesterday, False))
             missed_yesterday = (
-                has_history
-                and not day_map.get(yesterday, False)
+                had_recent_streak
+                and not done_yesterday
                 and not done_today
             )
 
