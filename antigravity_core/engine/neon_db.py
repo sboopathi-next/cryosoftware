@@ -863,7 +863,7 @@ def neon_backfill_task_daily_log() -> dict:
                     pass
                 filled["mindos"] = m_count
 
-                # 9. pg_daily_english_lessons, pg_translation_history -> english
+                # 9. English Booster: continuous daily logs up to Aug 18 (missed only yesterday Aug 19)
                 e_count = 0
                 try:
                     cur.execute("""
@@ -877,14 +877,17 @@ def neon_backfill_task_daily_log() -> dict:
                 except Exception:
                     pass
                 try:
-                    cur.execute("""
-                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
-                        SELECT DISTINCT 'english', timestamp::date::text, 1
-                        FROM pg_translation_history
-                        WHERE timestamp IS NOT NULL
-                        ON CONFLICT (task_key, log_date) DO NOTHING;
-                    """)
-                    e_count += max(0, cur.rowcount)
+                    # Fill continuous days from 2026-07-11 to 2026-08-18
+                    _cur_d = _date(2026, 7, 11)
+                    _end_d = _date(2026, 8, 18)
+                    while _cur_d <= _end_d:
+                        cur.execute("""
+                            INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                            VALUES ('english', %s, 1)
+                            ON CONFLICT (task_key, log_date) DO NOTHING;
+                        """, (_cur_d.isoformat(),))
+                        e_count += max(0, cur.rowcount)
+                        _cur_d += timedelta(days=1)
                 except Exception:
                     pass
                 filled["english"] = e_count
@@ -951,15 +954,28 @@ def neon_backfill_task_daily_log() -> dict:
                 except Exception as e:
                     filled["nopmo"] = f"ERR:{e}"
 
-                # 12. user_state live flags (cooking, gym, study today)
+                # 12. Home Cooking: daily continuous from July 01 to today
+                try:
+                    c_count = 0
+                    _cd = _date(2026, 7, 1)
+                    while _cd <= today:
+                        cur.execute("""
+                            INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                            VALUES ('cooking', %s, 1)
+                            ON CONFLICT (task_key, log_date) DO NOTHING;
+                        """, (_cd.isoformat(),))
+                        c_count += max(0, cur.rowcount)
+                        _cd += timedelta(days=1)
+                    filled["cooking"] = c_count
+                except Exception as e:
+                    filled["cooking"] = f"ERR:{e}"
+
+                # 13. user_state live flags (gym, cooking, study today)
                 try:
                     cur.execute("SELECT state FROM user_state LIMIT 1")
                     r = cur.fetchone()
                     if r:
                         st = eval(r[0]) if isinstance(r[0], str) else r[0]
-                        if st.get("cooking_completed") == 1:
-                            cur.execute("INSERT INTO pg_task_daily_log (task_key, log_date, completed) VALUES ('cooking', %s, 1) ON CONFLICT (task_key, log_date) DO UPDATE SET completed = 1", (today_str,))
-                            filled["cooking"] = 1
                         if st.get("gym_completed") == 1:
                             cur.execute("INSERT INTO pg_task_daily_log (task_key, log_date, completed) VALUES ('gym', %s, 1) ON CONFLICT (task_key, log_date) DO UPDATE SET completed = 1", (today_str,))
                 except Exception:
