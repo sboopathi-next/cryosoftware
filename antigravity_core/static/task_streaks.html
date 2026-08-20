@@ -372,6 +372,8 @@ function toggleMonth(cardId) {
 }
 
 // ── Load streaks ──────────────────────────────────────────────────────────────
+let _hasAutoBackfilled = false;
+
 async function loadStreaks() {
   document.getElementById('loading-wrap').classList.remove('hidden');
   document.getElementById('tasks-grid').classList.add('hidden');
@@ -382,7 +384,15 @@ async function loadStreaks() {
     const r = await fetchFn('/api/tasks/streaks');
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
-    renderStreaks(d.streaks || {});
+    const streaks = d.streaks || {};
+    renderStreaks(streaks);
+
+    // If zero history is detected across all tasks on first load, auto-sync history
+    const allZeroes = Object.keys(streaks).length > 0 && Object.values(streaks).every(s => (s.total_done || 0) === 0);
+    if (allZeroes && !_hasAutoBackfilled) {
+      _hasAutoBackfilled = true;
+      runBackfill();
+    }
   } catch (err) {
     document.getElementById('loading-wrap').innerHTML =
       `<div style="color:#ef4444;text-align:center;padding:40px">
