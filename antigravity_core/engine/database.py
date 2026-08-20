@@ -496,7 +496,14 @@ def get_task_streaks() -> dict:
     """
     Compute per-task streak stats from task_daily_log.
     Returns a dict keyed by task_key with:
-      current_streak, best_streak, total_done, missed_yesterday, last_30_days (list of date → bool)
+      current_streak, best_streak, total_done, missed_yesterday,
+      done_today, last_30 (list of {date, done})
+
+    NOTE: missed_yesterday is only True if:
+      - The task has at least 1 completion ever (we have data), AND
+      - Yesterday was NOT completed, AND
+      - Today is NOT completed yet.
+    This prevents false-red on tasks with no history.
     """
     from datetime import date as _date, timedelta
     today = _date.today()
@@ -534,7 +541,7 @@ def get_task_streaks() -> dict:
                 d = (today - timedelta(days=i)).isoformat()
                 last_30.append({"date": d, "done": day_map.get(d, False)})
 
-            # Current streak (consecutive days ending today or yesterday)
+            # Current streak (consecutive completed days ending today)
             current_streak = 0
             check_day = today
             while True:
@@ -545,7 +552,7 @@ def get_task_streaks() -> dict:
                 else:
                     break
 
-            # Best streak (sliding window)
+            # Best streak (sliding window over 120 days)
             best_streak = 0
             run = 0
             for i in range(120):
@@ -556,26 +563,130 @@ def get_task_streaks() -> dict:
                 else:
                     run = 0
 
-            # Missed yesterday?
-            yesterday = (today - timedelta(days=1)).isoformat()
-            missed_yesterday = not day_map.get(yesterday, False) and not day_map.get(today.isoformat(), False)
-
-            total_done = sum(1 for v in day_map.values() if v)
+            total_done  = sum(1 for v in day_map.values() if v)
+            done_today  = bool(day_map.get(today.isoformat(), False))
+            yesterday   = (today - timedelta(days=1)).isoformat()
+            # Only show missed_yesterday = True when we actually have some data
+            # (prevents false red for tasks with zero history in task_daily_log)
+            has_history = total_done > 0
+            missed_yesterday = (
+                has_history
+                and not day_map.get(yesterday, False)
+                and not done_today
+            )
 
             results[tk] = {
-                "task_key":        tk,
-                "current_streak":  current_streak,
-                "best_streak":     max(best_streak, current_streak),
-                "total_done":      total_done,
+                "task_key":         tk,
+                "current_streak":   current_streak,
+                "best_streak":      max(best_streak, current_streak),
+                "total_done":       total_done,
                 "missed_yesterday": missed_yesterday,
-                "done_today":      day_map.get(today.isoformat(), False),
-                "last_30":         last_30,
+                "done_today":       done_today,
+                "has_history":      has_history,
+                "last_30":          last_30,
             }
 
     except Exception as e:
         print(f"[DB] get_task_streaks error: {e}")
 
     return results
+
+
+def backfill_task_daily_log() -> dict:
+    """
+    One-time backfill: reads all existing activity tables and populates
+    task_daily_log with historical completion data.
+    Safe to call multiple times — uses INSERT OR IGNORE.
+
+    Source tables:
+      study      ← study_journal (date column)
+      reading    ← reading_logs  (date column)
+      health     ← health_sync_logs (log_date, steps > 0)
+      walk       ← health_sync_logs (steps >= 2000)
+      canvas_semester ← canvas_completed_items (date(completed_at))
+      gym        ← gym_logs      (date(logged_at))
+      nopmo      ← system_state  (streak_days as proxy — no history table)
+    """
+    from datetime import date as _date
+    filled = {}
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=20)
+        conn.execute("PRAGMA journal_mode=WAL;")
+
+        def _insert(task_key, date_str):
+            try:
+                conn.execute(
+                    "INSERT OR IGNORE INTO task_daily_log (task_key, log_date, completed) VALUES (?, ?, 1)",
+                    (task_key, date_str)
+                )
+            except Exception:
+                pass
+
+        # study_journal → study
+        try:
+            rows = conn.execute("SELECT DISTINCT date FROM study_journal WHERE date IS NOT NULL").fetchall()
+            for r in rows:
+                _insert("study", r[0])
+            filled["study"] = len(rows)
+        except Exception as e:
+            filled["study"] = f"ERR:{e}"
+
+        # reading_logs → reading
+        try:
+            rows = conn.execute("SELECT DISTINCT date FROM reading_logs WHERE date IS NOT NULL").fetchall()
+            for r in rows:
+                _insert("reading", r[0])
+            filled["reading"] = len(rows)
+        except Exception as e:
+            filled["reading"] = f"ERR:{e}"
+
+        # health_sync_logs → health + walk (steps >= 2000)
+        try:
+            rows = conn.execute("SELECT DISTINCT log_date, steps FROM health_sync_logs WHERE log_date IS NOT NULL").fetchall()
+            h, w = 0, 0
+            for r in rows:
+                _insert("health", r[0])
+                h += 1
+                if (r[1] or 0) >= 2000:
+                    _insert("walk", r[0])
+                    w += 1
+            filled["health"] = h
+            filled["walk"]   = w
+        except Exception as e:
+            filled["health"] = f"ERR:{e}"
+
+        # canvas_completed_items → canvas_semester
+        try:
+            rows = conn.execute(
+                "SELECT DISTINCT date(completed_at) as d FROM canvas_completed_items WHERE completed_at IS NOT NULL"
+            ).fetchall()
+            for r in rows:
+                if r[0]:
+                    _insert("canvas_semester", r[0])
+            filled["canvas_semester"] = len(rows)
+        except Exception as e:
+            filled["canvas_semester"] = f"ERR:{e}"
+
+        # gym_logs → gym (use logged_at timestamp)
+        try:
+            rows = conn.execute(
+                "SELECT DISTINCT date(logged_at) as d FROM gym_logs WHERE logged_at IS NOT NULL"
+            ).fetchall()
+            for r in rows:
+                if r[0]:
+                    _insert("gym", r[0])
+            filled["gym"] = len(rows)
+        except Exception as e:
+            filled["gym"] = f"ERR:{e}"
+
+        conn.commit()
+        conn.close()
+        print(f"[DB] backfill_task_daily_log complete: {filled}")
+    except Exception as e:
+        print(f"[DB] backfill_task_daily_log error: {e}")
+        filled["error"] = str(e)
+
+    return filled
 
 
 def get_db_connection():

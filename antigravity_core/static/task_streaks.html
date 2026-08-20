@@ -8,159 +8,106 @@
 <link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
 <link rel="stylesheet" href="/static/style.css">
 <style>
-/* ── Page-specific variables ── */
-:root {
-  --card-gap: 12px;
-  --radius-sm: 8px;
-  --radius:    14px;
-}
+:root { --card-gap:12px; --r:12px; --r-sm:8px; }
 
-/* ── Task grid — 2-col on mobile, no horizontal scroll ── */
-.tasks-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--card-gap);
-  margin-bottom: 20px;
+/* ── Summary strip ── */
+.sum-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+@media(max-width:500px){ .sum-strip{ grid-template-columns:repeat(2,1fr); } }
+.sum-tile { background:var(--card-bg,#0e1221); border:1px solid var(--border); border-radius:var(--r-sm); padding:14px 10px; text-align:center; }
+.sum-tile .sv { font-size:1.8rem; font-weight:900; line-height:1; }
+.sum-tile .sl { font-size:.6rem; color:var(--text3); font-family:var(--ff-mono); letter-spacing:.08em; margin-top:4px; text-transform:uppercase; }
+
+/* ── Backfill banner ── */
+.backfill-banner {
+  background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.3);
+  border-radius:var(--r-sm); padding:12px 16px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-bottom:18px; font-size:.875rem;
 }
-@media (max-width: 500px) { .tasks-grid { grid-template-columns: 1fr; } }
-@media (min-width: 900px) { .tasks-grid { grid-template-columns: repeat(3, 1fr); } }
+.backfill-banner.hidden { display:none; }
+.backfill-banner .bb-msg { flex:1; color:var(--text2); }
+.backfill-banner .bb-msg strong { color:#a5b4fc; }
+
+/* ── Task grid ── */
+.tasks-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--card-gap); margin-bottom:20px; }
+@media(max-width:500px){ .tasks-grid{ grid-template-columns:1fr; } }
+@media(min-width:900px){ .tasks-grid{ grid-template-columns:repeat(3,1fr); } }
 
 /* ── Task card ── */
 .task-card {
-  background: var(--card-bg, #0e1221);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  position: relative;
-  overflow: hidden;
-  transition: transform .18s, border-color .18s;
-  cursor: default;
+  background:var(--card-bg,#0e1221); border:1px solid var(--border);
+  border-radius:var(--r); padding:14px; position:relative; overflow:hidden;
+  transition:transform .18s, border-color .18s;
 }
-.task-card:hover { transform: translateY(-2px); border-color: var(--border-hi); }
-.task-card.punished { border-color: rgba(239,68,68,.5); }
-.task-card.punished::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, #ef4444, #f97316);
-}
-.task-card.alive::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--accent-color, #7c3aed), var(--accent-color2, #f59e0b));
-}
-.task-card.done-today { border-color: rgba(16,185,129,.45); }
-.task-card.done-today::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, #10b981, #06b6d4);
-}
+.task-card:hover { transform:translateY(-2px); }
+.task-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--tc-bar,#334155); }
+.task-card.state-done::before  { background:linear-gradient(90deg,#10b981,#06b6d4); }
+.task-card.state-alive::before { background:linear-gradient(90deg,var(--tc-c1,#7c3aed),var(--tc-c2,#f59e0b)); }
+.task-card.state-missed::before{ background:linear-gradient(90deg,#ef4444,#f97316); }
+.task-card.state-done   { border-color:rgba(16,185,129,.4); }
+.task-card.state-missed { border-color:rgba(239,68,68,.4); }
+.task-card.state-new    { border-color:rgba(100,116,139,.3); opacity:.85; }
 
-/* Task card header */
-.tc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.tc-emoji { font-size: 1.5rem; flex-shrink: 0; }
-.tc-name { font-size: .8125rem; font-weight: 700; color: var(--text1); flex: 1; line-height: 1.3; }
-.tc-today-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  background: #64748b;
-}
-.tc-today-dot.done { background: #10b981; box-shadow: 0 0 5px #10b981; }
-.tc-today-dot.missed { background: #ef4444; box-shadow: 0 0 5px #ef4444; animation: pulse-dot 1.5s infinite; }
-@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+.tc-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.tc-emoji { font-size:1.35rem; flex-shrink:0; }
+.tc-name  { font-size:.8rem; font-weight:700; color:var(--text1); flex:1; line-height:1.3; }
+.tc-dot   { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:#334155; }
+.tc-dot.done   { background:#10b981; box-shadow:0 0 5px #10b981; }
+.tc-dot.missed { background:#ef4444; animation:pulse-dot 1.4s infinite; }
+@keyframes pulse-dot{ 0%,100%{opacity:1}50%{opacity:.3} }
 
-/* Big streak number */
-.tc-streak-wrap {
-  display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px;
-}
-.tc-streak-num {
-  font-size: 2.5rem; font-weight: 900; line-height: 1;
-  font-family: var(--ff-brand, 'Inter', sans-serif);
-}
-.tc-streak-unit { font-size: .75rem; color: var(--text3); font-family: var(--ff-mono); }
-.tc-best { font-size: .7rem; color: var(--text3); margin-bottom: 8px; }
+/* Streak number */
+.tc-streak-row { display:flex; align-items:baseline; gap:4px; margin-bottom:4px; }
+.tc-snum { font-size:2.2rem; font-weight:900; line-height:1; }
+.tc-sunit{ font-size:.7rem; color:var(--text3); font-family:var(--ff-mono); }
+.tc-meta { font-size:.65rem; color:var(--text3); margin-bottom:10px; }
 
-/* Punishment banner */
-.tc-punish {
-  background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
-  border-radius: 6px; padding: 6px 10px;
-  font-size: .7rem; color: #f87171; font-weight: 600;
-  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
-}
-.tc-punish.hidden { display: none; }
+/* Punish */
+.tc-punish { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); border-radius:5px; padding:5px 9px; font-size:.65rem; color:#f87171; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:5px; }
+.tc-punish.hidden { display:none; }
 
-/* 30-day mini heatmap */
-.tc-heatmap {
-  display: grid;
-  grid-template-columns: repeat(15, 1fr);
-  gap: 2px;
-}
-.hm-dot {
-  aspect-ratio: 1;
-  border-radius: 2px;
-  background: var(--border);
-  transition: background .1s;
-}
-.hm-dot.done    { background: #10b981; }
-.hm-dot.missed  { background: #ef4444; opacity: .7; }
-.hm-dot.today   { outline: 2px solid #f59e0b; outline-offset: 1px; }
+/* ── CALENDAR HEATMAP (30 days, 2 rows × 15 cols) ── */
+.tc-cal { display:grid; grid-template-columns:repeat(15,1fr); gap:2px; }
+.cal-dot { aspect-ratio:1; border-radius:2px; background:var(--border); position:relative; cursor:default; }
+.cal-dot.done   { background:#10b981; }
+.cal-dot.missed { background:#3b1717; } /* dark red — missed but no false-alarm */
+.cal-dot.today  { outline:2px solid #f59e0b; outline-offset:1px; }
+.cal-dot.no-data{ background:#1e293b; }  /* no log at all — neutral */
 
-/* ── Summary strip ── */
-.summary-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-@media (max-width: 500px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
-.summary-tile {
-  background: var(--card-bg, #0e1221);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 14px 12px;
-  text-align: center;
-}
-.summary-tile .sv { font-size: 1.75rem; font-weight: 900; font-family: var(--ff-brand); line-height: 1; }
-.summary-tile .sl { font-size: .65rem; color: var(--text3); font-family: var(--ff-mono); letter-spacing: .08em; margin-top: 4px; text-transform: uppercase; }
+/* ── Monthly view panel (expanded on click) ── */
+.month-panel { display:none; margin-top:12px; }
+.month-panel.open { display:block; }
+.month-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+.month-header { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:4px; }
+.mh-day { font-size:.55rem; color:var(--text3); text-align:center; font-family:var(--ff-mono); }
+.m-dot { aspect-ratio:1; border-radius:3px; background:var(--border); font-size:.5rem; display:flex; align-items:center; justify-content:center; color:transparent; transition:color .1s; }
+.m-dot:hover { color:#fff; }
+.m-dot.done   { background:#10b981; }
+.m-dot.missed { background:#3b1717; }
+.m-dot.today  { outline:2px solid #f59e0b; outline-offset:1px; }
+.m-dot.no-data{ background:#1e293b; }
+.m-dot.empty  { background:transparent; }
+
+/* ── Analysis strip ── */
+.tc-analysis { margin-top:10px; border-top:1px solid var(--border); padding-top:8px; display:flex; gap:12px; flex-wrap:wrap; }
+.ta-item { font-size:.65rem; color:var(--text3); }
+.ta-item strong { color:var(--text2); }
 
 /* ── Alert banner ── */
-.alert-danger {
-  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.4);
-  border-radius: var(--radius-sm); padding: 12px 16px;
-  font-size: .875rem; font-weight: 600; color: #f87171;
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 18px;
-}
-.alert-danger.hidden { display: none; }
+.alert-danger { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.35); border-radius:var(--r-sm); padding:10px 14px; font-size:.85rem; font-weight:600; color:#f87171; display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.alert-danger.hidden { display:none; }
 
-/* ── No-data state ── */
-.no-data-msg {
-  text-align: center; padding: 40px 20px; color: var(--text3);
-  font-size: .875rem;
-}
+/* ── No-data / loading ── */
+.spinner-wrap { display:flex; justify-content:center; padding:40px; }
+.spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--cyan); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin{to{transform:rotate(360deg)}}
+.no-data-msg { text-align:center; padding:40px 20px; color:var(--text3); font-size:.875rem; }
 
-/* ── Loading ── */
-.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
-.spinner {
-  width: 36px; height: 36px;
-  border: 3px solid var(--border);
-  border-top-color: var(--cyan);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Responsive page-head fix ── */
-.page-head { flex-wrap: wrap; gap: 10px; }
-
-/* Compact mobile fixes */
-@media (max-width: 600px) {
-  .tc-streak-num { font-size: 2rem; }
-  .task-card { padding: 12px; }
-  .summary-strip { gap: 8px; }
-  .summary-tile { padding: 10px 8px; }
-  .summary-tile .sv { font-size: 1.4rem; }
-}
+@media(max-width:600px){ .tc-snum{font-size:1.8rem;} .task-card{padding:10px;} }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="brand">
       <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
@@ -170,12 +117,11 @@
     <ul class="nav">
       <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
       <li><a href="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a></li>
-      <li><a href="/semester"><i class="fa-solid fa-calendar-days" style="color:#7c3aed"></i><span>Semester</span><span class="nav-badge" style="background:rgba(124,58,237,0.2);color:#a78bfa;border-color:rgba(124,58,237,0.3)">12W</span></a></li>
-      <li><a href="/task-streaks" class="active"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d;border-color:rgba(245,158,11,0.3)">🔥</span></a></li>
+      <li><a href="/semester"><i class="fa-solid fa-calendar-days" style="color:#7c3aed"></i><span>Semester</span></a></li>
+      <li><a href="/task-streaks" class="active"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span></a></li>
       <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
       <li><a href="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span></a></li>
       <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a></li>
-      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
       <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a></li>
     </ul>
     <div class="sidebar-footer">
@@ -183,186 +129,249 @@
     </div>
   </nav>
 
-  <!-- MAIN -->
   <main class="main">
-    <div class="page-head">
+    <div class="page-head" style="flex-wrap:wrap;gap:10px;margin-bottom:18px">
       <div>
         <div class="page-title">🔥 Task Streak Tracker</div>
-        <div class="page-sub">Daily discipline — per-task current streak · best streak · 30-day heatmap</div>
+        <div class="page-sub">Per-task daily completion · current &amp; best streak · 30-day heatmap · analysis</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <a href="/semester" class="btn btn-sm" style="background:rgba(124,58,237,.15);border-color:#7c3aed;color:#a78bfa">
-          <i class="fa-solid fa-graduation-cap"></i> Semester
-        </a>
+        <button class="btn btn-sm" id="backfill-btn" onclick="runBackfill()" title="Import all historical data into streaks">
+          <i class="fa-solid fa-database"></i> Sync History
+        </button>
         <button class="btn btn-sm" onclick="loadStreaks()"><i class="fa-solid fa-rotate"></i> Refresh</button>
         <a href="/" class="btn btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
       </div>
     </div>
 
-    <!-- Punishment Alert -->
+    <!-- Backfill banner (shown when total_done is 0 for most tasks) -->
+    <div class="backfill-banner" id="backfill-banner">
+      <i class="fa-solid fa-circle-info" style="color:#818cf8;font-size:1.1rem;flex-shrink:0"></i>
+      <div class="bb-msg">
+        <strong>No streak history yet!</strong> — You have <strong id="bf-days">41</strong> days of activity in your DB.
+        Click <strong>Sync History</strong> to import study journals, gym logs, Canvas completions, and health syncs into the streak tracker.
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="runBackfill()"><i class="fa-solid fa-bolt"></i> Sync Now</button>
+    </div>
+
+    <!-- Missed alert -->
     <div class="alert-danger hidden" id="punish-alert">
       <i class="fa-solid fa-skull"></i>
-      <span id="punish-msg">You missed tasks yesterday. No excuses. Fix it today.</span>
+      <span id="punish-msg">You missed tasks yesterday. Fix today.</span>
     </div>
 
-    <!-- Summary Strip -->
-    <div class="summary-strip" id="summary-strip">
-      <div class="summary-tile"><div class="sv" style="color:#f59e0b" id="s-total-streaks">—</div><div class="sl">Active Streaks</div></div>
-      <div class="summary-tile"><div class="sv" style="color:#10b981" id="s-done-today">—</div><div class="sl">Done Today</div></div>
-      <div class="summary-tile"><div class="sv" style="color:#ef4444" id="s-missed-today">—</div><div class="sl">Missing Today</div></div>
-      <div class="summary-tile"><div class="sv" style="color:#3b82f6" id="s-best-overall">—</div><div class="sl">Best Streak Ever</div></div>
+    <!-- Summary -->
+    <div class="sum-strip">
+      <div class="sum-tile"><div class="sv" style="color:#f59e0b" id="s-active">—</div><div class="sl">Active Streaks</div></div>
+      <div class="sum-tile"><div class="sv" style="color:#10b981" id="s-done">—</div><div class="sl">Done Today</div></div>
+      <div class="sum-tile"><div class="sv" style="color:#ef4444" id="s-missed">—</div><div class="sl">Missed Today</div></div>
+      <div class="sum-tile"><div class="sv" style="color:#3b82f6" id="s-best">—</div><div class="sl">Best Streak</div></div>
     </div>
 
-    <!-- Loading state -->
     <div class="spinner-wrap" id="loading-wrap"><div class="spinner"></div></div>
-
-    <!-- Task Grid -->
     <div class="tasks-grid hidden" id="tasks-grid"></div>
-
-    <!-- No data hint -->
     <div class="no-data-msg hidden" id="no-data">
       <div style="font-size:2.5rem;margin-bottom:12px">📊</div>
       <div style="font-weight:700;color:var(--text2);margin-bottom:6px">No streak data yet</div>
-      <div>Start completing daily tasks from the Dashboard to build your streaks.</div>
-      <a href="/" class="btn btn-primary btn-sm" style="margin-top:14px;display:inline-flex">Go to Dashboard</a>
+      <div>Click <strong style="color:#a5b4fc">Sync History</strong> above to import your 41 days of activity.</div>
     </div>
-
   </main>
 </div>
 
 <script src="/static/shared.js"></script>
 <script>
-// ── Task config (display metadata) ────────────────────────────────────────────
+// ── Task config ────────────────────────────────────────────────────────────────
 const TASK_CONFIG = {
-  study:           { emoji: '📖', label: 'Daily Study',            color: '#3b82f6', color2: '#6366f1' },
-  leetcode:        { emoji: '💻', label: 'LeetCode Problem',       color: '#f59e0b', color2: '#ef4444' },
-  gym:             { emoji: '💪', label: 'Gym / Workout',          color: '#f97316', color2: '#ef4444' },
-  english:         { emoji: '🗣️', label: 'English Booster',        color: '#06b6d4', color2: '#3b82f6' },
-  cooking:         { emoji: '🍳', label: 'Home Cooking',           color: '#10b981', color2: '#06b6d4' },
-  nopmo:           { emoji: '🛡️', label: 'NoPMO Discipline',       color: '#8b5cf6', color2: '#ec4899' },
-  reading:         { emoji: '📚', label: 'Daily Reading',          color: '#ec4899', color2: '#8b5cf6' },
-  walk:            { emoji: '🚶', label: 'Daily Walk',             color: '#10b981', color2: '#3b82f6' },
-  meditation:      { emoji: '🧘', label: 'Meditation',             color: '#a855f7', color2: '#06b6d4' },
-  mindos:          { emoji: '🧠', label: 'Mind OS Check',          color: '#94a3b8', color2: '#6366f1' },
-  health:          { emoji: '❤️', label: 'Google Health Sync',     color: '#ef4444', color2: '#f97316' },
-  canvas_semester: { emoji: '🎓', label: 'Canvas Semester',        color: '#7c3aed', color2: '#f59e0b' },
+  study:           { emoji:'📖', label:'Daily Study',        c1:'#3b82f6', c2:'#6366f1' },
+  leetcode:        { emoji:'💻', label:'LeetCode',           c1:'#f59e0b', c2:'#ef4444' },
+  gym:             { emoji:'💪', label:'Gym / Workout',      c1:'#f97316', c2:'#ef4444' },
+  english:         { emoji:'🗣️', label:'English Booster',    c1:'#06b6d4', c2:'#3b82f6' },
+  cooking:         { emoji:'🍳', label:'Home Cooking',       c1:'#10b981', c2:'#06b6d4' },
+  nopmo:           { emoji:'🛡️', label:'NoPMO Discipline',   c1:'#8b5cf6', c2:'#ec4899' },
+  reading:         { emoji:'📚', label:'Daily Reading',      c1:'#ec4899', c2:'#8b5cf6' },
+  walk:            { emoji:'🚶', label:'Daily Walk',         c1:'#10b981', c2:'#3b82f6' },
+  meditation:      { emoji:'🧘', label:'Meditation',         c1:'#a855f7', c2:'#06b6d4' },
+  mindos:          { emoji:'🧠', label:'Mind OS Check',      c1:'#94a3b8', c2:'#6366f1' },
+  health:          { emoji:'❤️', label:'Health Sync',        c1:'#ef4444', c2:'#f97316' },
+  canvas_semester: { emoji:'🎓', label:'Canvas Semester',    c1:'#7c3aed', c2:'#f59e0b' },
 };
 
-// Punishment XP penalty mapping (shown on missed cards)
-const PUNISH_MAP = {
+const PUNISH = {
   canvas_semester: '−150 XP · −3 WIL · Energy ↓50%',
-  gym:             '−25 XP · −1 STR',
-  nopmo:           '−15 XP · −1 WIL',
-  study:           '−20 XP · −1 INT',
-  leetcode:        '−20 XP · −1 AGI',
-  english:         '−15 XP · −1 INT',
-  reading:         '−10 XP · −1 INT',
-  walk:            '−15 XP · −1 WIL',
-  meditation:      '−20 XP · −2 STC',
-  mindos:          '−15 XP · −1 STC',
-  cooking:         '−10 XP',
-  health:          '−15 XP · −1 WIL',
+  gym:'−25 XP · −1 STR', nopmo:'−15 XP · −1 WIL', study:'−20 XP · −1 INT',
+  leetcode:'−20 XP · −1 AGI', english:'−15 XP · −1 INT', reading:'−10 XP · −1 INT',
+  walk:'−15 XP · −1 WIL', meditation:'−20 XP · −2 STC', mindos:'−15 XP · −1 STC',
+  cooking:'−10 XP', health:'−15 XP',
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtDate(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+function buildCalHeatmap(last30) {
+  // last30 = [{date, done}] — 30 entries, oldest first
+  const today = new Date().toISOString().slice(0,10);
+  return last30.map(({date, done}) => {
+    const isToday = date === today;
+    const cls = done ? 'done' : 'no-data';
+    return `<div class="cal-dot ${cls}${isToday?' today':''}" title="${fmtDate(date)}${done?' ✅':' —'}"></div>`;
+  }).join('');
+}
+
+function buildMonthGrid(last30) {
+  // Build a 7-col month grid for the last 30 days
+  const today = new Date().toISOString().slice(0,10);
+  const dayMap = {};
+  last30.forEach(({date, done}) => dayMap[date] = done);
+
+  // Find the Monday of the week containing (today - 29 days)
+  const startDate = new Date(last30[0]?.date + 'T00:00:00');
+  const dow = startDate.getDay(); // 0=Sun
+  const paddingDays = (dow + 6) % 7; // shift so week starts Monday
+
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const headers = DAYS.map(d => `<div class="mh-day">${d}</div>`).join('');
+
+  let cells = '';
+  for (let i = 0; i < paddingDays; i++) cells += `<div class="m-dot empty"></div>`;
+  last30.forEach(({date, done}) => {
+    const isToday = date === today;
+    const cls = done ? 'done' : 'no-data';
+    const dayNum = new Date(date + 'T00:00:00').getDate();
+    cells += `<div class="m-dot ${cls}${isToday?' today':''}" title="${fmtDate(date)}${done?' ✅':' —'}">${dayNum}</div>`;
+  });
+
+  return `<div class="month-header">${headers}</div><div class="month-grid">${cells}</div>`;
+}
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderStreaks(streaks) {
-  const grid = document.getElementById('tasks-grid');
-  const noData = document.getElementById('no-data');
-  const loading = document.getElementById('loading-wrap');
-  const punishAlert = document.getElementById('punish-alert');
-  const punishMsg   = document.getElementById('punish-msg');
+  const grid       = document.getElementById('tasks-grid');
+  const noData     = document.getElementById('no-data');
+  const loading    = document.getElementById('loading-wrap');
+  const bfBanner   = document.getElementById('backfill-banner');
+  const punishAlert= document.getElementById('punish-alert');
+  const punishMsg  = document.getElementById('punish-msg');
 
   loading.classList.add('hidden');
 
   const keys = Object.keys(TASK_CONFIG);
-  const hasData = keys.some(k => (streaks[k]?.total_done || 0) > 0);
 
-  // Summary strip
-  let totalActive = 0, doneToday = 0, missedToday = 0, bestEver = 0;
+  // Summary
+  let totalActive=0, doneToday=0, missedToday=0, bestEver=0, hasAnyHistory=false;
   keys.forEach(k => {
     const s = streaks[k] || {};
-    if ((s.current_streak || 0) > 0) totalActive++;
+    if ((s.current_streak||0) > 0) totalActive++;
     if (s.done_today) doneToday++;
     if (!s.done_today) missedToday++;
-    if ((s.best_streak || 0) > bestEver) bestEver = s.best_streak;
+    if ((s.best_streak||0) > bestEver) bestEver = s.best_streak;
+    if (s.has_history) hasAnyHistory = true;
   });
-  document.getElementById('s-total-streaks').textContent = totalActive;
-  document.getElementById('s-done-today').textContent    = doneToday;
-  document.getElementById('s-missed-today').textContent  = missedToday;
-  document.getElementById('s-best-overall').textContent  = bestEver || '—';
 
-  // Punishment alert — show if any task missed yesterday and not done today
-  const missedYesterday = keys.filter(k => streaks[k]?.missed_yesterday);
-  if (missedYesterday.length > 0) {
-    const names = missedYesterday.map(k => TASK_CONFIG[k]?.emoji + ' ' + (TASK_CONFIG[k]?.label || k));
-    punishMsg.textContent = `⚠️ You MISSED yesterday: ${names.join(', ')} — Streak BROKEN. Fix today or lose XP tonight.`;
+  document.getElementById('s-active').textContent = totalActive;
+  document.getElementById('s-done').textContent   = doneToday;
+  document.getElementById('s-missed').textContent = missedToday;
+  document.getElementById('s-best').textContent   = bestEver || '—';
+
+  // Show backfill banner if almost no history
+  if (!hasAnyHistory || totalActive === 0) {
+    bfBanner.classList.remove('hidden');
+  } else {
+    bfBanner.classList.add('hidden');
+  }
+
+  // Missed yesterday alert
+  const missedYest = keys.filter(k => streaks[k]?.missed_yesterday);
+  if (missedYest.length) {
+    const names = missedYest.map(k => TASK_CONFIG[k]?.emoji + ' ' + (TASK_CONFIG[k]?.label || k));
+    punishMsg.textContent = `⚠️ MISSED yesterday: ${names.join(', ')} — streak broken. Fix today.`;
     punishAlert.classList.remove('hidden');
   } else {
     punishAlert.classList.add('hidden');
-  }
-
-  if (!hasData) {
-    grid.classList.add('hidden');
-    noData.classList.remove('hidden');
-    return;
   }
 
   noData.classList.add('hidden');
   grid.classList.remove('hidden');
 
   grid.innerHTML = keys.map(tk => {
-    const cfg = TASK_CONFIG[tk] || { emoji: '✅', label: tk, color: '#7c3aed', color2: '#f59e0b' };
-    const s   = streaks[tk] || { current_streak: 0, best_streak: 0, total_done: 0, missed_yesterday: false, done_today: false, last_30: [] };
+    const cfg = TASK_CONFIG[tk];
+    const s   = streaks[tk] || { current_streak:0, best_streak:0, total_done:0, has_history:false, missed_yesterday:false, done_today:false, last_30:[] };
 
-    const streak      = s.current_streak || 0;
-    const best        = s.best_streak || 0;
-    const doneToday   = s.done_today;
-    const missedYest  = s.missed_yesterday;
-    const total       = s.total_done || 0;
+    const streak     = s.current_streak || 0;
+    const best       = s.best_streak    || 0;
+    const done       = s.done_today;
+    const missed     = s.missed_yesterday;
+    const hasHistory = s.has_history;
+    const total      = s.total_done || 0;
 
-    // Card state classes
-    let stateClass = '';
-    let dotClass   = '';
-    if (doneToday)          { stateClass = 'done-today'; dotClass = 'done'; }
-    else if (missedYest)    { stateClass = 'punished';   dotClass = 'missed'; }
-    else if (streak > 0)    { stateClass = 'alive'; }
+    // Card state
+    const state = done ? 'state-done' : missed ? 'state-missed' : streak > 0 ? 'state-alive' : 'state-new';
+    const dotCls = done ? 'done' : missed ? 'missed' : '';
+    const streakColor = streak === 0 ? '#64748b' : streak >= 7 ? cfg.c1 : '#f59e0b';
 
-    // Streak colour
-    const streakColor = streak === 0 ? '#64748b' : streak >= 7 ? cfg.color : '#f59e0b';
-
-    // Heatmap (last 30 days, 2 rows × 15)
+    // Analysis stats
     const last30 = s.last_30 || [];
-    const today  = new Date().toISOString().slice(0, 10);
-    const heatDots = last30.map(d => {
-      const isToday = d.date === today;
-      const cls = d.done ? 'done' : 'missed';
-      return `<div class="hm-dot ${cls}${isToday ? ' today' : ''}" title="${d.date}"></div>`;
-    }).join('');
+    const daysIn30 = last30.filter(d => d.done).length;
+    const completionRate = last30.length > 0 ? Math.round(daysIn30 / last30.length * 100) : 0;
+    const rateColor = completionRate >= 70 ? '#10b981' : completionRate >= 40 ? '#f59e0b' : '#ef4444';
 
-    // Punishment penalty text
-    const penaltyTxt = (missedYest && !doneToday) ? PUNISH_MAP[tk] || '−XP' : '';
+    const calHeatmap  = buildCalHeatmap(last30);
+    const monthGrid   = buildMonthGrid(last30);
+    const cardId      = `tc-${tk}`;
 
-    return `<div class="task-card ${stateClass}" style="--accent-color:${cfg.color};--accent-color2:${cfg.color2}">
-      <div class="tc-header">
+    return `
+    <div class="task-card ${state}" style="--tc-c1:${cfg.c1};--tc-c2:${cfg.c2}" id="${cardId}">
+      <div class="tc-head">
         <div class="tc-emoji">${cfg.emoji}</div>
         <div class="tc-name">${cfg.label}</div>
-        <div class="tc-today-dot ${dotClass}" title="${doneToday ? 'Done today ✅' : missedYest ? '⚠️ Missed yesterday!' : 'Pending today'}"></div>
+        <div class="tc-dot ${dotCls}" title="${done ? 'Done today ✅' : missed ? 'Missed yesterday ⚠️' : hasHistory ? 'Pending' : 'No data yet'}"></div>
       </div>
 
-      ${(missedYest && !doneToday) ? `<div class="tc-punish"><i class="fa-solid fa-skull-crossbones"></i> MISSED — ${penaltyTxt}</div>` : ''}
+      ${(missed && !done) ? `<div class="tc-punish"><i class="fa-solid fa-skull-crossbones"></i>${PUNISH[tk]||'−XP'}</div>` : ''}
 
-      <div class="tc-streak-wrap">
-        <div class="tc-streak-num" style="color:${streakColor}">${streak}</div>
-        <div class="tc-streak-unit">day streak</div>
+      <div class="tc-streak-row">
+        <div class="tc-snum" style="color:${streakColor}">${streak}</div>
+        <div class="tc-sunit">day streak</div>
       </div>
-      <div class="tc-best">Best: <strong>${best}d</strong> · Total done: <strong>${total}</strong></div>
+      <div class="tc-meta">
+        Best: <strong style="color:var(--text2)">${best}d</strong> &nbsp;·&nbsp;
+        Total: <strong style="color:var(--text2)">${total}</strong> &nbsp;·&nbsp;
+        30d: <strong style="color:${rateColor}">${completionRate}%</strong>
+      </div>
 
-      <div class="tc-heatmap">${heatDots}</div>
+      <!-- 30-day heatmap (2 rows × 15) -->
+      <div class="tc-cal">${calHeatmap}</div>
+
+      <!-- Expand toggle -->
+      <div style="text-align:right;margin-top:6px">
+        <button onclick="toggleMonth('${cardId}')" style="font-size:.6rem;color:var(--text3);background:none;border:none;cursor:pointer;padding:0">
+          📅 month view
+        </button>
+      </div>
+
+      <!-- Monthly calendar (hidden by default) -->
+      <div class="month-panel" id="mp-${cardId}">
+        ${monthGrid}
+      </div>
+
+      <!-- Analysis strip -->
+      <div class="tc-analysis">
+        <div class="ta-item">🔥 <strong>${streak}</strong> current</div>
+        <div class="ta-item">🏆 <strong>${best}</strong> best ever</div>
+        <div class="ta-item">📅 <strong>${daysIn30}/30</strong> days</div>
+        <div class="ta-item" style="color:${rateColor}">📊 <strong>${completionRate}%</strong> rate</div>
+      </div>
     </div>`;
   }).join('');
 }
 
-// ── Load ──────────────────────────────────────────────────────────────────────
+function toggleMonth(cardId) {
+  const panel = document.getElementById('mp-' + cardId);
+  if (panel) panel.classList.toggle('open');
+}
+
+// ── Load streaks ──────────────────────────────────────────────────────────────
 async function loadStreaks() {
   document.getElementById('loading-wrap').classList.remove('hidden');
   document.getElementById('tasks-grid').classList.add('hidden');
@@ -382,8 +391,34 @@ async function loadStreaks() {
   }
 }
 
+// ── Backfill history ──────────────────────────────────────────────────────────
+async function runBackfill() {
+  const btn = document.getElementById('backfill-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Syncing...'; }
+  try {
+    const r = await fetch('/api/tasks/backfill', { method: 'POST' });
+    const d = await r.json();
+    if (d.status === 'success') {
+      const parts = Object.entries(d.backfilled)
+        .filter(([,v]) => typeof v === 'number' && v > 0)
+        .map(([k,v]) => `${k}: ${v} days`);
+      if (typeof window.toast === 'function') {
+        toast('History synced! ' + (parts.join(', ') || 'No new data found.'), 'ok');
+      }
+      document.getElementById('backfill-banner').classList.add('hidden');
+      await loadStreaks();
+    } else {
+      if (typeof window.toast === 'function') toast('Backfill error: ' + (d.detail || JSON.stringify(d)), 'err');
+    }
+  } catch (e) {
+    if (typeof window.toast === 'function') toast('Backfill request failed: ' + e.message, 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-database"></i> Sync History'; }
+  }
+}
+
 loadStreaks();
-setInterval(loadStreaks, 120000);  // auto-refresh every 2 min
+setInterval(loadStreaks, 120000);
 </script>
 </body>
 </html>
