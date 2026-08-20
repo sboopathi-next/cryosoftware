@@ -889,7 +889,39 @@ def neon_backfill_task_daily_log() -> dict:
                     pass
                 filled["english"] = e_count
 
-                # 10. LeetCode from study journal (dsa, leetcode, algorithms)
+                # 10. LeetCode: GraphQL submission calendar + study journal
+                lc_count = 0
+                try:
+                    import requests as _requests, json as _json
+                    from config import LEETCODE_USERNAME, LEETCODE_ENDPOINT
+                    _query = """
+                    query userSubmissionCalendar($username: String!) {
+                      matchedUser(username: $username) {
+                        submissionCalendar
+                      }
+                    }
+                    """
+                    _res = _requests.post(
+                        LEETCODE_ENDPOINT,
+                        json={"query": _query, "variables": {"username": LEETCODE_USERNAME}},
+                        headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
+                        timeout=10
+                    )
+                    if _res.status_code == 200:
+                        _cal_raw = _res.json().get("data", {}).get("matchedUser", {}).get("submissionCalendar", "{}")
+                        _cal = _json.loads(_cal_raw) if _cal_raw else {}
+                        for _ts_str, _num in _cal.items():
+                            if int(_num) > 0:
+                                _dt = datetime.fromtimestamp(int(_ts_str), tz=IST)
+                                cur.execute("""
+                                    INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                                    VALUES ('leetcode', %s, 1)
+                                    ON CONFLICT (task_key, log_date) DO NOTHING;
+                                """, (_dt.date().isoformat(),))
+                                lc_count += max(0, cur.rowcount)
+                except Exception as e:
+                    print(f"[LeetCode Backfill] GraphQL sync error: {e}")
+
                 try:
                     cur.execute("""
                         INSERT INTO pg_task_daily_log (task_key, log_date, completed)
@@ -899,9 +931,10 @@ def neon_backfill_task_daily_log() -> dict:
                           AND date IS NOT NULL AND date != ''
                         ON CONFLICT (task_key, log_date) DO NOTHING;
                     """)
-                    filled["leetcode"] = cur.rowcount
-                except Exception as e:
-                    filled["leetcode"] = f"ERR:{e}"
+                    lc_count += max(0, cur.rowcount)
+                except Exception:
+                    pass
+                filled["leetcode"] = lc_count
 
                 # 11. NoPMO: 39 day continuous streak from user_state ending today
                 try:
