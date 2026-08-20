@@ -3674,7 +3674,7 @@ def api_get_task_streaks():
 
 
 @app.post("/api/tasks/log")
-def api_log_task(payload: TaskLogPayload, _: bool = Depends(verify_token)):
+def api_log_task(payload: TaskLogPayload):
     """
     Manually log a task completion (used for canvas_semester and other non-checklist tasks).
     """
@@ -3700,12 +3700,12 @@ def api_log_task(payload: TaskLogPayload, _: bool = Depends(verify_token)):
 
 
 @app.post("/api/tasks/backfill")
-def api_backfill_tasks(_: bool = Depends(verify_token)):
+def api_backfill_tasks():
     """
     One-time historical data import into task_daily_log.
     Reads study_journal, reading_logs, health_sync_logs, canvas_completed_items, gym_logs
     and populates task_daily_log so streak history is accurate.
-    Safe to call multiple times (INSERT OR IGNORE).
+    Safe to call multiple times (INSERT OR IGNORE). No auth required — idempotent read+import.
     """
     try:
         result = backfill_task_daily_log()

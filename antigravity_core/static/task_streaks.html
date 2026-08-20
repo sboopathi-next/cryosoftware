@@ -377,14 +377,16 @@ async function loadStreaks() {
   document.getElementById('tasks-grid').classList.add('hidden');
   document.getElementById('no-data').classList.add('hidden');
   try {
-    const r = await fetch('/api/tasks/streaks');
+    // Use apiFetch from shared.js (auto-injects Bearer token)
+    const fetchFn = (typeof apiFetch === 'function') ? apiFetch : fetch;
+    const r = await fetchFn('/api/tasks/streaks');
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     renderStreaks(d.streaks || {});
   } catch (err) {
     document.getElementById('loading-wrap').innerHTML =
       `<div style="color:#ef4444;text-align:center;padding:40px">
-        <div style="font-size:2rem">⚠️</div>
+        <div style="font-size:2rem">&#x26a0;&#xfe0f;</div>
         <div style="margin-top:8px">${err.message}</div>
         <button class="btn btn-sm" style="margin-top:12px" onclick="loadStreaks()">Retry</button>
       </div>`;
@@ -396,7 +398,11 @@ async function runBackfill() {
   const btn = document.getElementById('backfill-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Syncing...'; }
   try {
-    const r = await fetch('/api/tasks/backfill', { method: 'POST' });
+    // No auth needed — backfill endpoint is public (safe, idempotent)
+    const r = await fetch('/api/tasks/backfill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
     const d = await r.json();
     if (d.status === 'success') {
       const parts = Object.entries(d.backfilled)
