@@ -580,4 +580,278 @@ def neon_get_office_work_logs(limit: int = 300) -> list:
             return rows
 
 
+# ─── Task Daily Log & Streaks (Serverless) ──────────────────────────────────
+
+def _init_pg_task_daily_log(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_task_daily_log (
+            id SERIAL PRIMARY KEY,
+            task_key TEXT NOT NULL,
+            log_date TEXT NOT NULL,
+            completed INTEGER DEFAULT 1,
+            logged_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(task_key, log_date)
+        );
+    """)
+
+
+def neon_log_task_completion(task_key: str, completed: bool = True, log_date: Optional[str] = None):
+    today = log_date or _today()
+    val = 1 if completed else 0
+    try:
+        with _conn() as conn:
+            with conn.cursor() as cur:
+                _init_pg_task_daily_log(cur)
+                cur.execute("""
+                    INSERT INTO pg_task_daily_log (task_key, log_date, completed, logged_at)
+                    VALUES (%s, %s, %s, NOW())
+                    ON CONFLICT (task_key, log_date) DO UPDATE
+                    SET completed = EXCLUDED.completed, logged_at = NOW()
+                """, (task_key, today, val))
+    except Exception as e:
+        print(f"[Neon] neon_log_task_completion error: {e}")
+
+
+def neon_get_task_streaks() -> dict:
+    from datetime import date as _date, timedelta
+    from collections import defaultdict
+    today = _date.today()
+    results = {}
+
+    TASK_KEYS = [
+        "study", "leetcode", "gym", "english", "cooking",
+        "nopmo", "reading", "walk", "meditation", "mindos",
+        "health", "canvas_semester",
+    ]
+
+    try:
+        with _conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                _init_pg_task_daily_log(cur)
+                cutoff = (today - timedelta(days=120)).isoformat()
+                cur.execute("""
+                    SELECT task_key, log_date, completed
+                    FROM pg_task_daily_log
+                    WHERE log_date >= %s
+                    ORDER BY task_key, log_date DESC
+                """, (cutoff,))
+                rows = cur.fetchall() or []
+
+        by_task = defaultdict(dict)
+        for r in rows:
+            by_task[r["task_key"]][r["log_date"]] = bool(r["completed"])
+
+        for tk in TASK_KEYS:
+            day_map = by_task.get(tk, {})
+
+            last_30 = []
+            for i in range(29, -1, -1):
+                d = (today - timedelta(days=i)).isoformat()
+                last_30.append({"date": d, "done": day_map.get(d, False)})
+
+            current_streak = 0
+            check_day = today
+            while True:
+                ds = check_day.isoformat()
+                if day_map.get(ds, False):
+                    current_streak += 1
+                    check_day = check_day - timedelta(days=1)
+                else:
+                    break
+
+            best_streak = 0
+            run = 0
+            for i in range(120):
+                ds = (today - timedelta(days=i)).isoformat()
+                if day_map.get(ds, False):
+                    run += 1
+                    best_streak = max(best_streak, run)
+                else:
+                    run = 0
+
+            total_done  = sum(1 for v in day_map.values() if v)
+            done_today  = bool(day_map.get(today.isoformat(), False))
+            yesterday   = (today - timedelta(days=1)).isoformat()
+            has_history = total_done > 0
+            missed_yesterday = (
+                has_history
+                and not day_map.get(yesterday, False)
+                and not done_today
+            )
+
+            results[tk] = {
+                "task_key":         tk,
+                "current_streak":   current_streak,
+                "best_streak":      max(best_streak, current_streak),
+                "total_done":       total_done,
+                "missed_yesterday": missed_yesterday,
+                "done_today":       done_today,
+                "has_history":      has_history,
+                "last_30":          last_30,
+            }
+    except Exception as e:
+        print(f"[Neon] neon_get_task_streaks error: {e}")
+
+    return results
+
+
+def neon_backfill_task_daily_log() -> dict:
+    filled = {}
+    try:
+        with _conn() as conn:
+            with conn.cursor() as cur:
+                _init_pg_task_daily_log(cur)
+
+                # 1. pg_study_journal -> study
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'study', date, 1
+                        FROM pg_study_journal
+                        WHERE date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["study"] = cur.rowcount
+                except Exception as e:
+                    filled["study"] = f"ERR:{e}"
+
+                # 2. pg_reading_logs -> reading
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'reading', date, 1
+                        FROM pg_reading_logs
+                        WHERE date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["reading"] = cur.rowcount
+                except Exception as e:
+                    filled["reading"] = f"ERR:{e}"
+
+                # 3. pg_health_logs -> health
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'health', log_date, 1
+                        FROM pg_health_logs
+                        WHERE log_date IS NOT NULL AND log_date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["health"] = cur.rowcount
+                except Exception as e:
+                    filled["health"] = f"ERR:{e}"
+
+                # 4. pg_health_logs -> walk (steps >= 2000)
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'walk', log_date, 1
+                        FROM pg_health_logs
+                        WHERE log_date IS NOT NULL AND log_date != '' AND steps >= 2000
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["walk"] = cur.rowcount
+                except Exception as e:
+                    filled["walk"] = f"ERR:{e}"
+
+                # 5. pg_canvas_completed_items -> canvas_semester
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'canvas_semester', completed_at::date::text, 1
+                        FROM pg_canvas_completed_items
+                        WHERE completed_at IS NOT NULL
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["canvas_semester"] = cur.rowcount
+                except Exception as e:
+                    filled["canvas_semester"] = f"ERR:{e}"
+
+                # 6. pg_workout_logs / pg_workout_log -> gym
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'gym', timestamp::date::text, 1
+                        FROM pg_workout_logs
+                        WHERE timestamp IS NOT NULL
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["gym"] = cur.rowcount
+                except Exception:
+                    try:
+                        cur.execute("""
+                            INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                            SELECT DISTINCT 'gym', timestamp::date::text, 1
+                            FROM pg_workout_log
+                            WHERE timestamp IS NOT NULL
+                            ON CONFLICT (task_key, log_date) DO NOTHING;
+                        """)
+                        filled["gym"] = cur.rowcount
+                    except Exception as e:
+                        filled["gym"] = f"ERR:{e}"
+    except Exception as e:
+        filled["error"] = str(e)
+
+    return filled
+
+
+# ─── In-App Notifications (Serverless) ──────────────────────────────────────
+
+def _init_pg_notifications(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS in_app_notifications (
+            id SERIAL PRIMARY KEY,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            level TEXT DEFAULT 'info',
+            is_read INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+
+
+def neon_get_notifications(limit: int = 20, unread_only: bool = False) -> list:
+    try:
+        with _conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                _init_pg_notifications(cur)
+                q = "SELECT id, title, body, level, is_read, created_at::text as created_at FROM in_app_notifications"
+                if unread_only:
+                    q += " WHERE is_read = 0"
+                q += " ORDER BY created_at DESC LIMIT %s"
+                cur.execute(q, (limit,))
+                return [dict(r) for r in cur.fetchall()]
+    except Exception as e:
+        print(f"[Neon] neon_get_notifications error: {e}")
+        return []
+
+
+def neon_mark_notifications_read(notification_ids: Optional[list] = None) -> int:
+    try:
+        with _conn() as conn:
+            with conn.cursor() as cur:
+                _init_pg_notifications(cur)
+                if notification_ids:
+                    cur.execute("UPDATE in_app_notifications SET is_read = 1 WHERE id = ANY(%s)", (notification_ids,))
+                else:
+                    cur.execute("UPDATE in_app_notifications SET is_read = 1")
+                return cur.rowcount
+    except Exception as e:
+        print(f"[Neon] neon_mark_notifications_read error: {e}")
+        return 0
+
+
+def neon_get_unread_notification_count() -> int:
+    try:
+        with _conn() as conn:
+            with conn.cursor() as cur:
+                _init_pg_notifications(cur)
+                cur.execute("SELECT COUNT(*) FROM in_app_notifications WHERE is_read = 0")
+                row = cur.fetchone()
+                return int(row[0] if row else 0)
+    except Exception as e:
+        print(f"[Neon] neon_get_unread_notification_count error: {e}")
+        return 0
+
+
 

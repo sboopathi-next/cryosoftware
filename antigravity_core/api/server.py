@@ -3747,14 +3747,19 @@ def api_get_notifications(limit: int = 20, unread_only: bool = False):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class MarkReadPayload(BaseModel):
+    ids: Optional[List[int]] = None
+
+
 @app.post("/api/notifications/read")
-def api_mark_notifications_read(ids: list = None):
+def api_mark_notifications_read(payload: Optional[MarkReadPayload] = None):
     """
-    Mark notifications as read. Pass list of IDs or empty list to mark all.
+    Mark notifications as read. Pass list of IDs or empty payload to mark all.
     Called when user opens the bell panel.
     """
     try:
-        count = mark_notifications_read(ids)
+        notification_ids = payload.ids if payload else None
+        count = mark_notifications_read(notification_ids)
         return {"status": "ok", "marked_read": count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

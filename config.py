@@ -40,7 +40,7 @@ def _check_fs_writable() -> bool:
     except OSError:
         return False
 
-IS_SERVERLESS = not _check_fs_writable()
+IS_SERVERLESS = bool(os.environ.get("VERCEL")) or (not _check_fs_writable())
 if IS_SERVERLESS:
-    print("[Config] Read-only filesystem detected — running in serverless/Neon-only mode.")
+    print("[Config] Serverless / Read-only environment detected — running in serverless/Neon-only mode.")
 

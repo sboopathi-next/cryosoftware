@@ -479,9 +479,13 @@ def init_db():
 
 def log_task_completion(task_key: str, completed: bool = True, log_date: str = None):
     """
-    Record today's completion/unset for a task in task_daily_log.
+    Record today's completion/unset for a task in task_daily_log / pg_task_daily_log.
     Called from toggle_checklist in server.py on every state change.
     """
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_log_task_completion
+        return neon_log_task_completion(task_key, completed, log_date)
+
     from datetime import date as _date
     today = log_date or _date.today().isoformat()
     try:
@@ -506,17 +510,15 @@ def log_task_completion(task_key: str, completed: bool = True, log_date: str = N
 
 def get_task_streaks() -> dict:
     """
-    Compute per-task streak stats from task_daily_log.
+    Compute per-task streak stats from task_daily_log / pg_task_daily_log.
     Returns a dict keyed by task_key with:
       current_streak, best_streak, total_done, missed_yesterday,
       done_today, last_30 (list of {date, done})
-
-    NOTE: missed_yesterday is only True if:
-      - The task has at least 1 completion ever (we have data), AND
-      - Yesterday was NOT completed, AND
-      - Today is NOT completed yet.
-    This prevents false-red on tasks with no history.
     """
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_task_streaks
+        return neon_get_task_streaks()
+
     from datetime import date as _date, timedelta
     today = _date.today()
     results = {}
@@ -578,8 +580,6 @@ def get_task_streaks() -> dict:
             total_done  = sum(1 for v in day_map.values() if v)
             done_today  = bool(day_map.get(today.isoformat(), False))
             yesterday   = (today - timedelta(days=1)).isoformat()
-            # Only show missed_yesterday = True when we actually have some data
-            # (prevents false red for tasks with zero history in task_daily_log)
             has_history = total_done > 0
             missed_yesterday = (
                 has_history
@@ -607,18 +607,13 @@ def get_task_streaks() -> dict:
 def backfill_task_daily_log() -> dict:
     """
     One-time backfill: reads all existing activity tables and populates
-    task_daily_log with historical completion data.
-    Safe to call multiple times — uses INSERT OR IGNORE.
-
-    Source tables:
-      study      ← study_journal (date column)
-      reading    ← reading_logs  (date column)
-      health     ← health_sync_logs (log_date, steps > 0)
-      walk       ← health_sync_logs (steps >= 2000)
-      canvas_semester ← canvas_completed_items (date(completed_at))
-      gym        ← gym_logs      (date(logged_at))
-      nopmo      ← system_state  (streak_days as proxy — no history table)
+    task_daily_log / pg_task_daily_log with historical completion data.
+    Safe to call multiple times — uses INSERT OR IGNORE / ON CONFLICT DO NOTHING.
     """
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_backfill_task_daily_log
+        return neon_backfill_task_daily_log()
+
     from datetime import date as _date
     filled = {}
     try:
@@ -706,6 +701,10 @@ def get_notifications(limit: int = 20, unread_only: bool = False) -> list:
     Fetch in-app notifications (Canvas reminders + system alerts).
     Returns list of dicts with id, title, body, level, is_read, created_at.
     """
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_notifications
+        return neon_get_notifications(limit=limit, unread_only=unread_only)
+
     try:
         conn = sqlite3.connect(DB_PATH, timeout=10)
         conn.row_factory = sqlite3.Row
@@ -734,6 +733,10 @@ def mark_notifications_read(notification_ids: list = None) -> int:
     Mark notifications as read. If notification_ids is None or empty, marks ALL as read.
     Returns count of rows updated.
     """
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_mark_notifications_read
+        return neon_mark_notifications_read(notification_ids)
+
     try:
         conn = sqlite3.connect(DB_PATH, timeout=10)
         if notification_ids:
@@ -755,6 +758,10 @@ def mark_notifications_read(notification_ids: list = None) -> int:
 
 def get_unread_notification_count() -> int:
     """Quick count of unread notifications for the bell badge."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_unread_notification_count
+        return neon_get_unread_notification_count()
+
     try:
         conn = sqlite3.connect(DB_PATH, timeout=10)
         row = conn.execute(
