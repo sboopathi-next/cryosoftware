@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, backfill_task_daily_log
+from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count
 from config import IS_SERVERLESS, DATABASE_URL
 from engine.fatigue_governor import update_daily_energy
 
@@ -3726,6 +3726,48 @@ def task_streaks_page():
     return HTMLResponse("<h1>Task Streaks page not found.</h1>", status_code=404)
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+#  🔔 NOTIFICATION BELL API
+#  Canvas reminders + system alerts stored in in_app_notifications table.
+#  Called by the bell icon in shared.js every 60 seconds.
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/notifications")
+def api_get_notifications(limit: int = 20, unread_only: bool = False):
+    """
+    Fetch in-app notifications for the bell icon.
+    Canvas reminder engine writes here at 09:00 / 14:00 / 20:00 / 23:00
+    when today's course work is not done.
+    """
+    try:
+        items = get_notifications(limit=limit, unread_only=unread_only)
+        count = get_unread_notification_count()
+        return {"notifications": items, "unread_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/notifications/read")
+def api_mark_notifications_read(ids: list = None):
+    """
+    Mark notifications as read. Pass list of IDs or empty list to mark all.
+    Called when user opens the bell panel.
+    """
+    try:
+        count = mark_notifications_read(ids)
+        return {"status": "ok", "marked_read": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/notifications/count")
+def api_notification_count():
+    """Quick endpoint for the bell badge — just returns unread count."""
+    try:
+        count = get_unread_notification_count()
+        return {"unread_count": count}
+    except Exception:
+        return {"unread_count": 0}
 
 
 

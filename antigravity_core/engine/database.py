@@ -459,6 +459,18 @@ def init_db():
     )
     """)
 
+    # 22. In-App Notification Bell (Canvas reminders + system alerts)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS in_app_notifications (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        title       TEXT NOT NULL,
+        body        TEXT NOT NULL,
+        level       TEXT DEFAULT 'info',
+        is_read     INTEGER DEFAULT 0,
+        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -687,6 +699,72 @@ def backfill_task_daily_log() -> dict:
         filled["error"] = str(e)
 
     return filled
+
+
+def get_notifications(limit: int = 20, unread_only: bool = False) -> list:
+    """
+    Fetch in-app notifications (Canvas reminders + system alerts).
+    Returns list of dicts with id, title, body, level, is_read, created_at.
+    """
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS in_app_notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL, body TEXT NOT NULL,
+                level TEXT DEFAULT 'info', is_read INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        query = "SELECT * FROM in_app_notifications"
+        if unread_only:
+            query += " WHERE is_read = 0"
+        query += " ORDER BY created_at DESC LIMIT ?"
+        rows = conn.execute(query, (limit,)).fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        print(f"[DB] get_notifications error: {e}")
+        return []
+
+
+def mark_notifications_read(notification_ids: list = None) -> int:
+    """
+    Mark notifications as read. If notification_ids is None or empty, marks ALL as read.
+    Returns count of rows updated.
+    """
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        if notification_ids:
+            placeholders = ",".join("?" * len(notification_ids))
+            cur = conn.execute(
+                f"UPDATE in_app_notifications SET is_read=1 WHERE id IN ({placeholders})",
+                notification_ids
+            )
+        else:
+            cur = conn.execute("UPDATE in_app_notifications SET is_read=1")
+        conn.commit()
+        count = cur.rowcount
+        conn.close()
+        return count
+    except Exception as e:
+        print(f"[DB] mark_notifications_read error: {e}")
+        return 0
+
+
+def get_unread_notification_count() -> int:
+    """Quick count of unread notifications for the bell badge."""
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        row = conn.execute(
+            "SELECT COUNT(*) FROM in_app_notifications WHERE is_read=0"
+        ).fetchone()
+        conn.close()
+        return int(row[0] or 0)
+    except Exception:
+        return 0
+
 
 
 def get_db_connection():

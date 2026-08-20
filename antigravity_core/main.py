@@ -18,6 +18,7 @@ from engine.tech_news import run_tech_news_loop
 from engine.english_daily import run_english_daily_loop
 from engine.git_watcher import run_git_watcher
 from engine.semester_enforcer import run_semester_enforcer_loop, init_semester_tables
+from engine.canvas_reminder import run_canvas_reminder_loop
 from api.server import app
 
 ACTIVITY_LOG_PATH = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\activity_log.md"
@@ -152,13 +153,22 @@ def main():
         name="SemesterEnforcerThread",
         daemon=True
     )
-    
+
+    # Spawn Canvas Reminder Thread (fires at 09:00 / 14:00 / 20:00 / 23:00 IST)
+    canvas_reminder_thread = threading.Thread(
+        target=run_canvas_reminder_loop,
+        args=(stop_event,),
+        name="CanvasReminderThread",
+        daemon=True
+    )
+
     leetcode_thread.start()
     git_thread.start()
     activity_thread.start()
     news_thread.start()
     english_thread.start()
     semester_thread.start()
+    canvas_reminder_thread.start()
     
     print("[Master Control] Background worker threads spawned successfully.")
     
