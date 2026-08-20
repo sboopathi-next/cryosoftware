@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1d">
+<title>🔥 Task Streaks — Antigravity</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ── Page-specific variables ── */
+:root {
+  --card-gap: 12px;
+  --radius-sm: 8px;
+  --radius:    14px;
+}
+
+/* ── Task grid — 2-col on mobile, no horizontal scroll ── */
+.tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--card-gap);
+  margin-bottom: 20px;
+}
+@media (max-width: 500px) { .tasks-grid { grid-template-columns: 1fr; } }
+@media (min-width: 900px) { .tasks-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ── Task card ── */
+.task-card {
+  background: var(--card-bg, #0e1221);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s, border-color .18s;
+  cursor: default;
+}
+.task-card:hover { transform: translateY(-2px); border-color: var(--border-hi); }
+.task-card.punished { border-color: rgba(239,68,68,.5); }
+.task-card.punished::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #ef4444, #f97316);
+}
+.task-card.alive::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent-color, #7c3aed), var(--accent-color2, #f59e0b));
+}
+.task-card.done-today { border-color: rgba(16,185,129,.45); }
+.task-card.done-today::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #10b981, #06b6d4);
+}
+
+/* Task card header */
+.tc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tc-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.tc-name { font-size: .8125rem; font-weight: 700; color: var(--text1); flex: 1; line-height: 1.3; }
+.tc-today-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: #64748b;
+}
+.tc-today-dot.done { background: #10b981; box-shadow: 0 0 5px #10b981; }
+.tc-today-dot.missed { background: #ef4444; box-shadow: 0 0 5px #ef4444; animation: pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* Big streak number */
+.tc-streak-wrap {
+  display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px;
+}
+.tc-streak-num {
+  font-size: 2.5rem; font-weight: 900; line-height: 1;
+  font-family: var(--ff-brand, 'Inter', sans-serif);
+}
+.tc-streak-unit { font-size: .75rem; color: var(--text3); font-family: var(--ff-mono); }
+.tc-best { font-size: .7rem; color: var(--text3); margin-bottom: 8px; }
+
+/* Punishment banner */
+.tc-punish {
+  background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
+  border-radius: 6px; padding: 6px 10px;
+  font-size: .7rem; color: #f87171; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.tc-punish.hidden { display: none; }
+
+/* 30-day mini heatmap */
+.tc-heatmap {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 2px;
+}
+.hm-dot {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background .1s;
+}
+.hm-dot.done    { background: #10b981; }
+.hm-dot.missed  { background: #ef4444; opacity: .7; }
+.hm-dot.today   { outline: 2px solid #f59e0b; outline-offset: 1px; }
+
+/* ── Summary strip ── */
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (max-width: 500px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
+.summary-tile {
+  background: var(--card-bg, #0e1221);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 12px;
+  text-align: center;
+}
+.summary-tile .sv { font-size: 1.75rem; font-weight: 900; font-family: var(--ff-brand); line-height: 1; }
+.summary-tile .sl { font-size: .65rem; color: var(--text3); font-family: var(--ff-mono); letter-spacing: .08em; margin-top: 4px; text-transform: uppercase; }
+
+/* ── Alert banner ── */
+.alert-danger {
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.4);
+  border-radius: var(--radius-sm); padding: 12px 16px;
+  font-size: .875rem; font-weight: 600; color: #f87171;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 18px;
+}
+.alert-danger.hidden { display: none; }
+
+/* ── No-data state ── */
+.no-data-msg {
+  text-align: center; padding: 40px 20px; color: var(--text3);
+  font-size: .875rem;
+}
+
+/* ── Loading ── */
+.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive page-head fix ── */
+.page-head { flex-wrap: wrap; gap: 10px; }
+
+/* Compact mobile fixes */
+@media (max-width: 600px) {
+  .tc-streak-num { font-size: 2rem; }
+  .task-card { padding: 12px; }
+  .summary-strip { gap: 8px; }
+  .summary-tile { padding: 10px 8px; }
+  .summary-tile .sv { font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a></li>
+      <li><a href="/semester"><i class="fa-solid fa-calendar-days" style="color:#7c3aed"></i><span>Semester</span><span class="nav-badge" style="background:rgba(124,58,237,0.2);color:#a78bfa;border-color:rgba(124,58,237,0.3)">12W</span></a></li>
+      <li><a href="/task-streaks" class="active"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d;border-color:rgba(245,158,11,0.3)">🔥</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">🔥 Task Streak Tracker</div>
+        <div class="page-sub">Daily discipline — per-task current streak · best streak · 30-day heatmap</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a href="/semester" class="btn btn-sm" style="background:rgba(124,58,237,.15);border-color:#7c3aed;color:#a78bfa">
+          <i class="fa-solid fa-graduation-cap"></i> Semester
+        </a>
+        <button class="btn btn-sm" onclick="loadStreaks()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        <a href="/" class="btn btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
+      </div>
+    </div>
+
+    <!-- Punishment Alert -->
+    <div class="alert-danger hidden" id="punish-alert">
+      <i class="fa-solid fa-skull"></i>
+      <span id="punish-msg">You missed tasks yesterday. No excuses. Fix it today.</span>
+    </div>
+
+    <!-- Summary Strip -->
+    <div class="summary-strip" id="summary-strip">
+      <div class="summary-tile"><div class="sv" style="color:#f59e0b" id="s-total-streaks">—</div><div class="sl">Active Streaks</div></div>
+      <div class="summary-tile"><div class="sv" style="color:#10b981" id="s-done-today">—</div><div class="sl">Done Today</div></div>
+      <div class="summary-tile"><div class="sv" style="color:#ef4444" id="s-missed-today">—</div><div class="sl">Missing Today</div></div>
+      <div class="summary-tile"><div class="sv" style="color:#3b82f6" id="s-best-overall">—</div><div class="sl">Best Streak Ever</div></div>
+    </div>
+
+    <!-- Loading state -->
+    <div class="spinner-wrap" id="loading-wrap"><div class="spinner"></div></div>
+
+    <!-- Task Grid -->
+    <div class="tasks-grid hidden" id="tasks-grid"></div>
+
+    <!-- No data hint -->
+    <div class="no-data-msg hidden" id="no-data">
+      <div style="font-size:2.5rem;margin-bottom:12px">📊</div>
+      <div style="font-weight:700;color:var(--text2);margin-bottom:6px">No streak data yet</div>
+      <div>Start completing daily tasks from the Dashboard to build your streaks.</div>
+      <a href="/" class="btn btn-primary btn-sm" style="margin-top:14px;display:inline-flex">Go to Dashboard</a>
+    </div>
+
+  </main>
+</div>
+
+<script src="/static/shared.js"></script>
+<script>
+// ── Task config (display metadata) ────────────────────────────────────────────
+const TASK_CONFIG = {
+  study:           { emoji: '📖', label: 'Daily Study',            color: '#3b82f6', color2: '#6366f1' },
+  leetcode:        { emoji: '💻', label: 'LeetCode Problem',       color: '#f59e0b', color2: '#ef4444' },
+  gym:             { emoji: '💪', label: 'Gym / Workout',          color: '#f97316', color2: '#ef4444' },
+  english:         { emoji: '🗣️', label: 'English Booster',        color: '#06b6d4', color2: '#3b82f6' },
+  cooking:         { emoji: '🍳', label: 'Home Cooking',           color: '#10b981', color2: '#06b6d4' },
+  nopmo:           { emoji: '🛡️', label: 'NoPMO Discipline',       color: '#8b5cf6', color2: '#ec4899' },
+  reading:         { emoji: '📚', label: 'Daily Reading',          color: '#ec4899', color2: '#8b5cf6' },
+  walk:            { emoji: '🚶', label: 'Daily Walk',             color: '#10b981', color2: '#3b82f6' },
+  meditation:      { emoji: '🧘', label: 'Meditation',             color: '#a855f7', color2: '#06b6d4' },
+  mindos:          { emoji: '🧠', label: 'Mind OS Check',          color: '#94a3b8', color2: '#6366f1' },
+  health:          { emoji: '❤️', label: 'Google Health Sync',     color: '#ef4444', color2: '#f97316' },
+  canvas_semester: { emoji: '🎓', label: 'Canvas Semester',        color: '#7c3aed', color2: '#f59e0b' },
+};
+
+// Punishment XP penalty mapping (shown on missed cards)
+const PUNISH_MAP = {
+  canvas_semester: '−150 XP · −3 WIL · Energy ↓50%',
+  gym:             '−25 XP · −1 STR',
+  nopmo:           '−15 XP · −1 WIL',
+  study:           '−20 XP · −1 INT',
+  leetcode:        '−20 XP · −1 AGI',
+  english:         '−15 XP · −1 INT',
+  reading:         '−10 XP · −1 INT',
+  walk:            '−15 XP · −1 WIL',
+  meditation:      '−20 XP · −2 STC',
+  mindos:          '−15 XP · −1 STC',
+  cooking:         '−10 XP',
+  health:          '−15 XP · −1 WIL',
+};
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderStreaks(streaks) {
+  const grid = document.getElementById('tasks-grid');
+  const noData = document.getElementById('no-data');
+  const loading = document.getElementById('loading-wrap');
+  const punishAlert = document.getElementById('punish-alert');
+  const punishMsg   = document.getElementById('punish-msg');
+
+  loading.classList.add('hidden');
+
+  const keys = Object.keys(TASK_CONFIG);
+  const hasData = keys.some(k => (streaks[k]?.total_done || 0) > 0);
+
+  // Summary strip
+  let totalActive = 0, doneToday = 0, missedToday = 0, bestEver = 0;
+  keys.forEach(k => {
+    const s = streaks[k] || {};
+    if ((s.current_streak || 0) > 0) totalActive++;
+    if (s.done_today) doneToday++;
+    if (!s.done_today) missedToday++;
+    if ((s.best_streak || 0) > bestEver) bestEver = s.best_streak;
+  });
+  document.getElementById('s-total-streaks').textContent = totalActive;
+  document.getElementById('s-done-today').textContent    = doneToday;
+  document.getElementById('s-missed-today').textContent  = missedToday;
+  document.getElementById('s-best-overall').textContent  = bestEver || '—';
+
+  // Punishment alert — show if any task missed yesterday and not done today
+  const missedYesterday = keys.filter(k => streaks[k]?.missed_yesterday);
+  if (missedYesterday.length > 0) {
+    const names = missedYesterday.map(k => TASK_CONFIG[k]?.emoji + ' ' + (TASK_CONFIG[k]?.label || k));
+    punishMsg.textContent = `⚠️ You MISSED yesterday: ${names.join(', ')} — Streak BROKEN. Fix today or lose XP tonight.`;
+    punishAlert.classList.remove('hidden');
+  } else {
+    punishAlert.classList.add('hidden');
+  }
+
+  if (!hasData) {
+    grid.classList.add('hidden');
+    noData.classList.remove('hidden');
+    return;
+  }
+
+  noData.classList.add('hidden');
+  grid.classList.remove('hidden');
+
+  grid.innerHTML = keys.map(tk => {
+    const cfg = TASK_CONFIG[tk] || { emoji: '✅', label: tk, color: '#7c3aed', color2: '#f59e0b' };
+    const s   = streaks[tk] || { current_streak: 0, best_streak: 0, total_done: 0, missed_yesterday: false, done_today: false, last_30: [] };
+
+    const streak      = s.current_streak || 0;
+    const best        = s.best_streak || 0;
+    const doneToday   = s.done_today;
+    const missedYest  = s.missed_yesterday;
+    const total       = s.total_done || 0;
+
+    // Card state classes
+    let stateClass = '';
+    let dotClass   = '';
+    if (doneToday)          { stateClass = 'done-today'; dotClass = 'done'; }
+    else if (missedYest)    { stateClass = 'punished';   dotClass = 'missed'; }
+    else if (streak > 0)    { stateClass = 'alive'; }
+
+    // Streak colour
+    const streakColor = streak === 0 ? '#64748b' : streak >= 7 ? cfg.color : '#f59e0b';
+
+    // Heatmap (last 30 days, 2 rows × 15)
+    const last30 = s.last_30 || [];
+    const today  = new Date().toISOString().slice(0, 10);
+    const heatDots = last30.map(d => {
+      const isToday = d.date === today;
+      const cls = d.done ? 'done' : 'missed';
+      return `<div class="hm-dot ${cls}${isToday ? ' today' : ''}" title="${d.date}"></div>`;
+    }).join('');
+
+    // Punishment penalty text
+    const penaltyTxt = (missedYest && !doneToday) ? PUNISH_MAP[tk] || '−XP' : '';
+
+    return `<div class="task-card ${stateClass}" style="--accent-color:${cfg.color};--accent-color2:${cfg.color2}">
+      <div class="tc-header">
+        <div class="tc-emoji">${cfg.emoji}</div>
+        <div class="tc-name">${cfg.label}</div>
+        <div class="tc-today-dot ${dotClass}" title="${doneToday ? 'Done today ✅' : missedYest ? '⚠️ Missed yesterday!' : 'Pending today'}"></div>
+      </div>
+
+      ${(missedYest && !doneToday) ? `<div class="tc-punish"><i class="fa-solid fa-skull-crossbones"></i> MISSED — ${penaltyTxt}</div>` : ''}
+
+      <div class="tc-streak-wrap">
+        <div class="tc-streak-num" style="color:${streakColor}">${streak}</div>
+        <div class="tc-streak-unit">day streak</div>
+      </div>
+      <div class="tc-best">Best: <strong>${best}d</strong> · Total done: <strong>${total}</strong></div>
+
+      <div class="tc-heatmap">${heatDots}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+async function loadStreaks() {
+  document.getElementById('loading-wrap').classList.remove('hidden');
+  document.getElementById('tasks-grid').classList.add('hidden');
+  document.getElementById('no-data').classList.add('hidden');
+  try {
+    const r = await fetch('/api/tasks/streaks');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    renderStreaks(d.streaks || {});
+  } catch (err) {
+    document.getElementById('loading-wrap').innerHTML =
+      `<div style="color:#ef4444;text-align:center;padding:40px">
+        <div style="font-size:2rem">⚠️</div>
+        <div style="margin-top:8px">${err.message}</div>
+        <button class="btn btn-sm" style="margin-top:12px" onclick="loadStreaks()">Retry</button>
+      </div>`;
+  }
+}
+
+loadStreaks();
+setInterval(loadStreaks, 120000);  // auto-refresh every 2 min
+</script>
+</body>
+</html>

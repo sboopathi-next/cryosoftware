@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Semester Command Center — 12-Week MSc Data Science</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080b14;
+    --surface:   #0e1221;
+    --surface2:  #141829;
+    --border:    #1e2540;
+    --muted:     #3a4060;
+    --text:      #e2e8f8;
+    --text-dim:  #8892b0;
+    --accent:    #7c3aed;
+    --gold:      #f59e0b;
+    --danger:    #ef4444;
+    --success:   #10b981;
+    --info:      #3b82f6;
+    --ml:        #7c3aed;
+    --mv:        #0891b2;
+    --fa:        #059669;
+    --bd:        #d97706;
+    --java:      #dc2626;
+    --weekend:   #8b5cf6;
+    --glow:      rgba(124,58,237,0.15);
+    --radius:    14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Background Particles ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 20px; position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+  }
+  .header-left h1 {
+    font-size: 1.75rem; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #e2e8f8 0%, #7c3aed 60%, #f59e0b 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-left p { color: var(--text-dim); font-size: 0.875rem; margin-top: 4px; }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 0.8125rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--surface); border-color: var(--accent); color: #fff; transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-danger  { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+  .btn-success { background: rgba(16,185,129,0.15); border-color: var(--success); color: var(--success); }
+  .btn-success:hover { background: rgba(16,185,129,0.3); }
+
+  /* ── Semester Progress Bar ── */
+  .semester-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .semester-banner::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+  }
+  .semester-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .semester-meta h2 { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .semester-meta .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    border: 1px solid; white-space: nowrap;
+  }
+  .chip-week   { border-color: var(--accent);  background: rgba(124,58,237,0.15); color: #a78bfa; }
+  .chip-left   { border-color: var(--gold);    background: rgba(245,158,11,0.15); color: #fcd34d; }
+  .chip-pct    { border-color: var(--success); background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .progress-track {
+    background: var(--border); border-radius: 100px; height: 10px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    transition: width 1s ease;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 20px;
+    background: rgba(255,255,255,0.3); border-radius: 100px;
+    animation: pulse-bar 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── Today's Mission Card ── */
+  .today-mission {
+    border-radius: var(--radius); padding: 28px;
+    margin-bottom: 24px; position: relative; overflow: hidden;
+    border: 2px solid; transition: all 0.3s;
+  }
+  .today-mission .course-emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
+  .today-mission h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 6px; }
+  .today-mission .course-code { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; opacity: 0.7; letter-spacing: 1px; }
+  .today-mission .mission-body { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
+  .today-mission .deliverables { display: flex; flex-direction: column; gap: 6px; }
+  .deliverable-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.875rem; color: rgba(255,255,255,0.85);
+  }
+  .deliverable-item .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; flex-shrink: 0;
+  }
+  .status-badge {
+    padding: 8px 20px; border-radius: 30px; font-size: 0.875rem; font-weight: 800;
+    letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+  }
+  .status-cleared  { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .status-pending  { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.4); animation: blink 2s ease-in-out infinite; }
+  .status-penalized { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+  .status-weekend  { background: rgba(139,92,246,0.2); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.4); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  /* ── Countdown Timer ── */
+  .countdown {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .countdown-unit {
+    text-align: center; background: rgba(0,0,0,0.3); border-radius: 10px;
+    padding: 8px 12px; min-width: 58px;
+  }
+  .countdown-unit .num { font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+  .countdown-unit .lbl { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.6; margin-top: 2px; }
+  .countdown-sep { font-size: 1.5rem; font-weight: 900; opacity: 0.4; margin-top: -4px; }
+
+  /* ── Stat Cards Row ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 16px; text-align: center;
+    transition: all 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .stat-card .stat-val { font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+  .stat-card .stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .stat-xp   { color: var(--gold); }
+  .stat-wil  { color: #a78bfa; }
+  .stat-int  { color: var(--info); }
+  .stat-agi  { color: var(--success); }
+  .stat-str  { color: var(--danger); }
+  .stat-eng  { color: var(--gold); }
+
+  /* ── Main Grid ── */
+  .main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
+  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ── Section Cards ── */
+  .section-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .title-icon { font-size: 1rem; }
+
+  /* ── Week Schedule ── */
+  .week-schedule { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  @media (max-width: 768px) { .week-schedule { grid-template-columns: repeat(4, 1fr); } }
+  .schedule-day {
+    border-radius: var(--radius-sm); padding: 12px 8px; text-align: center;
+    border: 1px solid var(--border); background: var(--surface2); transition: all 0.2s;
+  }
+  .schedule-day.today { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,0.3); }
+  .schedule-day.weekend { opacity: 0.65; }
+  .schedule-day .day-name { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); font-weight: 700; }
+  .schedule-day .day-emoji { font-size: 1.5rem; margin: 6px 0; }
+  .schedule-day .day-code  { font-size: 0.6rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── 12-Week Progress Grid ── */
+  .course-section { margin-bottom: 20px; }
+  .course-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .course-pill {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .course-name-text { font-size: 0.875rem; font-weight: 600; }
+  .course-code-text { font-size: 0.7rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-left: auto; }
+  .weeks-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; }
+  .week-cell {
+    aspect-ratio: 1; border-radius: 5px; cursor: pointer;
+    position: relative; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.55rem; font-weight: 700; color: transparent;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .week-cell:hover { transform: scale(1.3); z-index: 10; color: #fff !important; }
+  .week-cell.completed { background: var(--success); border-color: var(--success); box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+  .week-cell.in-progress { background: var(--gold); border-color: var(--gold); }
+  .week-cell.not-started { background: var(--surface2); }
+  .week-cell.current-week { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(124,58,237,0.4); }
+  .week-cell .week-num { position: absolute; bottom: 1px; right: 2px; font-size: 0.45rem; opacity: 0.5; }
+
+  /* ── Audit Log ── */
+  .audit-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    border-radius: var(--radius-sm); margin-bottom: 8px;
+    background: var(--surface2); border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .audit-item:hover { border-color: var(--muted); }
+  .audit-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .audit-dot.CLEARED   { background: var(--success); box-shadow: 0 0 4px var(--success); }
+  .audit-dot.PENALIZED { background: var(--danger);  box-shadow: 0 0 4px var(--danger); }
+  .audit-dot.PENDING   { background: var(--gold); }
+  .audit-dot.WEEKEND   { background: var(--weekend); }
+  .audit-course { font-size: 0.8125rem; font-weight: 600; flex: 1; }
+  .audit-date   { font-size: 0.7rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+  .audit-xp     { font-size: 0.75rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .xp-pos { color: var(--success); }
+  .xp-neg { color: var(--danger); }
+
+  /* ── Sidebar ── */
+  .sidebar {}
+
+  /* ── Course XP Summary ── */
+  .course-xp-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--surface2);
+    border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .course-xp-row:hover { border-color: var(--muted); transform: translateX(2px); }
+  .course-xp-emoji { font-size: 1.2rem; flex-shrink: 0; }
+  .course-xp-info { flex: 1; min-width: 0; }
+  .course-xp-name { font-size: 0.8125rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .course-xp-items { font-size: 0.7rem; color: var(--text-dim); }
+  .course-xp-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+  .course-xp-bar { height: 4px; border-radius: 2px; transition: width 0.8s ease; }
+  .course-xp-val { font-size: 0.75rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--gold); flex-shrink: 0; }
+
+  /* ── Calendar Heatmap ── */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-cell {
+    aspect-ratio: 1; border-radius: 4px; cursor: default;
+    position: relative; transition: all 0.15s;
+  }
+  .cal-cell:hover { transform: scale(1.3); z-index: 10; }
+  .cal-cell.CLEARED   { background: var(--success); opacity: 0.9; }
+  .cal-cell.PENALIZED { background: var(--danger);  opacity: 0.8; }
+  .cal-cell.WEEKEND   { background: var(--weekend); opacity: 0.5; }
+  .cal-cell.empty     { background: var(--surface2); opacity: 0.3; }
+  .cal-label { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .cal-label span { font-size: 0.625rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ── Summary Stats ── */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-stat {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px; text-align: center;
+  }
+  .summary-stat .s-val { font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+  .summary-stat .s-lbl { font-size: 0.675rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; }
+  .s-cleared   { color: var(--success); }
+  .s-missed    { color: var(--danger); }
+  .s-bonus     { color: var(--gold); }
+  .s-lost      { color: #f87171; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    max-width: 340px; transform: translateY(100px); opacity: 0;
+    transition: all 0.3s; pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .toast-inner {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .toast-icon { font-size: 1.25rem; flex-shrink: 0; }
+  .toast-msg  { font-size: 0.875rem; font-weight: 500; }
+
+  /* ── Tooltip ── */
+  [data-tip] { position: relative; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+    background: #0e1221; border: 1px solid var(--border); color: var(--text);
+    font-size: 0.7rem; padding: 5px 8px; border-radius: 6px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 100;
+  }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* ── Loading Spinner ── */
+  .loading {
+    display: flex; justify-content: center; align-items: center; padding: 40px;
+    flex-direction: column; gap: 14px; color: var(--text-dim);
+  }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Alert Banner ── */
+  .alert-banner {
+    padding: 14px 18px; border-radius: var(--radius-sm);
+    font-size: 0.875rem; font-weight: 600; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid;
+  }
+  .alert-danger  { background: rgba(239,68,68,0.1); border-color: var(--danger); color: #f87171; }
+  .alert-success { background: rgba(16,185,129,0.1); border-color: var(--success); color: #34d399; }
+  .alert-warning { background: rgba(245,158,11,0.1); border-color: var(--gold); color: #fcd34d; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+    .weeks-grid { grid-template-columns: repeat(6, 1fr); }
+    .header-left h1 { font-size: 1.25rem; }
+    .countdown { gap: 6px; }
+    .countdown-unit { min-width: 46px; padding: 6px 8px; }
+    .countdown-unit .num { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<div id="toast"><div class="toast-inner"><span class="toast-icon" id="toast-icon"></span><span class="toast-msg" id="toast-msg"></span></div></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>📚 Semester Command Center</h1>
+      <p id="header-sub">MSc Data Science · VIT Online · Loading...</p>
+    </div>
+    <div class="header-right">
+      <button class="btn" onclick="loadDashboard()">⟳ Refresh</button>
+      <button class="btn btn-success" id="audit-btn" onclick="triggerAudit()">⚡ Run Audit</button>
+      <a href="/" class="btn">← Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div id="loading-state" class="loading">
+    <div class="spinner"></div>
+    <span>Loading semester data...</span>
+  </div>
+
+  <!-- Main Content (hidden until loaded) -->
+  <div id="main-content" style="display:none">
+
+    <!-- Semester Progress Banner -->
+    <div class="semester-banner">
+      <div class="semester-meta">
+        <h2 id="semester-title">12-Week Semester Progress</h2>
+        <div class="chips">
+          <span class="chip chip-week" id="chip-week">Week —/12</span>
+          <span class="chip chip-left" id="chip-left">— weeks left</span>
+          <span class="chip chip-pct"  id="chip-pct">0% complete</span>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="semester-bar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Today's Mission -->
+    <div id="today-card" class="today-mission" style="background: var(--surface2); border-color: var(--border);">
+      <span class="course-emoji" id="today-emoji">📚</span>
+      <h2 id="today-name">Loading...</h2>
+      <div class="course-code" id="today-code"></div>
+      <div class="mission-body">
+        <div class="deliverables">
+          <div class="deliverable-item"><span class="dot" id="dot-videos"></span><span id="del-videos">Watch this week's lecture videos</span></div>
+          <div class="deliverable-item"><span class="dot" id="dot-quiz"></span><span id="del-quiz">Submit Week N quiz on Canvas LMS</span></div>
+          <div class="deliverable-item"><span class="dot" id="dot-assign"></span><span id="del-assign">Complete weekly assignment</span></div>
+        </div>
+        <div style="text-align:right">
+          <div id="today-status-badge" class="status-badge status-pending">⏳ PENDING</div>
+          <div class="countdown" id="countdown-wrap" style="margin-top:12px; justify-content:flex-end">
+            <div class="countdown-unit"><div class="num" id="cd-h">--</div><div class="lbl">hrs</div></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-unit"><div class="num" id="cd-m">--</div><div class="lbl">min</div></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-unit"><div class="num" id="cd-s">--</div><div class="lbl">sec</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val stat-xp" id="p-xp">—</div><div class="stat-label">Total XP</div></div>
+      <div class="stat-card"><div class="stat-val stat-wil" id="p-wil">—</div><div class="stat-label">Willpower</div></div>
+      <div class="stat-card"><div class="stat-val stat-int" id="p-int">—</div><div class="stat-label">Intellect</div></div>
+      <div class="stat-card"><div class="stat-val stat-agi" id="p-agi">—</div><div class="stat-label">Agility</div></div>
+      <div class="stat-card"><div class="stat-val stat-str" id="p-str">—</div><div class="stat-label">Strength</div></div>
+      <div class="stat-card"><div class="stat-val stat-eng" id="p-eng">—</div><div class="stat-label">Energy%</div></div>
+      <div class="stat-card"><div class="stat-val" id="p-streak" style="color:#f97316">—</div><div class="stat-label">🔥 Streak</div></div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Left Column -->
+      <div>
+
+        <!-- This Week's Schedule -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">📅</span> This Week's Schedule</div>
+          <div class="week-schedule" id="week-schedule"></div>
+        </div>
+
+        <!-- 12-Week Progress Grid -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">🗓️</span> 12-Week Progress Grid</div>
+          <div id="progress-grid"></div>
+        </div>
+
+        <!-- Recent Audit Log -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">📋</span> Recent Audit Log <span style="margin-left:auto; font-size:0.7rem; font-weight:400; text-transform:none; color:var(--text-dim);">Last 14 days</span></div>
+          <div id="audit-log"></div>
+        </div>
+
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="sidebar">
+
+        <!-- Summary Stats -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">⚡</span> Execution Summary</div>
+          <div class="summary-grid" id="summary-grid"></div>
+        </div>
+
+        <!-- 30-Day Calendar Heatmap -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">🔥</span> 30-Day Execution Heatmap</div>
+          <div class="cal-label"><span>30 days ago</span><span>Today</span></div>
+          <div class="cal-grid" id="cal-heatmap"></div>
+          <div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:5px;font-size:0.7rem;color:var(--text-dim)"><span style="width:10px;height:10px;background:var(--success);border-radius:2px;display:inline-block"></span>Cleared</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:0.7rem;color:var(--text-dim)"><span style="width:10px;height:10px;background:var(--danger);border-radius:2px;display:inline-block"></span>Missed</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:0.7rem;color:var(--text-dim)"><span style="width:10px;height:10px;background:var(--weekend);border-radius:2px;display:inline-block"></span>Weekend</span>
+          </div>
+        </div>
+
+        <!-- Canvas XP by Course -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">🏆</span> Canvas XP Earned</div>
+          <div id="canvas-xp-list"></div>
+        </div>
+
+        <!-- Manual Override -->
+        <div class="section-card">
+          <div class="section-title"><span class="title-icon">🛠️</span> Admin Controls</div>
+          <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:12px;">If Canvas sync missed today's work, manually mark as cleared.</p>
+          <button class="btn btn-success" style="width:100%;margin-bottom:8px" onclick="manualClear()">✅ Mark Today as CLEARED</button>
+          <button class="btn btn-danger" style="width:100%" onclick="triggerAudit()">⚡ Force Run Tonight's Audit</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Configuration ──────────────────────────────────────────────────────────────
+const COURSE_MAP = {
+  OLMDS603: { name: "Machine Learning",          emoji: "🤖", color: "#7c3aed" },
+  OLMDS602: { name: "Multivariate Data Analysis", emoji: "📊", color: "#0891b2" },
+  OLMDS607: { name: "Financial Data Analytics",  emoji: "💹", color: "#059669" },
+  OLMDS601: { name: "Big Data Analytics",        emoji: "🗄️", color: "#d97706" },
+  OLMDS604: { name: "Programming in Java",       emoji: "☕", color: "#dc2626" },
+  DSA_LEETCODE: { name: "DSA & LeetCode Sprint", emoji: "⚡", color: "#f59e0b" },
+  MIND_OS:      { name: "System Audit",          emoji: "🧘", color: "#8b5cf6" },
+};
+
+let countdownInterval = null;
+let countdownSeconds  = 0;
+let dashData = null;
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+  document.getElementById('toast-icon').textContent = icons[type] || 'ℹ️';
+  document.getElementById('toast-msg').textContent  = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── Countdown Timer ────────────────────────────────────────────────────────────
+function startCountdown(seconds) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownSeconds = seconds;
+  function tick() {
+    if (countdownSeconds <= 0) { clearInterval(countdownInterval); return; }
+    countdownSeconds--;
+    const h = Math.floor(countdownSeconds / 3600);
+    const m = Math.floor((countdownSeconds % 3600) / 60);
+    const s = countdownSeconds % 60;
+    document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
+  }
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+// ── Today Card ────────────────────────────────────────────────────────────────
+function renderTodayCard(target) {
+  document.getElementById('today-emoji').textContent = target.course_emoji || '📚';
+  document.getElementById('today-name').textContent  = target.course_name  || '—';
+  document.getElementById('today-code').textContent  = target.is_weekend ? '🏖️ Weekend Mode' : target.course_code;
+
+  const card = document.getElementById('today-card');
+  const color = target.course_color || '#7c3aed';
+  card.style.borderColor = color;
+  card.style.background  = `linear-gradient(135deg, ${color}18 0%, var(--surface2) 100%)`;
+
+  // Dots
+  ['dot-videos', 'dot-quiz', 'dot-assign'].forEach(id => {
+    document.getElementById(id).style.background = color;
+  });
+
+  // Deliverables
+  document.getElementById('del-videos').textContent = `Watch Week ${target.week_number} lecture videos`;
+  document.getElementById('del-quiz').textContent   = `Submit Quiz ${target.week_number}.1 on Canvas LMS`;
+  document.getElementById('del-assign').textContent = `Complete Week ${target.week_number} assignment`;
+
+  // Status badge
+  const badge   = document.getElementById('today-status-badge');
+  const status  = target.audit_status || 'PENDING';
+  badge.className = `status-badge status-${status.toLowerCase()}`;
+  const badgeMap = {
+    CLEARED: '✅ CLEARED +150 XP',
+    PENALIZED: '❌ PENALIZED -150 XP',
+    PENDING: '⏳ PENDING — COMPLETE NOW',
+    WEEKEND: '🏖️ WEEKEND MODE',
+  };
+  badge.textContent = badgeMap[status] || status;
+
+  // Countdown
+  if (status === 'PENDING' && !target.is_weekend) {
+    startCountdown(target.seconds_remaining || 0);
+  } else {
+    document.getElementById('countdown-wrap').style.display = 'none';
+  }
+}
+
+// ── Semester Banner ────────────────────────────────────────────────────────────
+function renderSemesterBanner(d) {
+  document.getElementById('chip-week').textContent = `Week ${d.week_number}/12`;
+  document.getElementById('chip-left').textContent = `${d.weeks_left} weeks left`;
+  document.getElementById('chip-pct').textContent  = `${d.semester_pct}% done`;
+  document.getElementById('semester-bar').style.width = `${d.semester_pct}%`;
+  document.getElementById('header-sub').textContent = `MSc Data Science · VIT Online · ${d.today}`;
+}
+
+// ── Player Stats ───────────────────────────────────────────────────────────────
+function renderPlayerStats(ps) {
+  document.getElementById('p-xp').textContent     = (ps.xp || 0).toLocaleString();
+  document.getElementById('p-wil').textContent    = ps.wil || 0;
+  document.getElementById('p-int').textContent    = ps.int || 0;
+  document.getElementById('p-agi').textContent    = ps.agi || 0;
+  document.getElementById('p-str').textContent    = ps.str || 0;
+  document.getElementById('p-eng').textContent    = `${Math.round(ps.energy || 100)}%`;
+  document.getElementById('p-streak').textContent = ps.streak_days || 0;
+}
+
+// ── Week Schedule ─────────────────────────────────────────────────────────────
+function renderWeekSchedule(schedule) {
+  const el = document.getElementById('week-schedule');
+  el.innerHTML = schedule.map(d => {
+    const c = COURSE_MAP[d.course_code] || { emoji: '📚', color: '#666' };
+    return `<div class="schedule-day${d.is_today ? ' today' : ''}${d.is_weekend ? ' weekend' : ''}"
+              style="${d.is_today ? `border-color:${d.color};box-shadow:0 0 0 2px ${d.color}44` : ''}"
+              title="${d.course_name}">
+      <div class="day-name">${d.day_name}</div>
+      <div class="day-emoji">${d.emoji}</div>
+      <div class="day-code">${d.course_code.replace('OLMDS','')}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── 12-Week Progress Grid ─────────────────────────────────────────────────────
+function renderProgressGrid(allCourses, grid, currentWeek) {
+  const el = document.getElementById('progress-grid');
+  const weeks = Array.from({length: 12}, (_, i) => i + 1);
+  el.innerHTML = allCourses.map(course => {
+    const cGrid = grid[course.code] || {};
+    const weeksHtml = weeks.map(w => {
+      const wData  = cGrid[w] || { status: 'NOT_STARTED' };
+      const cls    = wData.status === 'COMPLETED' ? 'completed' : wData.status === 'IN_PROGRESS' ? 'in-progress' : 'not-started';
+      const isCurr = w === currentWeek;
+      const tip    = `Week ${w}: ${wData.status || 'NOT STARTED'}${wData.quiz_done ? ' ✓Quiz' : ''}${wData.assignment_done ? ' ✓Assign' : ''}`;
+      return `<div class="week-cell ${cls}${isCurr ? ' current-week' : ''}"
+                   data-tip="${tip}"
+                   style="${cls === 'completed' ? `background:${course.color};border-color:${course.color};box-shadow:0 0 5px ${course.color}66` : ''}">
+                ${w}
+                <span class="week-num">${w}</span>
+              </div>`;
+    }).join('');
+    return `<div class="course-section">
+      <div class="course-header">
+        <div class="course-pill" style="background:${course.color}"></div>
+        <div class="course-name-text">${course.emoji} ${course.name}</div>
+        <div class="course-code-text">${course.code}</div>
+      </div>
+      <div class="weeks-grid">${weeksHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Audit Log ─────────────────────────────────────────────────────────────────
+function renderAuditLog(logs) {
+  const el = document.getElementById('audit-log');
+  if (!logs || logs.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.85rem;text-align:center;padding:20px">No audit history yet. Audit runs nightly at 23:30.</div>';
+    return;
+  }
+  el.innerHTML = logs.map(log => {
+    const xpSign  = log.status === 'CLEARED' ? '+' : log.status === 'PENALIZED' ? '-' : '';
+    const xpColor = log.status === 'CLEARED' ? 'xp-pos' : log.status === 'PENALIZED' ? 'xp-neg' : '';
+    const c = COURSE_MAP[log.required_course_code] || { emoji: '📚' };
+    return `<div class="audit-item">
+      <div class="audit-dot ${log.status}"></div>
+      <div class="audit-course">${c.emoji} ${log.required_course_name || log.required_course_code}</div>
+      <div class="audit-date">${log.log_date}<br><small>Wk ${log.week_number}</small></div>
+      <div class="audit-xp ${xpColor}">${xpSign}${log.xp_awarded} XP</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Canvas XP List ────────────────────────────────────────────────────────────
+function renderCanvasXP(canvasXp, allCourses) {
+  const el = document.getElementById('canvas-xp-list');
+  if (!canvasXp || canvasXp.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:16px">Sync Canvas to populate XP data.</div>';
+    return;
+  }
+  const maxXp = Math.max(...canvasXp.map(r => r.total_xp || 0), 1);
+  el.innerHTML = canvasXp.map(row => {
+    const matched = allCourses.find(c =>
+      row.course_name && (row.course_name.includes(c.name) || row.course_name.includes(c.code))
+    );
+    const color = matched?.color || '#666';
+    const emoji = matched?.emoji || '📚';
+    const pct   = Math.round((row.total_xp / maxXp) * 100);
+    return `<div class="course-xp-row">
+      <div class="course-xp-emoji">${emoji}</div>
+      <div class="course-xp-info">
+        <div class="course-xp-name">${row.course_name}</div>
+        <div class="course-xp-items">${row.items || 0} items completed</div>
+        <div class="course-xp-bar-wrap"><div class="course-xp-bar" style="width:${pct}%;background:${color}"></div></div>
+      </div>
+      <div class="course-xp-val">+${(row.total_xp || 0).toLocaleString()} XP</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Summary Stats ─────────────────────────────────────────────────────────────
+function renderSummary(summary) {
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="summary-stat"><div class="stat-val s-cleared">${summary.days_cleared || 0}</div><div class="s-lbl">Days Cleared</div></div>
+    <div class="summary-stat"><div class="stat-val s-missed">${summary.days_missed || 0}</div><div class="s-lbl">Days Missed</div></div>
+    <div class="summary-stat"><div class="stat-val s-bonus">+${(summary.total_bonus_xp || 0).toLocaleString()}</div><div class="s-lbl">Bonus XP</div></div>
+    <div class="summary-stat"><div class="stat-val s-lost">-${(summary.total_penalty_xp || 0).toLocaleString()}</div><div class="s-lbl">XP Lost</div></div>
+  `;
+}
+
+// ── 30-Day Heatmap ────────────────────────────────────────────────────────────
+function renderHeatmap(calData) {
+  const el = document.getElementById('cal-heatmap');
+  // Build a map of date → status
+  const map = {};
+  (calData || []).forEach(d => { map[d.log_date] = d.status; });
+
+  // Last 35 days (5 rows × 7 cols = nice grid)
+  const cells = [];
+  const today = new Date();
+  for (let i = 34; i >= 0; i--) {
+    const d   = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const st  = map[key] || 'empty';
+    cells.push(`<div class="cal-cell ${st}" title="${key}: ${st}"></div>`);
+  }
+  el.innerHTML = cells.join('');
+}
+
+// ── Load Dashboard ────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res  = await fetch('/api/semester/dashboard');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    dashData   = await res.json();
+
+    const todayRes = await fetch('/api/semester/today');
+    const today    = todayRes.ok ? await todayRes.json() : dashData.today_target;
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('main-content').style.display  = 'block';
+
+    renderSemesterBanner(dashData);
+    renderTodayCard(today);
+    renderPlayerStats(dashData.player_state || {});
+    renderWeekSchedule(dashData.weekly_schedule || []);
+    renderProgressGrid(dashData.all_courses || [], dashData.progress_grid || {}, dashData.week_number);
+    renderAuditLog(dashData.audit_log || []);
+    renderCanvasXP(dashData.canvas_xp || [], dashData.all_courses || []);
+    renderSummary(dashData.summary || {});
+    renderHeatmap(dashData.calendar_data || []);
+
+  } catch (err) {
+    document.getElementById('loading-state').innerHTML = `
+      <div style="text-align:center;color:var(--danger)">
+        <div style="font-size:2rem">⚠️</div>
+        <div style="margin-top:8px;font-weight:600">Failed to load semester data</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);margin-top:6px">${err.message}</div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="loadDashboard()">Retry</button>
+      </div>`;
+  }
+}
+
+// ── Trigger Audit ────────────────────────────────────────────────────────────
+async function triggerAudit() {
+  const btn = document.getElementById('audit-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+  try {
+    const res  = await fetch('/api/semester/audit?force=true', { method: 'POST' });
+    const data = res.ok ? await res.json() : null;
+    if (data) {
+      const msg = data.status === 'CLEARED'
+        ? `✅ CLEARED! ${data.course} — +${data.xp_delta} XP`
+        : data.status === 'PENALIZED'
+        ? `❌ PENALIZED! ${data.course} — ${data.xp_delta} XP`
+        : data.status === 'WEEKEND' ? '🏖️ Weekend mode active'
+        : JSON.stringify(data);
+      const type = data.status === 'CLEARED' ? 'success' : data.status === 'PENALIZED' ? 'error' : 'info';
+      showToast(msg, type);
+      setTimeout(loadDashboard, 800);
+    }
+  } catch (err) {
+    showToast('Audit failed: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Run Audit';
+  }
+}
+
+// ── Manual Clear ─────────────────────────────────────────────────────────────
+async function manualClear() {
+  if (!confirm('Mark TODAY as CLEARED? This will award +150 XP.')) return;
+  try {
+    const res  = await fetch('/api/semester/mark_cleared', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: 'Manual override from dashboard' })
+    });
+    if (res.ok) {
+      showToast('✅ Day marked as CLEARED! +150 XP awarded.', 'success');
+      setTimeout(loadDashboard, 600);
+    } else {
+      const err = await res.json();
+      showToast('Error: ' + (err.detail || 'Unknown error'), 'error');
+    }
+  } catch (err) {
+    showToast('Request failed: ' + err.message, 'error');
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadDashboard();
+// Auto-refresh every 5 minutes
+setInterval(loadDashboard, 5 * 60 * 1000);
+</script>
+</body>
+</html>

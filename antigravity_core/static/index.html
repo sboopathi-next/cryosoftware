@@ -146,6 +146,8 @@
       <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
       <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
       <li><a href="/system"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a></li>
+      <li><a href="/task-streaks"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d;border-color:rgba(245,158,11,0.3)">🔥</span></a></li>
+      <li><a href="/semester"><i class="fa-solid fa-graduation-cap" style="color:#7c3aed"></i><span>Semester</span><span class="nav-badge" style="background:rgba(124,58,237,0.2);color:#a78bfa;border-color:rgba(124,58,237,0.3)">12W</span></a></li>
     </ul>
     <div class="sidebar-footer">
       <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
@@ -277,7 +279,10 @@
 
     <!-- DAILY CHECKLIST -->
     <div class="card" style="margin-bottom: 16px;">
-      <div class="card-title"><i class="fa-solid fa-list-check"></i> Daily Accountability Checklist</div>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span><i class="fa-solid fa-list-check"></i> Daily Accountability Checklist</span>
+        <a href="/task-streaks" style="font-size:11px;color:var(--amber);text-decoration:none;font-family:var(--ff-mono);font-weight:700">🔥 View Streaks →</a>
+      </div>
       <div class="checklist-card">
         <div class="checklist-item auto-checked" id="chk-study">
           <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
@@ -340,6 +345,15 @@
           <div class="checklist-check"><i class="fa-solid fa-brain" style="color:var(--purple)"></i></div>
           <div class="checklist-lbl">Daily Mind OS Reality Check</div>
           <div class="checklist-meta">Manual: CBT Reality Check or Grounding (+15 XP, +1 STC)</div>
+        </div>
+        <!-- Canvas Semester Task -->
+        <div class="checklist-item" id="chk-canvas-semester" onclick="toggleSemesterTask()" style="border-left:3px solid #7c3aed">
+          <div class="checklist-check"><i class="fa-solid fa-graduation-cap" style="color:#a78bfa"></i></div>
+          <div style="flex:1;min-width:0">
+            <div class="checklist-lbl" id="semester-task-lbl">📚 Today's Canvas Subject</div>
+            <div class="checklist-meta" id="semester-task-meta">Loading today's subject... (+150 XP on-time)</div>
+          </div>
+          <div id="semester-streak-badge" style="font-size:10px;font-family:var(--ff-mono);color:#f59e0b;font-weight:700;flex-shrink:0">🔥 0d</div>
       </div>
     </div>
 
@@ -412,6 +426,47 @@ async function loadDashboard() {
     toggleDone('chk-meditation', d.meditation_completed);
     toggleDone('chk-mindos', d.mindos_completed);
     toggleDone('chk-health', d.health_completed);
+
+    // Semester task card state (from task_daily_log via /stats)
+    const semCard = document.getElementById('chk-canvas-semester');
+    if (semCard) {
+      if (d.canvas_semester_completed) semCard.classList.add('done');
+      else semCard.classList.remove('done');
+    }
+
+    // Update mini streak badges directly from stats (no extra fetch needed)
+    if (d.task_streaks) {
+      const BADGE_MAP = {
+        study:'chk-study', leetcode:'chk-leetcode', gym:'chk-gym',
+        english:'chk-english', cooking:'chk-cooking', nopmo:'chk-nopmo',
+        reading:'chk-reading', walk:'chk-walk', meditation:'chk-meditation',
+        mindos:'chk-mindos',
+      };
+      Object.entries(BADGE_MAP).forEach(([tk, elId]) => {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        const streak = d.task_streaks[tk] || 0;
+        let badge = el.querySelector('.streak-mini-badge');
+        if (!badge && streak > 0) {
+          badge = document.createElement('div');
+          badge.className = 'streak-mini-badge';
+          badge.style.cssText = 'font-size:10px;font-family:monospace;font-weight:700;flex-shrink:0;margin-left:auto;padding-left:8px;';
+          el.appendChild(badge);
+        }
+        if (badge) {
+          badge.textContent = streak > 0 ? `🔥${streak}` : '';
+          badge.style.color = '#f59e0b';
+        }
+      });
+      // Semester badge
+      const semBadge = document.getElementById('semester-streak-badge');
+      if (semBadge) {
+        const s = d.task_streaks.canvas_semester || 0;
+        semBadge.textContent = `🔥 ${s}d`;
+        semBadge.style.color = s > 0 ? '#f59e0b' : '#64748b';
+      }
+    }
+
     
     const bookLbl = document.getElementById('reading-book-lbl');
     if (bookLbl) bookLbl.textContent = d.reading_book || 'None';
@@ -502,6 +557,7 @@ async function toggleChecklistItem(item) {
         speakVoice(`${item} target completed, Boopathi. Discipline reinforced.`, true);
       }
       loadDashboard();
+      loadTaskStreakBadges();
     } else {
       const err = await r.json();
       toast(`Error: ${err.detail}`, 'err');
@@ -510,6 +566,94 @@ async function toggleChecklistItem(item) {
     toast("Connection error", "err");
   }
 }
+
+// ── Semester Task: load today's subject into checklist ────────────────────────
+async function loadSemesterTask() {
+  try {
+    const r = await fetch('/api/semester/today');
+    if (!r.ok) return;
+    const d = await r.json();
+    const lbl  = document.getElementById('semester-task-lbl');
+    const meta = document.getElementById('semester-task-meta');
+    const card = document.getElementById('chk-canvas-semester');
+    if (lbl)  lbl.textContent  = `${d.course_emoji || '📚'} ${d.course_name} (Wk ${d.week_number}/12)`;
+    if (meta) meta.textContent = d.is_weekend
+      ? '🏖️ Weekend — DSA & System Audit mode'
+      : `Canvas LMS: Videos + Quiz before 23:59  (+150 XP)  ${d.hours_remaining}h ${d.mins_remaining}m left`;
+    if (card) {
+      if (d.audit_status === 'CLEARED') card.classList.add('done');
+      else card.classList.remove('done');
+      card.style.borderLeftColor = d.course_color || '#7c3aed';
+    }
+  } catch (e) { /* silent */ }
+}
+
+// ── Toggle Semester Task manually ─────────────────────────────────────────────
+async function toggleSemesterTask() {
+  const card = document.getElementById('chk-canvas-semester');
+  const isDoneNow = !card.classList.contains('done');
+  try {
+    const r = await fetch('/api/tasks/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task_key: 'canvas_semester', completed: isDoneNow })
+    });
+    if (r.ok) {
+      toast(isDoneNow ? '📚 Canvas Semester marked done! Audit running...' : 'Canvas task unchecked', isDoneNow ? 'ok' : 'info');
+      if (isDoneNow) card.classList.add('done'); else card.classList.remove('done');
+      loadTaskStreakBadges();
+      if (isDoneNow) setTimeout(loadSemesterTask, 1200);
+    }
+  } catch (e) { toast('Connection error', 'err'); }
+}
+
+// ── Load per-task streak badges on checklist ──────────────────────────────────
+async function loadTaskStreakBadges() {
+  try {
+    const r = await fetch('/api/tasks/streaks');
+    if (!r.ok) return;
+    const d = await r.json();
+    const s = d.streaks || {};
+    // Map task_key → element id prefix
+    const MAP = {
+      study: 'chk-study', leetcode: 'chk-leetcode', gym: 'chk-gym',
+      english: 'chk-english', cooking: 'chk-cooking', nopmo: 'chk-nopmo',
+      reading: 'chk-reading', walk: 'chk-walk', meditation: 'chk-meditation',
+      mindos: 'chk-mindos', canvas_semester: 'chk-canvas-semester',
+    };
+    // Update semester badge
+    const semBadge = document.getElementById('semester-streak-badge');
+    if (semBadge && s.canvas_semester) {
+      const streak = s.canvas_semester.current_streak || 0;
+      semBadge.textContent = `🔥 ${streak}d`;
+      semBadge.style.color = streak > 0 ? '#f59e0b' : '#64748b';
+    }
+    // Add micro streak badges to all checklist items (insert if missing)
+    Object.entries(MAP).forEach(([tk, elId]) => {
+      if (tk === 'canvas_semester') return; // handled above
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const info = s[tk];
+      if (!info) return;
+      const streak = info.current_streak || 0;
+      let badge = el.querySelector('.streak-mini-badge');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'streak-mini-badge';
+        badge.style.cssText = 'font-size:10px;font-family:monospace;font-weight:700;flex-shrink:0;margin-left:auto;padding-left:8px;';
+        el.appendChild(badge);
+      }
+      badge.textContent = streak > 0 ? `🔥${streak}` : info.missed_yesterday ? '💀0' : '';
+      badge.style.color = streak > 0 ? '#f59e0b' : '#ef4444';
+      // Red border if missed yesterday and not done today
+      if (info.missed_yesterday && !info.done_today) {
+        el.style.borderLeft = '3px solid #ef4444';
+      }
+    });
+  } catch (e) { /* silent */ }
+}
+
+
 
 async function gymComplete() {
   try {
@@ -700,7 +844,11 @@ async function loadHumanHistory() {
 // Initial load
 loadDashboard();
 loadSavedBooks();
+loadSemesterTask();
+loadTaskStreakBadges();
 setInterval(loadDashboard, 30000);
+setInterval(loadSemesterTask, 60000);   // refresh semester countdown every minute
+setInterval(loadTaskStreakBadges, 120000); // refresh streak badges every 2 min
 </script>
 
 <!-- READING MODAL -->

@@ -17,6 +17,7 @@ from engine.fatigue_governor import check_circuit_breaker
 from engine.tech_news import run_tech_news_loop
 from engine.english_daily import run_english_daily_loop
 from engine.git_watcher import run_git_watcher
+from engine.semester_enforcer import run_semester_enforcer_loop, init_semester_tables
 from api.server import app
 
 ACTIVITY_LOG_PATH = r"c:\Users\sboopathi\projects\CryoSoftWare\antigravity_core\data\activity_log.md"
@@ -97,6 +98,7 @@ def main():
     
     # Initialize SQLite tables and state
     init_db()
+    init_semester_tables()  # 12-Week Semester Cadence tables
     
     state = get_state()
     print(f"Current State: Level {state.get('level')} | XP {state.get('xp')} | STR {state.get('str')} | INT {state.get('int')} | AGI {state.get('agi')} | WIL {state.get('wil')} | Energy {state.get('energy')}% | Lockout: {bool(state.get('lockout_active'))}")
@@ -142,12 +144,21 @@ def main():
         name="EnglishDailyThread",
         daemon=True
     )
+
+    # Spawn 12-Week Semester Cadence Enforcer (fires nightly at 23:30 IST)
+    semester_thread = threading.Thread(
+        target=run_semester_enforcer_loop,
+        args=(stop_event,),
+        name="SemesterEnforcerThread",
+        daemon=True
+    )
     
     leetcode_thread.start()
     git_thread.start()
     activity_thread.start()
     news_thread.start()
     english_thread.start()
+    semester_thread.start()
     
     print("[Master Control] Background worker threads spawned successfully.")
     

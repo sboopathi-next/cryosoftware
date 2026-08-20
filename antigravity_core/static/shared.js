@@ -764,6 +764,8 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
+        <a href="/task-streaks" class="sheet-grid-item" style="border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07)"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span style="color:#fcd34d">Task Streaks</span></a>
+        <a href="/semester" class="sheet-grid-item" style="border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.07)"><i class="fa-solid fa-graduation-cap" style="color:#a78bfa"></i><span style="color:#c4b5fd">Semester</span></a>
         <a href="/syllabus" class="sheet-grid-item"><i class="fa-solid fa-book-open" style="color:var(--indigo)"></i><span>Study Path</span></a>
         <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-dumbbell" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
         <a href="/system" class="sheet-grid-item"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span></a>

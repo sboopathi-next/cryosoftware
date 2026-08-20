@@ -447,12 +447,139 @@ def init_db():
     )
     """)
 
+    # 21. Per-Task Daily Completion Log (source of truth for individual task streaks)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS task_daily_log (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_key    TEXT NOT NULL,
+        log_date    TEXT NOT NULL,
+        completed   INTEGER DEFAULT 1,
+        logged_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(task_key, log_date)
+    )
+    """)
+
     conn.commit()
     conn.close()
 
 
 
+
+def log_task_completion(task_key: str, completed: bool = True, log_date: str = None):
+    """
+    Record today's completion/unset for a task in task_daily_log.
+    Called from toggle_checklist in server.py on every state change.
+    """
+    from datetime import date as _date
+    today = log_date or _date.today().isoformat()
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=20)
+        conn.execute("PRAGMA journal_mode=WAL;")
+        if completed:
+            conn.execute(
+                "INSERT OR REPLACE INTO task_daily_log (task_key, log_date, completed) VALUES (?, ?, 1)",
+                (task_key, today)
+            )
+        else:
+            # Mark as uncompleted (keep row so we know it was toggled off)
+            conn.execute(
+                "INSERT OR REPLACE INTO task_daily_log (task_key, log_date, completed) VALUES (?, ?, 0)",
+                (task_key, today)
+            )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[DB] log_task_completion error for {task_key}: {e}")
+
+
+def get_task_streaks() -> dict:
+    """
+    Compute per-task streak stats from task_daily_log.
+    Returns a dict keyed by task_key with:
+      current_streak, best_streak, total_done, missed_yesterday, last_30_days (list of date → bool)
+    """
+    from datetime import date as _date, timedelta
+    today = _date.today()
+    results = {}
+
+    TASK_KEYS = [
+        "study", "leetcode", "gym", "english", "cooking",
+        "nopmo", "reading", "walk", "meditation", "mindos",
+        "health", "canvas_semester",
+    ]
+
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=20)
+        conn.row_factory = sqlite3.Row
+        # Fetch last 120 days of logs for all tasks in one query
+        cutoff = (today - timedelta(days=120)).isoformat()
+        rows = conn.execute(
+            "SELECT task_key, log_date, completed FROM task_daily_log WHERE log_date >= ? ORDER BY task_key, log_date DESC",
+            (cutoff,)
+        ).fetchall()
+        conn.close()
+
+        # Group by task_key
+        from collections import defaultdict
+        by_task = defaultdict(dict)
+        for r in rows:
+            by_task[r["task_key"]][r["log_date"]] = bool(r["completed"])
+
+        for tk in TASK_KEYS:
+            day_map = by_task.get(tk, {})
+
+            # Last 30 days calendar
+            last_30 = []
+            for i in range(29, -1, -1):
+                d = (today - timedelta(days=i)).isoformat()
+                last_30.append({"date": d, "done": day_map.get(d, False)})
+
+            # Current streak (consecutive days ending today or yesterday)
+            current_streak = 0
+            check_day = today
+            while True:
+                ds = check_day.isoformat()
+                if day_map.get(ds, False):
+                    current_streak += 1
+                    check_day = check_day - timedelta(days=1)
+                else:
+                    break
+
+            # Best streak (sliding window)
+            best_streak = 0
+            run = 0
+            for i in range(120):
+                ds = (today - timedelta(days=i)).isoformat()
+                if day_map.get(ds, False):
+                    run += 1
+                    best_streak = max(best_streak, run)
+                else:
+                    run = 0
+
+            # Missed yesterday?
+            yesterday = (today - timedelta(days=1)).isoformat()
+            missed_yesterday = not day_map.get(yesterday, False) and not day_map.get(today.isoformat(), False)
+
+            total_done = sum(1 for v in day_map.values() if v)
+
+            results[tk] = {
+                "task_key":        tk,
+                "current_streak":  current_streak,
+                "best_streak":     max(best_streak, current_streak),
+                "total_done":      total_done,
+                "missed_yesterday": missed_yesterday,
+                "done_today":      day_map.get(today.isoformat(), False),
+                "last_30":         last_30,
+            }
+
+    except Exception as e:
+        print(f"[DB] get_task_streaks error: {e}")
+
+    return results
+
+
 def get_db_connection():
+
     if not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0:
         init_db()
     conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)

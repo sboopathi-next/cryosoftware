@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs
+from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks
 from config import IS_SERVERLESS, DATABASE_URL
 from engine.fatigue_governor import update_daily_energy
 
@@ -795,8 +795,12 @@ def get_stats():
         "meditation_completed": bool(state.get("meditation_completed", 0)),
         "mindos_completed": bool(state.get("mindos_completed", 0)),
         "health_completed": bool(state.get("health_completed", 0)),
+        # ── Per-task individual streak counts (from task_daily_log) ──────────
+        "task_streaks": (lambda: {k: v.get("current_streak", 0) for k, v in get_task_streaks().items()})(),
+        "canvas_semester_completed": (lambda: get_task_streaks().get("canvas_semester", {}).get("done_today", False))(),
         "neon_online": (lambda: (__import__('sync').is_online()))()
     }
+
 
 
 @app.get("/api/system/calendar")
@@ -1700,6 +1704,12 @@ def toggle_checklist(payload: ChecklistTogglePayload):
     
     if xp_to_add > 0:
         add_xp(xp_to_add)
+
+    # ── Record per-task daily log (powers individual task streaks) ──
+    try:
+        log_task_completion(payload.item, bool(payload.value))
+    except Exception as _te:
+        print(f"[Checklist] task_daily_log write error: {_te}")
     
     status_str = "Completed" if payload.value else "Uncompleted"
     log_activity_file(
@@ -3513,6 +3523,190 @@ def api_mind_os_summary():
         return get_mind_summary()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SEMESTER TRACKER — 12-Week Canvas Academic Cadence (OLMDS601–607)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class SemesterOverridePayload(BaseModel):
+    date: Optional[str] = None
+    notes: Optional[str] = ""
+
+class WeeklyProgressPayload(BaseModel):
+    course_code:     str
+    week_number:     int
+    videos_watched:  Optional[int] = 0
+    quiz_done:       Optional[int] = 0
+    assignment_done: Optional[int] = 0
+    notes:           Optional[str] = ""
+    status:          Optional[str] = "IN_PROGRESS"
+
+
+@app.get("/semester")
+def semester_page():
+    """Serve the semester tracker HTML dashboard."""
+    html_path = os.path.join(STATIC_DIR, "semester_tracker.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return HTMLResponse("<h1>Semester tracker page not found. Run setup.</h1>", status_code=404)
+
+
+@app.get("/api/semester/dashboard")
+def api_semester_dashboard():
+    """Full dashboard payload — weekly grid, today's target, audit log, stats."""
+    try:
+        from engine.semester_enforcer import get_semester_dashboard_data
+        return get_semester_dashboard_data()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/semester/today")
+def api_semester_today():
+    """Today's mandatory subject, countdown timer, and audit status."""
+    try:
+        from engine.semester_enforcer import get_today_target, init_semester_tables
+        import sqlite3, os
+        from engine.database import DB_PATH
+
+        init_semester_tables()
+        target = get_today_target()
+
+        # Attach today's audit status if already audited
+        today_str = target["date"]
+        audit_status = "PENDING"
+        items_done   = 0
+        xp_awarded   = 0
+        try:
+            conn = sqlite3.connect(DB_PATH, timeout=10)
+            conn.row_factory = sqlite3.Row
+            row  = conn.execute(
+                "SELECT status, items_completed, xp_awarded FROM daily_academic_cadence WHERE log_date = ?",
+                (today_str,)
+            ).fetchone()
+            conn.close()
+            if row:
+                audit_status = row["status"]
+                items_done   = row["items_completed"]
+                xp_awarded   = row["xp_awarded"]
+        except Exception:
+            pass
+
+        target["audit_status"] = audit_status
+        target["items_done"]   = items_done
+        target["xp_awarded"]   = xp_awarded
+        return target
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/semester/audit")
+def api_semester_audit(force: bool = True):
+    """Manually trigger the nightly audit (force rerun)."""
+    try:
+        from engine.semester_enforcer import run_daily_audit
+        result = run_daily_audit(force=force)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/semester/mark_cleared")
+def api_semester_mark_cleared(payload: SemesterOverridePayload, _: bool = Depends(verify_token)):
+    """Admin override — manually mark a day as CLEARED."""
+    try:
+        from engine.semester_enforcer import mark_day_cleared
+        result = mark_day_cleared(date_str=payload.date, notes=payload.notes or "")
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/semester/update_progress")
+def api_semester_update_progress(payload: WeeklyProgressPayload, _: bool = Depends(verify_token)):
+    """Manually update weekly progress for a course (e.g., log watched videos)."""
+    try:
+        from engine.database import DB_PATH
+        import sqlite3
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn.execute("""
+            INSERT OR REPLACE INTO semester_weekly_progress
+            (course_code, course_name, week_number, videos_watched, quiz_done,
+             assignment_done, concepts_notes, status, completed_at)
+            VALUES (
+                ?,
+                (SELECT course_name FROM semester_course_stats WHERE course_code = ?),
+                ?, ?, ?, ?, ?, ?,
+                CASE WHEN ? = 'COMPLETED' THEN date('now') ELSE NULL END
+            )
+        """, (payload.course_code, payload.course_code, payload.week_number,
+              payload.videos_watched, payload.quiz_done, payload.assignment_done,
+              payload.notes, payload.status, payload.status))
+        conn.commit()
+        conn.close()
+        return {"status": "updated", "course_code": payload.course_code, "week": payload.week_number}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TASK STREAK ENGINE — Per-Task Daily Completion History & Individual Streaks
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TaskLogPayload(BaseModel):
+    task_key:  str
+    completed: bool = True
+    log_date:  Optional[str] = None
+
+
+@app.get("/api/tasks/streaks")
+def api_get_task_streaks():
+    """
+    Returns per-task streak stats for all 12 daily tasks.
+    Powers the Task Streaks page and the checklist streak badges.
+    """
+    try:
+        streaks = get_task_streaks()
+        return {"status": "success", "streaks": streaks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/tasks/log")
+def api_log_task(payload: TaskLogPayload, _: bool = Depends(verify_token)):
+    """
+    Manually log a task completion (used for canvas_semester and other non-checklist tasks).
+    """
+    VALID_KEYS = {
+        "study", "leetcode", "gym", "english", "cooking",
+        "nopmo", "reading", "walk", "meditation", "mindos",
+        "health", "canvas_semester",
+    }
+    if payload.task_key not in VALID_KEYS:
+        raise HTTPException(status_code=400, detail=f"Unknown task_key: {payload.task_key}")
+    try:
+        log_task_completion(payload.task_key, payload.completed, payload.log_date)
+        # For canvas_semester, also write to semester audit table
+        if payload.task_key == "canvas_semester" and payload.completed:
+            try:
+                from engine.semester_enforcer import run_daily_audit
+                run_daily_audit(force=True)
+            except Exception:
+                pass
+        return {"status": "logged", "task_key": payload.task_key, "completed": payload.completed}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/task-streaks")
+def task_streaks_page():
+    """Serve the per-task streak tracker page."""
+    html_path = os.path.join(STATIC_DIR, "task_streaks.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return HTMLResponse("<h1>Task Streaks page not found.</h1>", status_code=404)
+
 
 
 
