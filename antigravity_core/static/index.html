@@ -568,6 +568,8 @@ async function toggleChecklistItem(item) {
 }
 
 // ── Semester Task: load today's subject into checklist ────────────────────────
+let _semesterCountdownInterval = null;
+
 async function loadSemesterTask() {
   try {
     const r = await fetch('/api/semester/today');
@@ -577,9 +579,27 @@ async function loadSemesterTask() {
     const meta = document.getElementById('semester-task-meta');
     const card = document.getElementById('chk-canvas-semester');
     if (lbl)  lbl.textContent  = `${d.course_emoji || '📚'} ${d.course_name} (Wk ${d.week_number}/12)`;
-    if (meta) meta.textContent = d.is_weekend
-      ? '🏖️ Weekend — DSA & System Audit mode'
-      : `Canvas LMS: Videos + Quiz before 23:59  (+150 XP)  ${d.hours_remaining}h ${d.mins_remaining}m left`;
+    
+    if (_semesterCountdownInterval) clearInterval(_semesterCountdownInterval);
+
+    function updateTimeLeft() {
+      if (!meta) return;
+      if (d.is_weekend) {
+        meta.textContent = '🏖️ Weekend — DSA & System Audit mode';
+        return;
+      }
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(23, 59, 0, 0);
+      const diffMs = Math.max(0, midnight - now);
+      const hrs = Math.floor(diffMs / 3600000);
+      const mins = Math.floor((diffMs % 3600000) / 60000);
+      meta.textContent = `Canvas LMS: Videos + Quiz before 23:59  (+150 XP)  ${hrs}h ${mins}m left`;
+    }
+
+    updateTimeLeft();
+    _semesterCountdownInterval = setInterval(updateTimeLeft, 30000);
+
     if (card) {
       if (d.audit_status === 'CLEARED') card.classList.add('done');
       else card.classList.remove('done');

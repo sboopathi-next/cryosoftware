@@ -269,10 +269,20 @@ def _init_neon_tables():
         print(f"[Semester] Neon table init error: {e}")
 
 
+# ── Timezone Helper (IST UTC+05:30) ─────────────────────────────────────────
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+
+def _now_ist() -> datetime.datetime:
+    return datetime.datetime.now(IST)
+
+def _today_ist() -> datetime.date:
+    return _now_ist().date()
+
+
 # ── Week Calculator ──────────────────────────────────────────────────────────────
 
 def get_current_week_number(ref_date: datetime.date = None) -> int:
-    today = ref_date or datetime.date.today()
+    today = ref_date or _today_ist()
     delta = (today - SEMESTER_START_DATE).days
     if delta < 0:
         return 1
@@ -281,19 +291,19 @@ def get_current_week_number(ref_date: datetime.date = None) -> int:
 
 
 def get_today_target() -> dict:
-    today       = datetime.date.today()
+    now_ist     = _now_ist()
+    today       = now_ist.date()
     weekday     = today.weekday()
     week_number = get_current_week_number(today)
     target      = CADENCE_SCHEDULE.get(weekday, CADENCE_SCHEDULE[6])
 
-    deadline          = datetime.datetime.combine(today, datetime.time(23, 59, 0))
-    now               = datetime.datetime.now()
-    seconds_remaining = max(0, int((deadline - now).total_seconds()))
+    deadline          = datetime.datetime.combine(today, datetime.time(23, 59, 0), tzinfo=IST)
+    seconds_remaining = max(0, int((deadline - now_ist).total_seconds()))
 
     return {
         "date":              today.isoformat(),
         "weekday":           weekday,
-        "weekday_name":      today.strftime("%A"),
+        "weekday_name":      now_ist.strftime("%A"),
         "week_number":       week_number,
         "course_code":       target["code"],
         "course_name":       target["name"],
@@ -317,11 +327,11 @@ def run_daily_audit(force: bool = False) -> dict:
     Awards +150 XP or penalizes -150 XP / -3 WIL / energy cap.
     Dual-path: SQLite locally, Neon on serverless.
     """
-    today       = datetime.date.today()
+    today       = _today_ist()
     today_str   = today.isoformat()
     weekday     = today.weekday()
     week_number = get_current_week_number(today)
-    now_ts      = datetime.datetime.now().isoformat()
+    now_ts      = _now_ist().strftime("%Y-%m-%d %H:%M:%S")
 
     init_semester_tables()
 
@@ -604,7 +614,7 @@ def get_semester_dashboard_data() -> dict:
     Full dashboard payload. Dual-path: SQLite locally, Neon on serverless.
     Gracefully returns safe defaults on any DB error.
     """
-    today        = datetime.date.today()
+    today        = _today_ist()
     week_number  = get_current_week_number(today)
     today_target = get_today_target()
 
