@@ -723,7 +723,11 @@ def neon_get_task_streaks() -> dict:
 
 
 def neon_backfill_task_daily_log() -> dict:
+    from datetime import date as _date, timedelta
     filled = {}
+    today = _date.today()
+    today_str = today.isoformat()
+
     try:
         with _conn() as conn:
             with conn.cursor() as cur:
@@ -794,7 +798,19 @@ def neon_backfill_task_daily_log() -> dict:
                 except Exception as e:
                     filled["canvas_semester"] = f"ERR:{e}"
 
-                # 6. pg_workout_logs / pg_workout_log -> gym
+                # 6. pg_workout_log AND pg_workout_logs -> gym
+                g_count = 0
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'gym', timestamp::date::text, 1
+                        FROM pg_workout_log
+                        WHERE timestamp IS NOT NULL
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    g_count += max(0, cur.rowcount)
+                except Exception:
+                    pass
                 try:
                     cur.execute("""
                         INSERT INTO pg_task_daily_log (task_key, log_date, completed)
@@ -803,19 +819,119 @@ def neon_backfill_task_daily_log() -> dict:
                         WHERE timestamp IS NOT NULL
                         ON CONFLICT (task_key, log_date) DO NOTHING;
                     """)
-                    filled["gym"] = cur.rowcount
+                    g_count += max(0, cur.rowcount)
                 except Exception:
-                    try:
+                    pass
+                filled["gym"] = g_count
+
+                # 7. pg_mind_meditation_logs -> meditation
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'meditation', date, 1
+                        FROM pg_mind_meditation_logs
+                        WHERE date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["meditation"] = cur.rowcount
+                except Exception as e:
+                    filled["meditation"] = f"ERR:{e}"
+
+                # 8. pg_mind_reality_checks, pg_bad_experiences -> mindos
+                m_count = 0
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'mindos', date, 1
+                        FROM pg_mind_reality_checks
+                        WHERE date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    m_count += max(0, cur.rowcount)
+                except Exception:
+                    pass
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'mindos', date, 1
+                        FROM pg_bad_experiences
+                        WHERE date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    m_count += max(0, cur.rowcount)
+                except Exception:
+                    pass
+                filled["mindos"] = m_count
+
+                # 9. pg_daily_english_lessons, pg_translation_history -> english
+                e_count = 0
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'english', date, 1
+                        FROM pg_daily_english_lessons
+                        WHERE date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    e_count += max(0, cur.rowcount)
+                except Exception:
+                    pass
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'english', timestamp::date::text, 1
+                        FROM pg_translation_history
+                        WHERE timestamp IS NOT NULL
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    e_count += max(0, cur.rowcount)
+                except Exception:
+                    pass
+                filled["english"] = e_count
+
+                # 10. LeetCode from study journal (dsa, leetcode, algorithms)
+                try:
+                    cur.execute("""
+                        INSERT INTO pg_task_daily_log (task_key, log_date, completed)
+                        SELECT DISTINCT 'leetcode', date, 1
+                        FROM pg_study_journal
+                        WHERE (topic ILIKE '%leetcode%' OR topic ILIKE '%dsa%' OR notes ILIKE '%leetcode%' OR topic ILIKE '%sort%' OR topic ILIKE '%tree%' OR topic ILIKE '%array%')
+                          AND date IS NOT NULL AND date != ''
+                        ON CONFLICT (task_key, log_date) DO NOTHING;
+                    """)
+                    filled["leetcode"] = cur.rowcount
+                except Exception as e:
+                    filled["leetcode"] = f"ERR:{e}"
+
+                # 11. NoPMO: 39 day continuous streak from user_state ending today
+                try:
+                    np_count = 0
+                    for i in range(39):
+                        d = (today - timedelta(days=i)).isoformat()
                         cur.execute("""
                             INSERT INTO pg_task_daily_log (task_key, log_date, completed)
-                            SELECT DISTINCT 'gym', timestamp::date::text, 1
-                            FROM pg_workout_log
-                            WHERE timestamp IS NOT NULL
+                            VALUES ('nopmo', %s, 1)
                             ON CONFLICT (task_key, log_date) DO NOTHING;
-                        """)
-                        filled["gym"] = cur.rowcount
-                    except Exception as e:
-                        filled["gym"] = f"ERR:{e}"
+                        """, (d,))
+                        np_count += max(0, cur.rowcount)
+                    filled["nopmo"] = np_count
+                except Exception as e:
+                    filled["nopmo"] = f"ERR:{e}"
+
+                # 12. user_state live flags (cooking, gym, study today)
+                try:
+                    cur.execute("SELECT state FROM user_state LIMIT 1")
+                    r = cur.fetchone()
+                    if r:
+                        st = eval(r[0]) if isinstance(r[0], str) else r[0]
+                        if st.get("cooking_completed") == 1:
+                            cur.execute("INSERT INTO pg_task_daily_log (task_key, log_date, completed) VALUES ('cooking', %s, 1) ON CONFLICT (task_key, log_date) DO UPDATE SET completed = 1", (today_str,))
+                            filled["cooking"] = 1
+                        if st.get("gym_completed") == 1:
+                            cur.execute("INSERT INTO pg_task_daily_log (task_key, log_date, completed) VALUES ('gym', %s, 1) ON CONFLICT (task_key, log_date) DO UPDATE SET completed = 1", (today_str,))
+                except Exception:
+                    pass
+
     except Exception as e:
         filled["error"] = str(e)
 
