@@ -29,48 +29,7 @@
 
 .energy-ring-wrap { position: relative; width: 90px; height: 90px; margin: 8px auto; }
 
-/* Mobile Dashboard Navigation & Section Panes */
-.dash-mobile-nav { display: none; }
-@media (max-width: 768px) {
-  .dash-mobile-nav {
-    display: flex !important;
-    background: rgba(14, 18, 33, 0.95);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    position: sticky;
-    top: 55px;
-    z-index: 999;
-    padding: 5px;
-    gap: 6px;
-    margin: 10px 0 16px 0;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  }
-  .dash-m-tab {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text3);
-    padding: 9px 4px;
-    font-size: 11px;
-    font-family: var(--ff-mono);
-    font-weight: 700;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all .15s ease;
-    text-align: center;
-    border: 1px solid transparent;
-  }
-  .dash-m-tab.active {
-    background: rgba(99, 102, 241, 0.2);
-    color: #a5b4fc;
-    border-color: rgba(99, 102, 241, 0.4);
-  }
-  .dash-pane.m-hidden {
-    display: none !important;
-  }
-}
+
 .energy-ring-wrap svg { width: 90px; height: 90px; transform: rotate(-90deg); }
 .energy-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 20px; }
 .energy-pct { font-family: var(--ff-brand); font-size: 24px; font-weight: 800; text-align: center; }
@@ -215,17 +174,8 @@
       </div>
     </div>
 
-    <!-- MOBILE DASHBOARD NAVIGATION -->
-    <div class="dash-mobile-nav">
-      <button class="dash-m-tab active" id="dtab-overview" onclick="switchDashTab('overview')">📊 Overview</button>
-      <button class="dash-m-tab" id="dtab-tasks" onclick="switchDashTab('tasks')">✅ Daily Tasks</button>
-      <button class="dash-m-tab" id="dtab-logs" onclick="switchDashTab('logs')">⚡ Actions</button>
-    </div>
-
-    <!-- PANE 1: OVERVIEW -->
-    <div class="dash-pane" id="dash-pane-overview">
-      <!-- ACTIVE QUEST -->
-      <div class="quest-banner">
+    <!-- ACTIVE QUEST -->
+    <div class="quest-banner">
       <div class="quest-icon"><i class="fa-solid fa-crosshairs"></i></div>
       <div>
         <span class="quest-tag">ACTIVE TARGET</span>
@@ -366,13 +316,8 @@
           </button>
         </div>
       </div>
-    </div>
-    </div> <!-- END PANE 1: OVERVIEW -->
-
-    <!-- PANE 2: DAILY TASKS -->
-    <div class="dash-pane m-hidden" id="dash-pane-tasks">
-      <!-- DAILY CHECKLIST -->
-      <div class="card" style="margin-bottom: 16px;">
+    <!-- DAILY CHECKLIST -->
+    <div class="card" style="margin-bottom: 16px;">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
         <span><i class="fa-solid fa-list-check"></i> Daily Accountability Checklist</span>
         <a href="/task-streaks" style="font-size:11px;color:var(--amber);text-decoration:none;font-family:var(--ff-mono);font-weight:700">🔥 View Streaks →</a>
@@ -450,7 +395,6 @@
           <div id="semester-streak-badge" style="font-size:10px;font-family:var(--ff-mono);color:#f59e0b;font-weight:700;flex-shrink:0">🔥 0d</div>
       </div>
     </div>
-    </div> <!-- END PANE 2: DAILY TASKS -->
 
 
 
@@ -468,21 +412,6 @@ const COURSE_COLORS = {
   Advanced_Forecasting:'#f97316', DSA_LeetCode:'#ef4444',
   AI_Agents:'#a855f7', Machine_Learning:'#06b6d4'
 };
-
-function switchDashTab(tabName) {
-  const tabs = ['overview', 'tasks', 'logs'];
-  tabs.forEach(t => {
-    const btn = document.getElementById('dtab-' + t);
-    const pane = document.getElementById('dash-pane-' + t);
-    if (t === tabName) {
-      if (btn) btn.classList.add('active');
-      if (pane) pane.classList.remove('m-hidden');
-    } else {
-      if (btn) btn.classList.remove('active');
-      if (pane) pane.classList.add('m-hidden');
-    }
-  });
-}
 
 async function loadDashboard() {
   // Stats

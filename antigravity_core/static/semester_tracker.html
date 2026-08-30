@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📚 Semester Command Center — 12-Week MSc Data Science</title>
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -357,10 +358,45 @@
 </head>
 <body>
 <div class="bg-grid"></div>
-
 <div id="toast"><div class="toast-inner"><span class="toast-icon" id="toast-icon"></span><span class="toast-msg" id="toast-msg"></span></div></div>
 
-<div class="container">
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
+    <ul class="nav">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a></li>
+      <li><a href="/work-tracker"><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i><span>Work Tracker</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">XP</span></a></li>
+      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
+      <li><a href="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">PRO</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
+      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
+      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
+      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
+      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
+      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
+      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
+      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
+      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
+      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
+      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
+      <li><a href="/system"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a></li>
+      <li><a href="/task-streaks"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d;border-color:rgba(245,158,11,0.3)">🔥</span></a></li>
+      <li><a href="/streak-monitor"><i class="fa-solid fa-chart-line" style="color:#f59e0b"></i><span>Streak AI</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">AI</span></a></li>
+      <li><a href="/semester" class="active"><i class="fa-solid fa-graduation-cap" style="color:#7c3aed"></i><span>Semester</span><span class="nav-badge" style="background:rgba(124,58,237,0.2);color:#a78bfa;border-color:rgba(124,58,237,0.3)">12W</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="container">
 
   <!-- Header -->
   <div class="header">
@@ -369,6 +405,7 @@
       <p id="header-sub">MSc Data Science · VIT Online · Loading...</p>
     </div>
     <div class="header-right">
+      <a href="/canvas" class="btn btn-primary" style="background:linear-gradient(135deg,#06b6d4,#3b82f6); border:none;">🎓 Weekly Class Matrix</a>
       <button class="btn" onclick="loadDashboard()">⟳ Refresh</button>
       <button class="btn btn-success" id="audit-btn" onclick="triggerAudit()">⚡ Run Audit</button>
       <a href="/" class="btn">← Dashboard</a>
@@ -810,5 +847,9 @@ loadDashboard();
 // Auto-refresh every 5 minutes
 setInterval(loadDashboard, 5 * 60 * 1000);
 </script>
+    </div> <!-- end container -->
+  </main>
+</div> <!-- end app -->
+<script src="/static/shared.js"></script>
 </body>
 </html>

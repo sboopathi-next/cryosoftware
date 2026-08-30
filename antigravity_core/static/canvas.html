@@ -549,68 +549,101 @@ async function loadHistory() {
 async function renderWeekGrid() {
   const body = document.getElementById('week-grid-body');
   try {
-    const history = await apiFetch('/api/canvas/history?limit=500');
-    if (!history.length) return;
+    const [history, coursesData] = await Promise.all([
+      apiFetch('/api/canvas/history?limit=1000').catch(() => []),
+      apiFetch('/api/canvas/courses').catch(() => [])
+    ]);
 
     const SEMESTER_START = new Date('2026-08-11');
     const TOTAL_WEEKS = 12;
 
-    function getWeek(dateStr) {
-      if (!dateStr) return null;
-      const d = new Date(dateStr);
-      const diff = Math.floor((d - SEMESTER_START) / (1000 * 60 * 60 * 24));
-      if (diff < 0) return null;
-      const wk = Math.floor(diff / 7) + 1;
-      return wk > TOTAL_WEEKS ? null : wk;
+    function detectWeek(item) {
+      const text = `${item.item_title || ''} ${item.module_name || ''} ${item.course_name || ''}`;
+      // Regex check for Week N or W N
+      const match = text.match(/(?:Week|Wk|W)\s*0?(\d{1,2})/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num >= 1 && num <= TOTAL_WEEKS) return num;
+      }
+      // Fallback date check
+      const dateStr = item.completed_at || item.logged_at;
+      if (dateStr) {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          const diff = Math.floor((d - SEMESTER_START) / (1000 * 60 * 60 * 24));
+          if (diff >= 0) {
+            const wk = Math.floor(diff / 7) + 1;
+            return wk <= TOTAL_WEEKS ? wk : TOTAL_WEEKS;
+          }
+        }
+      }
+      return 1; // Default to Week 1 if completed
     }
 
-    // Group by course → week
+    // Build course list (from courses API or history)
+    const courseNamesSet = new Set();
+    coursesData.forEach(c => { if (c.name) courseNamesSet.add(c.name); });
+    history.forEach(h => { if (h.course_name) courseNamesSet.add(h.course_name); });
+    if (!courseNamesSet.size) {
+      ["Machine Learning", "Multivariate Data Analysis", "Financial Data Analytics", "Big Data Analytics", "Programming in Java"].forEach(c => courseNamesSet.add(c));
+    }
+
     const grid = {};
+    courseNamesSet.forEach(c => {
+      grid[c] = {};
+      for (let w = 1; w <= TOTAL_WEEKS; w++) grid[c][w] = { items: 0, quizzes: 0, assignments: 0 };
+    });
+
     history.forEach(h => {
-      const course = h.course_name || 'Unknown';
-      const wk = getWeek(h.completed_at);
-      if (!wk) return;
+      const course = h.course_name || Array.from(courseNamesSet)[0];
+      const wk = detectWeek(h);
       if (!grid[course]) grid[course] = {};
       if (!grid[course][wk]) grid[course][wk] = { items: 0, quizzes: 0, assignments: 0 };
+      
       grid[course][wk].items++;
       const t = ((h.item_type || '') + ' ' + (h.item_title || '')).toUpperCase();
       if (t.includes('QUIZ') || t.includes('MCQ')) grid[course][wk].quizzes++;
       if (t.includes('ASSIGNMENT') || t.includes('PROJECT')) grid[course][wk].assignments++;
     });
 
-    const courses = Object.keys(grid).sort();
-    if (!courses.length) return;
+    const courses = Array.from(courseNamesSet).sort();
+    document.getElementById('week-grid-info').textContent = `${courses.length} courses × ${TOTAL_WEEKS} weeks matrix`;
 
-    document.getElementById('week-grid-info').textContent = `${courses.length} courses × ${TOTAL_WEEKS} weeks`;
-
-    let html = `<div style="overflow-x:auto"><table class="history-table" style="font-size:11px;">`;
-    html += `<thead><tr><th style="text-align:left; min-width:160px;">Course</th>`;
-    for (let w = 1; w <= TOTAL_WEEKS; w++) html += `<th style="text-align:center; min-width:50px;">W${w}</th>`;
-    html += `</tr></thead><tbody>`;
+    let html = `<div style="overflow-x:auto"><table class="history-table" style="font-size:11.5px; border-collapse:collapse; width:100%;">`;
+    html += `<thead><tr style="background:rgba(0,0,0,0.3);"><th style="text-align:left; min-width:180px; padding:10px;">VIT Course</th>`;
+    for (let w = 1; w <= TOTAL_WEEKS; w++) html += `<th style="text-align:center; min-width:45px; padding:8px 4px;">W${w}</th>`;
+    html += `<th style="text-align:center; min-width:60px; padding:8px;">Total</th></tr></thead><tbody>`;
 
     courses.forEach(course => {
-      html += `<tr><td style="font-weight:600; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${course}</td>`;
+      let courseTotal = 0;
+      html += `<tr><td style="font-weight:600; white-space:nowrap; max-width:220px; overflow:hidden; text-overflow:ellipsis; padding:10px; color:#e2e8f0;">${course}</td>`;
+      
       for (let w = 1; w <= TOTAL_WEEKS; w++) {
-        const cell = grid[course][w];
-        if (cell) {
+        const cell = grid[course][w] || { items: 0, quizzes: 0, assignments: 0 };
+        courseTotal += cell.items;
+
+        if (cell.items > 0) {
           const parts = [];
-          if (cell.quizzes) parts.push(`Q:${cell.quizzes}`);
-          if (cell.assignments) parts.push(`A:${cell.assignments}`);
+          if (cell.quizzes) parts.push(`Quizzes: ${cell.quizzes}`);
+          if (cell.assignments) parts.push(`Assignments: ${cell.assignments}`);
           const extra = cell.items - cell.quizzes - cell.assignments;
-          if (extra > 0) parts.push(`V:${extra}`);
-          html += `<td style="text-align:center; background:rgba(16,185,129,.12); color:#10b981; font-weight:700; border-radius:4px;" title="${parts.join(', ')}">
-            ✅ <span style="font-size:9px; display:block; color:var(--text3); font-weight:400;">${cell.items}</span></td>`;
+          if (extra > 0) parts.push(`Lectures/Modules: ${extra}`);
+
+          html += `<td style="text-align:center; background:rgba(16,185,129,.15); color:#10b981; font-weight:700; border-radius:4px; padding:6px 2px;" title="${parts.join(' | ')}">
+            ✅ <span style="font-size:9.5px; display:block; color:#a7f3d0; font-weight:600;">${cell.items}</span></td>`;
         } else {
-          html += `<td style="text-align:center; color:var(--text3);">—</td>`;
+          html += `<td style="text-align:center; color:var(--text3); opacity:0.4; padding:6px 2px;">—</td>`;
         }
       }
-      html += `</tr>`;
+
+      html += `<td style="text-align:center; font-weight:800; font-family:var(--ff-mono); color:var(--amber); padding:10px;">${courseTotal}</td></tr>`;
     });
 
     html += `</tbody></table></div>`;
     body.innerHTML = html;
   } catch(e) {
     console.warn('Week grid error:', e);
+    body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load weekly report: ${e.message}</p></div>`;
   }
 }
 
