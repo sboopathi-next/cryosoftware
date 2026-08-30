@@ -559,14 +559,19 @@ def _init_pg_office_work_logs(cur):
             logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
-    # Add unique constraint to prevent duplicate work items per date
+    # Safely create unique index using SAVEPOINT so failure never aborts transaction
     try:
+        cur.execute("SAVEPOINT idx_sp;")
         cur.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS uq_office_work_item_date
             ON pg_office_work_logs (workitemid, workdate);
         """)
+        cur.execute("RELEASE SAVEPOINT idx_sp;")
     except Exception:
-        pass  # Index may already exist
+        try:
+            cur.execute("ROLLBACK TO SAVEPOINT idx_sp;")
+        except Exception:
+            pass
 
 def neon_log_office_work(work_item_id: str, description: str, work_date: str, category: str, hours: float, xp_awarded: float, category_streak: int, work_log_id: Optional[int] = None) -> int:
     with _conn() as conn:
