@@ -34,15 +34,17 @@
 @media (max-width: 768px) {
   .dash-mobile-nav {
     display: flex !important;
-    background: rgba(6, 8, 24, 0.95);
-    border-bottom: 1px solid var(--border);
+    background: rgba(14, 18, 33, 0.95);
+    border: 1px solid var(--border);
+    border-radius: 12px;
     position: sticky;
-    top: 0;
+    top: 55px;
     z-index: 999;
-    padding: 6px 4px;
-    gap: 4px;
-    margin: -14px -10px 14px -10px;
+    padding: 5px;
+    gap: 6px;
+    margin: 10px 0 16px 0;
     backdrop-filter: blur(12px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
   .dash-m-tab {
     flex: 1;
@@ -211,6 +213,8 @@
           <i class="fa-solid fa-dumbbell"></i> Gym Complete
         </button>
       </div>
+    </div>
+
     <!-- MOBILE DASHBOARD NAVIGATION -->
     <div class="dash-mobile-nav">
       <button class="dash-m-tab active" id="dtab-overview" onclick="switchDashTab('overview')">📊 Overview</button>
