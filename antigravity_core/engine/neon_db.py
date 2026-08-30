@@ -29,9 +29,21 @@ def _today():
 
 # ─── Saved Books ───────────────────────────────────────────────────────────────
 
+def _ensure_saved_books_table(cur):
+    """Create pg_saved_books table if it doesn't exist (may be missing if migration ran with empty data)."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_saved_books (
+            id SERIAL PRIMARY KEY,
+            title TEXT UNIQUE NOT NULL,
+            created_at TEXT
+        )
+    """)
+
+
 def neon_get_saved_books() -> list:
     with _conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _ensure_saved_books_table(cur)
             cur.execute("SELECT id, title, created_at FROM pg_saved_books ORDER BY title ASC")
             return [dict(r) for r in cur.fetchall()]
 
@@ -39,6 +51,7 @@ def neon_get_saved_books() -> list:
 def neon_save_book(title: str) -> dict:
     with _conn() as conn:
         with conn.cursor() as cur:
+            _ensure_saved_books_table(cur)
             cur.execute(
                 "INSERT INTO pg_saved_books (title, created_at) VALUES (%s, %s) ON CONFLICT (title) DO NOTHING",
                 (title.strip(), _now())
@@ -182,9 +195,18 @@ def neon_save_human_context(name: str) -> dict:
 
 
 def neon_get_unique_people() -> list:
+    """Fetch unique people from both human_connections and teaching_sessions."""
     with _conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT DISTINCT person_name FROM pg_human_connections ORDER BY person_name")
+            # Merge people from human connections and teaching sessions
+            cur.execute("""
+                SELECT DISTINCT name FROM (
+                    SELECT person_name AS name FROM pg_human_connections WHERE person_name != ''
+                    UNION
+                    SELECT person AS name FROM pg_teaching_sessions WHERE person != ''
+                ) combined
+                ORDER BY name
+            """)
             return [r[0] for r in cur.fetchall()]
 
 
@@ -537,32 +559,33 @@ def _init_pg_office_work_logs(cur):
             logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
+    # Add unique constraint to prevent duplicate work items per date
+    try:
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS uq_office_work_item_date
+            ON pg_office_work_logs (workitemid, workdate);
+        """)
+    except Exception:
+        pass  # Index may already exist
 
 def neon_log_office_work(work_item_id: str, description: str, work_date: str, category: str, hours: float, xp_awarded: float, category_streak: int, work_log_id: Optional[int] = None) -> int:
     with _conn() as conn:
         with conn.cursor() as cur:
             _init_pg_office_work_logs(cur)
-            existing = None
-            if work_log_id is not None:
-                cur.execute("SELECT id FROM pg_office_work_logs WHERE id = %s", (work_log_id,))
-                existing = cur.fetchone()
-            
-            if existing:
-                cur.execute("""
-                    UPDATE pg_office_work_logs
-                    SET workitemid = %s, description = %s, workdate = %s, category = %s, hours = %s, xp_awarded = %s, category_streak = %s
-                    WHERE id = %s
-                    RETURNING id;
-                """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak, existing[0]))
-                return existing[0]
-            else:
-                cur.execute("""
-                    INSERT INTO pg_office_work_logs (workitemid, description, workdate, category, hours, xp_awarded, category_streak)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id;
-                """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak))
-                new_id = cur.fetchone()[0]
-                return new_id
+            # Upsert by (workitemid, workdate) to prevent duplicates
+            cur.execute("""
+                INSERT INTO pg_office_work_logs (workitemid, description, workdate, category, hours, xp_awarded, category_streak)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (workitemid, workdate) DO UPDATE SET
+                    description = EXCLUDED.description,
+                    category = EXCLUDED.category,
+                    hours = EXCLUDED.hours,
+                    xp_awarded = EXCLUDED.xp_awarded,
+                    category_streak = EXCLUDED.category_streak,
+                    logged_at = CURRENT_TIMESTAMP
+                RETURNING id;
+            """, (work_item_id, description, work_date, category, hours, xp_awarded, category_streak))
+            return cur.fetchone()[0]
 
 def neon_get_office_work_logs(limit: int = 300) -> list:
     with _conn() as conn:

@@ -31,7 +31,15 @@ def update_daily_energy(study_hours: float, gym_hours: float, dopamine_rewards: 
 def check_circuit_breaker(state: dict):
     """
     Triggers lockout if energy <= 20% or if continuous study streak >= 21 days.
+    Waived if today is an active Universal Sanctuary Holiday.
     """
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    if state.get("active_holiday_date") == today_str:
+        state["lockout_active"] = 0
+        state["energy"] = 100.0
+        return
+
     energy_depleted = state.get("energy", 100.0) <= CIRCUIT_BREAKER_LIMIT
     streak_overload = state.get("continuous_study_days", 0) >= MAX_STREAK_LIMIT
     

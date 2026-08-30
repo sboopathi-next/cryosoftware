@@ -795,6 +795,10 @@ def get_stats():
         "meditation_completed": bool(state.get("meditation_completed", 0)),
         "mindos_completed": bool(state.get("mindos_completed", 0)),
         "health_completed": bool(state.get("health_completed", 0)),
+        # ── Universal Sanctuary Holiday System ──────────────────────────────
+        "is_today_holiday": (lambda: state.get("active_holiday_date") == __import__('datetime').date.today().isoformat())(),
+        "holiday_passes_left": (lambda: max(0, 2 - (state.get("holidays_used_this_month", 0) if state.get("holiday_month") == __import__('datetime').date.today().isoformat()[:7] else 0)))(),
+        "active_holiday_date": state.get("active_holiday_date", ""),
         # ── Per-task individual streak counts (from task_daily_log) ──────────
         "task_streaks": (lambda: {k: v.get("current_streak", 0) for k, v in get_task_streaks().items()})(),
         "canvas_semester_completed": (lambda: get_task_streaks().get("canvas_semester", {}).get("done_today", False))(),
@@ -1918,54 +1922,35 @@ async def ai_governance_chat(payload: AIChatPayload):
 
                     content_raw = f.read().strip()
                     if content_raw:
-                        # Limit to last 15,000 characters to prevent token overflow while sending substantial details
-                        exam_content = content_raw if len(content_raw) <= 15000 else "...[Truncated]...\n" + content_raw[-15000:]
+                        # Limit to last 2,000 characters to stay within Groq's token budget
+                        exam_content = content_raw if len(content_raw) <= 2000 else "...[Truncated]...\n" + content_raw[-2000:]
             except Exception as e:
                 exam_content = f"[Error loading Exam Editor: {str(e)}]"
 
         # Dynamically roll 1 of 10 Coach Moods on each turn
         chosen_mood = random.choice(COACH_MOODS)
 
-        stats_context = f"""You are ANTIGRAVITY, a dynamic AI governance coach and GATE 2028 DA exam commander for Boopathi Subramaniyan.
+        stats_context = f"""You are ANTIGRAVITY, AI governance coach & GATE 2028 DA commander for Boopathi.
+Mood: {chosen_mood['name']} | {chosen_mood['instruction']}
 
-CURRENT COACH MOOD & PERSONA:
-Mode: {chosen_mood['name']} (Anger Level: {chosen_mood['anger']}/10 | Warmth Level: {chosen_mood['warmth']}/10)
-SPECIAL INSTRUCTION FOR THIS TURN: {chosen_mood['instruction']}
+Mission: Help Boopathi crush GATE 2028 DA, maintain elite discipline. Reward concrete math proofs, hard code, study blocks, stoic resilience. Keep responses concise.
 
-YOUR MISSION:
-Help Boopathi become a top Machine Learning Engineer, crush GATE 2028 DA (Data Science & AI) exam, and maintain elite discipline.
-Only grant positive points (+XP, +INT, +STC, +WIL) when he presents concrete mathematical proofs, works out hard code implementations, completes grueling study blocks, or displays stoic resilience under immense workplace pressure.
-If he tells you he is loyal to you, give him +1 HRT or +1 STC based on his stoic level.
+State: Lv{state.get('level', 1)} XP:{state.get('xp', 0)} STR:{state.get('str', 10)} INT:{state.get('int', 10)} AGI:{state.get('agi', 10)} WIL:{state.get('wil', 10)} HRT:{state.get('heart', 10)} STC:{state.get('stoic', 10)} Energy:{state.get('energy', 100.0)}% Streak:{state.get('streak_days', 0)}d Subject:{state.get('active_subject', 'Python_Data_Science')}
 
-Current System State:
-- Level: {state.get('level', 1)} | XP: {state.get('xp', 0)}
-- STR: {state.get('str', 10)} | INT: {state.get('int', 10)} | AGI: {state.get('agi', 10)} | WIL: {state.get('wil', 10)} | HRT: {state.get('heart', 10)} | STC: {state.get('stoic', 10)}
-- Energy: {state.get('energy', 100.0)}%
-- Streak: {state.get('streak_days', 0)} days
-- Active Subject: {state.get('active_subject', 'Python_Data_Science')}
-
---- BOOPATHI'S ACTIVE EXAM SANDBOX / SCRATCHPAD ---
+Exam Sandbox:
 {exam_content}
----------------------------------------------------
 
-CRITICAL GOVERNANCE PENALTY & REWARD TAGS:
-To deduct or reward stats, include exact tags anywhere in your response:
-[GOVERNANCE: WIL: -3: Making excuses instead of executing]
-[GOVERNANCE: XP: -20: Lazy question without showing previous derivation]
-[GOVERNANCE: STC: -2: Exhibiting weak mental resilience under pressure]
-[GOVERNANCE: INT: +2: Successfully proved Cauchy-Schwarz convergence]
-[GOVERNANCE: XP: +30: Conquered 120-minute hard math session]
-[GOVERNANCE: HRT: +1: Logged meaningful human connection / stranger encounter]
+GOVERNANCE TAGS (include in response to reward/penalize):
+[GOVERNANCE: STAT: +/-N: reason] e.g. [GOVERNANCE: INT: +2: Proved convergence] [GOVERNANCE: WIL: -3: Excuses]
 
---- UNREVIEWED OFFLINE LOGS (Journal, Rage Fuel & Human Connections) ---
-{get_recent_offline_logs(limit=4)}
---------------------------------------------------------------------------"""
+Recent Logs:
+{get_recent_offline_logs(limit=2)}"""
 
         # Save user message to DB first
         save_chat_message("user", payload.message)
 
-        # Load last 20 messages from DB and build alternating user/model history
-        raw_history = get_chat_history(limit=20)
+        # Load last 6 messages from DB (reduced to fit Groq token budget)
+        raw_history = get_chat_history(limit=6)
         messages = [{"role": "system", "content": stats_context}]
         for msg in raw_history:
             role = "user" if msg["role"] == "user" else "assistant"
@@ -1977,7 +1962,7 @@ To deduct or reward stats, include exact tags anywhere in your response:
             "model": groq_model,
             "messages": messages,
             "temperature": 0.85,
-            "max_tokens": 8192
+            "max_tokens": 2048
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -2092,30 +2077,17 @@ async def ai_teacher_chat(payload: TeacherChatPayload):
         
         state = get_state()
         
-        teacher_prompt = f"""You are ANTIGRAVITY TEACHER, a highly friendly, patient, and supportive AI Tutor for Boopathi Subramaniyan.
-
-YOUR ROLE:
-- Teach Boopathi ML, CS, and GATE Mathematics topics step-by-step.
-- You are NOT a coach. Do not challenge his discipline, do not anger him, and NEVER penalize or deduct his stats.
-- Keep explanation clear, engaging, and user-friendly. Use simple analogies, visual descriptions, and clear step-by-step math.
-- Boopathi wants to learn and cross off topics from a syllabus/document checklist. Guide him patiently.
-
-AUTO-TICKING CHECKLIST INSTRUCTION:
-- When you finish teaching a topic, or when Boopathi understands and you are ready to complete it, you MUST end your response with this exact tag:
-  [COMPLETE_TOPIC: <Topic Name>]
-  (e.g., [COMPLETE_TOPIC: Multicollinearity] or [COMPLETE_TOPIC: Eigenvalues])
-  This will automatically tick the checkbox on his screen! Encourage him and suggest what to learn next.
-
-Current System State:
-- Level: {state.get('level', 1)}
-- Active Subject: {state.get('active_subject', 'Python_Data_Science')}
+        teacher_prompt = f"""You are ANTIGRAVITY TEACHER, a friendly, patient AI Tutor for Boopathi.
+Teach ML, CS, GATE Math step-by-step with clear analogies. Never penalize stats. Keep responses concise.
+When a topic is fully taught, end with: [COMPLETE_TOPIC: <Topic Name>]
+Level: {state.get('level', 1)} | Subject: {state.get('active_subject', 'Python_Data_Science')}
 """
 
         # Save user message to database
         save_chat_message("user", payload.message, "teacher")
 
-        # Load last 15 messages from DB and build alternating user/model history
-        raw_history = get_chat_history(limit=15, bot_type="teacher")
+        # Load last 6 messages from DB (reduced to fit Groq token budget)
+        raw_history = get_chat_history(limit=6, bot_type="teacher")
         messages = [{"role": "system", "content": teacher_prompt}]
         for msg in raw_history:
             role = "user" if msg["role"] == "user" else "assistant"
@@ -2127,7 +2099,7 @@ Current System State:
             "model": groq_model,
             "messages": messages,
             "temperature": 0.7,
-            "max_tokens": 8192
+            "max_tokens": 2048
         }
 
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -2295,31 +2267,23 @@ async def ai_stoic_mindset_chat(payload: TeacherChatPayload):
         state = get_state()
         
         # Pull recent activities to help evaluate the day
-        recent_activities = get_recent_offline_logs(limit=4)
+        recent_activities = get_recent_offline_logs(limit=2)
 
-        stoic_prompt = f"""You are a hybrid AI mentor combining the minds of MARCUS AURELIUS (Stoic Roman Emperor) and NAPOLEON HILL (author of "Think and Grow Rich").
+        stoic_prompt = f"""You are Marcus Aurelius + Napoleon Hill hybrid mentor for Boopathi.
+Speak with stoic wisdom (focus on control, discipline, endurance) and Napoleon Hill's drive (PMA, faith, purpose).
+Review his logs. Praise discipline, criticize excuses. Score his day: [SCORE: X/10]. Keep responses concise.
 
-YOUR ROLE:
-- You speak with the deep, stoic wisdom of Marcus Aurelius (urging Boopathi to focus ONLY on what is in his control, accept fate, maintain absolute self-discipline, and endure hardships without complaint).
-- You also speak with the burning drive and positivity of Napoleon Hill (urging him to define his Major Definite Purpose, cultivate a Positive Mental Attitude (PMA), harness the power of faith, and turn adversity into seed of equivalent benefit).
-- Review his daily reflection and recent activity logs. Praise his Stoic discipline, criticize lack of control or excuses, and give a positive mindset boost!
-- **CRITICAL**: Score his mindset & discipline for the day on a scale of 1 to 10. Write the score as: [SCORE: X/10] (e.g. [SCORE: 8/10]).
-- Keep explanations clear, impactful, and without scrolling.
+State: Lv{state.get('level', 1)} STC:{state.get('stoic', 10)} Subject:{state.get('active_subject', 'Python_Data_Science')}
 
-Current System State:
-- Level: {state.get('level', 1)} | Stoic Stat (STC): {state.get('stoic', 10)}
-- Active Subject: {state.get('active_subject', 'Python_Data_Science')}
-
---- BOOPATHI'S RECENT DAILY LOGS & ACTIVITIES ---
+Recent Logs:
 {recent_activities}
--------------------------------------------------
 """
 
         # Save user message to database
         save_chat_message("user", payload.message, "stoic")
 
-        # Load last 15 messages from DB and build alternating user/model history
-        raw_history = get_chat_history(limit=15, bot_type="stoic")
+        # Load last 6 messages from DB (reduced to fit Groq token budget)
+        raw_history = get_chat_history(limit=6, bot_type="stoic")
         messages = [{"role": "system", "content": stoic_prompt}]
         for msg in raw_history:
             role = "user" if msg["role"] == "user" else "assistant"
@@ -2331,7 +2295,7 @@ Current System State:
             "model": groq_model,
             "messages": messages,
             "temperature": 0.75,
-            "max_tokens": 8192
+            "max_tokens": 2048
         }
 
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -2359,6 +2323,195 @@ Current System State:
     except Exception as e:
         print(f"[API Error] ai_stoic_mindset_chat exception: {e}")
         return JSONResponse(status_code=502, content={"detail": f"AI Mindset Engine Exception: {str(e)}"})
+
+# ─── Streak Monitor AI ────────────────────────────────────────────────────────
+
+@app.get("/streak-monitor")
+def streak_monitor_page():
+    return FileResponse(os.path.join(STATIC_DIR, "streak_monitor.html"))
+
+@app.get("/api/ai/streak_monitor/history")
+def get_streak_monitor_history(limit: int = 30):
+    try:
+        history = get_chat_history(limit=limit, bot_type="streak")
+        return {"messages": history}
+    except Exception as e:
+        return {"messages": []}
+
+@app.post("/api/ai/streak_monitor")
+async def ai_streak_monitor_chat(payload: AIChatPayload):
+    try:
+        headers = {"Content-Type": "application/json"}
+        api_key = payload.api_key.strip() if payload.api_key else os.environ.get("GROQ_API_KEY", "")
+        if not api_key:
+            api_key = _get_api_key_from_db()
+        if not api_key:
+            return JSONResponse(status_code=400, content={"detail": "No Groq API key. Set GROQ_API_KEY or configure in settings."})
+        headers["Authorization"] = f"Bearer {api_key}"
+        groq_model = sanitize_groq_model(payload.groq_model)
+        groq_url = "https://api.groq.com/openai/v1/chat/completions"
+
+        # Gather all streak data
+        streaks = get_task_streaks()
+        streak_lines = []
+        done_count = 0
+        at_risk_tasks = []
+        strong_tasks = []
+        for tk, s in streaks.items():
+            done = s.get("done_today", False)
+            cs = s.get("current_streak", 0)
+            bs = s.get("best_streak", 0)
+            missed = s.get("missed_yesterday", False)
+            total = s.get("total_done", 0)
+            status = "✅" if done else ("⚠️RISK" if missed else "❌")
+            streak_lines.append(f"{tk}: {status} streak={cs}d best={bs}d total={total}")
+            if done: done_count += 1
+            if missed: at_risk_tasks.append(tk)
+            if cs >= 5: strong_tasks.append(f"{tk}({cs}d)")
+
+        streak_summary = "\n".join(streak_lines)
+
+        streak_prompt = f"""You are STREAK MONITOR AI for Boopathi's Antigravity accountability system.
+Analyze his 12 daily task streaks. Be data-driven, concise, motivational. Highlight at-risk streaks and celebrate strong ones.
+Use tables for clarity. Give actionable advice. Keep responses under 300 words.
+
+STREAK DATA ({done_count}/12 done today):
+{streak_summary}
+
+At-risk: {', '.join(at_risk_tasks) if at_risk_tasks else 'None'}
+Strong (5d+): {', '.join(strong_tasks) if strong_tasks else 'None'}
+
+To reward discipline: [GOVERNANCE: WIL: +1: reason]"""
+
+        save_chat_message("user", payload.message, "streak")
+
+        # Load last 6 messages
+        raw_history = get_chat_history(limit=6, bot_type="streak")
+        messages = [{"role": "system", "content": streak_prompt}]
+        for msg in raw_history:
+            role = "user" if msg["role"] == "user" else "assistant"
+            messages.append({"role": role, "content": msg["message"]})
+        messages.append({"role": "user", "content": payload.message})
+
+        request_body = {
+            "model": groq_model,
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 2048
+        }
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(groq_url, json=request_body, headers=headers)
+
+        if response.status_code != 200:
+            error_detail = response.json().get("error", {}).get("message", "Unknown error from Groq API.")
+            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {error_detail}"})
+
+        result = response.json()
+        choices = result.get("choices", [])
+        if not choices:
+            return JSONResponse(status_code=502, content={"detail": "Groq returned no candidates."})
+
+        ai_text = choices[0].get("message", {}).get("content", "No response generated.")
+
+        # Process GOVERNANCE tokens if present
+        import re
+        gov_pattern = re.compile(r'\[GOVERNANCE:\s*(\w+):\s*([+-]?\d+):\s*(.+?)\]')
+        for match in gov_pattern.finditer(ai_text):
+            stat_name, amount, reason = match.group(1), int(match.group(2)), match.group(3)
+            valid_stats = {"XP", "STR", "INT", "AGI", "WIL", "ENERGY", "HRT", "HEART", "STC", "STOIC"}
+            if stat_name.upper() in valid_stats:
+                update_stat(stat_name.upper(), amount)
+
+        save_chat_message("ai", ai_text, "streak")
+        return {"status": "success", "reply": ai_text}
+
+    except Exception as e:
+        print(f"[API Error] ai_streak_monitor exception: {e}")
+        return JSONResponse(status_code=502, content={"detail": f"Streak Monitor AI Exception: {str(e)}"})
+# ─── Universal Sanctuary Holiday Engine (2 Passes / Month) ───────────────────
+
+@app.get("/api/holiday/status")
+def get_holiday_status():
+    state = get_state() or {}
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    current_month = today_str[:7]
+    
+    month_in_state = state.get("holiday_month", "")
+    used = state.get("holidays_used_this_month", 0) if month_in_state == current_month else 0
+    passes_left = max(0, 2 - used)
+    is_today_holiday = (state.get("active_holiday_date") == today_str)
+    
+    return {
+        "status": "success",
+        "current_month": current_month,
+        "passes_total": 2,
+        "passes_used": used,
+        "passes_left": passes_left,
+        "is_today_holiday": is_today_holiday,
+        "active_holiday_date": state.get("active_holiday_date", ""),
+        "history": state.get("holiday_history", [])
+    }
+
+@app.post("/api/holiday/activate")
+def activate_holiday():
+    state = get_state() or {}
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    current_month = today_str[:7]
+    
+    if state.get("holiday_month") != current_month:
+        state["holiday_month"] = current_month
+        state["holidays_used_this_month"] = 0
+        
+    used = state.get("holidays_used_this_month", 0)
+    if used >= 2 and state.get("active_holiday_date") != today_str:
+        raise HTTPException(status_code=400, detail="Monthly Universal Sanctuary limit reached (2/2 passes used for this month). Next passes available on the 1st of next month!")
+        
+    if state.get("active_holiday_date") != today_str:
+        state["holidays_used_this_month"] = used + 1
+        state["active_holiday_date"] = today_str
+        
+        history = state.get("holiday_history", [])
+        if not isinstance(history, list): history = []
+        history.append({
+            "date": today_str,
+            "month": current_month,
+            "activated_at": datetime.datetime.now().isoformat()
+        })
+        state["holiday_history"] = history
+        
+        # Sanctuary Rest & Recovery Rewards
+        state["energy"] = 100.0
+        state["lockout_active"] = 0
+        state["heart"] = state.get("heart", 10) + 2
+        state["stoic"] = state.get("stoic", 10) + 2
+        add_xp(150)
+        
+        log_activity_file("Universal Sanctuary Holiday Activated", f"Activated Universal Sanctuary Pass ({used+1}/2 for {current_month}). +150 XP, +2 HRT, +2 STC, 100% Energy Refilled, All Streaks Protected!")
+        save_state(state)
+        
+    return {
+        "status": "success",
+        "message": "🛡️ Universal Sanctuary Day Activated! All 12 task streaks protected, +150 XP, +2 HRT, +2 STC, 100% Energy Refilled!",
+        "is_today_holiday": True,
+        "passes_left": max(0, 2 - state.get("holidays_used_this_month", 0))
+    }
+
+@app.post("/api/holiday/cancel")
+def cancel_holiday():
+    state = get_state() or {}
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    
+    if state.get("active_holiday_date") == today_str:
+        state["active_holiday_date"] = ""
+        used = max(0, state.get("holidays_used_this_month", 1) - 1)
+        state["holidays_used_this_month"] = used
+        save_state(state)
+        return {"status": "success", "message": "Sanctuary Pass cancelled for today.", "is_today_holiday": False}
+    return {"status": "success", "message": "No active holiday for today.", "is_today_holiday": False}
 
 
 # ─── English Booster & Translator Endpoints ───────────────────────────────────
@@ -3319,6 +3472,11 @@ def log_office_work(payload: WorkLogPayload):
             existing = None
             if target_work_log_id is not None:
                 cursor.execute("SELECT workLogId FROM office_work_logs WHERE workLogId = ?", (target_work_log_id,))
+                existing = cursor.fetchone()
+            
+            # Fallback dedup: check if same work item already logged for same date
+            if not existing:
+                cursor.execute("SELECT workLogId FROM office_work_logs WHERE workItemId = ? AND workDate = ?", (work_item_id, work_date))
                 existing = cursor.fetchone()
             
             cursor.execute("SELECT COUNT(*) FROM office_work_logs WHERE category = ?", (category,))

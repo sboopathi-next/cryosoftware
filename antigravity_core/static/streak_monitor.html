@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigravity — Streak Monitor AI</title>
+<meta name="description" content="AI-powered streak accountability monitor. Analyzes all 12 daily task streaks and gives data-driven motivational feedback.">
+<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body, .app { height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0; }
+.streak-container { display: flex; flex: 1; min-height: 0; overflow: hidden; background: #060818; }
+.streak-sidebar { width: 380px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: rgba(245,158,11,0.01); flex-shrink: 0; min-height: 0; }
+.streak-sidebar-hdr { padding: 18px 20px 12px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); flex-shrink: 0; }
+.streak-sidebar-hdr h2 { font-family: var(--ff-brand); font-size: 16px; color: #e2e8f0; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+.streak-sidebar-hdr p { font-size: 11px; color: var(--text3); margin: 0; }
+.streak-cards { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.sk-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+  transition: all .15s; cursor: default;
+}
+.sk-card:hover { border-color: rgba(245,158,11,.3); background: var(--bg-hover); }
+.sk-card.done { border-color: rgba(16,185,129,.3); }
+.sk-card.at-risk { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.03); }
+.sk-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.sk-card.done .sk-icon { background: rgba(16,185,129,.15); color: #10b981; }
+.sk-card:not(.done) .sk-icon { background: rgba(100,116,139,.15); color: #64748b; }
+.sk-card.at-risk .sk-icon { background: rgba(239,68,68,.15); color: #ef4444; }
+.sk-info { flex: 1; min-width: 0; }
+.sk-name { font-size: 12px; font-weight: 600; color: var(--text1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-meta { font-size: 10px; color: var(--text3); font-family: var(--ff-mono); margin-top: 2px; }
+.sk-streak-val { font-family: var(--ff-mono); font-size: 14px; font-weight: 800; color: var(--amber); text-align: right; min-width: 40px; }
+.sk-streak-val.zero { color: #64748b; }
+.sk-summary { padding: 12px 14px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); flex-shrink: 0; }
+.sk-summary-row { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--ff-mono); color: var(--text3); }
+.sk-summary-row span:last-child { color: var(--amber); font-weight: 700; }
+
+/* Chat Pane */
+.chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e; }
+.chat-scroll { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.bubble { display: flex; gap: 12px; max-width: 85%; margin-bottom: 2px; }
+.bubble.user { align-self: flex-end; flex-direction: row-reverse; }
+.bubble.ai { align-self: flex-start; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+.bubble.user .avatar { background: #3b82f6; color: white; }
+.bubble.ai .avatar { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+.bubble-body { border-radius: 12px; padding: 11px 15px; font-size: 13px; line-height: 1.65; color: var(--text1); word-break: break-word; }
+.bubble.user .bubble-body { background: #1e293b; border: 1px solid rgba(255,255,255,.06); }
+.bubble.ai .bubble-body { background: rgba(245,158,11,.04); border: 1px solid rgba(245,158,11,.18); }
+.bubble-body strong { color: #e2e8f0; }
+.bubble-body em { color: var(--text2); }
+.bubble-body code { background: rgba(255,255,255,.08); padding: 2px 4px; border-radius: 4px; font-family: var(--ff-mono); font-size: 11px; color: var(--amber); }
+.bubble-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
+.bubble-body th, .bubble-body td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+.bubble-body th { background: rgba(255,255,255,.05); font-weight: 600; color: var(--amber); }
+.thinking { opacity: .6; font-style: italic; }
+.chat-footer { padding: 14px 24px; border-top: 1px solid var(--border); background: #060818; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; }
+.qp-btn { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); border-radius: 16px; color: var(--amber); font-size: 11px; padding: 5px 12px; cursor: pointer; transition: all .15s; font-family: var(--ff-mono); }
+.qp-btn:hover { background: rgba(245,158,11,.18); border-color: var(--amber); }
+.input-row { display: flex; gap: 8px; }
+.chat-input { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: var(--text1); padding: 10px 14px; font-size: 13px; outline: none; transition: border-color .15s; }
+.chat-input:focus { border-color: var(--amber); }
+.send-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 8px; padding: 0 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
+.send-btn:hover { opacity: .9; }
+
+/* Mobile */
+.streak-mobile-nav { display: none; }
+@media (max-width: 900px) {
+  .streak-container { flex-direction: column !important; }
+  .streak-sidebar { width: 100% !important; display: none !important; }
+  .chat-pane { width: 100% !important; display: none !important; }
+  .streak-sidebar.active, .chat-pane.active { display: flex !important; }
+  .streak-mobile-nav { display: flex !important; background: rgba(0,0,0,.3); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .streak-mobile-nav button { flex: 1; background: none; border: none; color: var(--text3); padding: 12px; font-size: 11px; font-family: var(--ff-mono); text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; }
+  .streak-mobile-nav button.active { color: var(--amber); border-bottom-color: var(--amber); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
+      <div class="brand-name">ANTIGRAVITY</div>
+    </div>
+    <ul class="nav-list">
+      <li><a href="/"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span></a></li>
+      <li><a href="/task-streaks"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span></a></li>
+      <li class="active"><a href="/streak-monitor"><i class="fa-solid fa-chart-line" style="color:#f59e0b"></i><span>Streak AI</span><span class="nav-badge" style="background:rgba(245,158,11,.15);color:#f59e0b;">AI</span></a></li>
+      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span></a></li>
+      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <!-- Mobile nav -->
+    <div class="streak-mobile-nav">
+      <button class="active" onclick="mobileTab('streaks')">🔥 Streaks</button>
+      <button onclick="mobileTab('chat')">🤖 AI Chat</button>
+    </div>
+
+    <div class="streak-container">
+      <!-- Left: Streak Cards -->
+      <div class="streak-sidebar active" id="streak-sidebar">
+        <div class="streak-sidebar-hdr">
+          <h2>🔥 Streak Monitor</h2>
+          <p>Live accountability for all 12 daily tasks</p>
+        </div>
+        <div class="streak-cards" id="streak-cards">
+          <div style="text-align:center; padding:40px; color:var(--text3); font-size:12px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:20px; margin-bottom:8px; display:block;"></i>
+            Loading streaks…
+          </div>
+        </div>
+        <div class="sk-summary" id="sk-summary">
+          <div class="sk-summary-row"><span>Done Today</span><span id="sum-done">-/12</span></div>
+          <div class="sk-summary-row"><span>At Risk</span><span id="sum-risk" style="color:#ef4444">-</span></div>
+          <div class="sk-summary-row"><span>Best Active</span><span id="sum-best">-</span></div>
+        </div>
+      </div>
+
+      <!-- Right: Chat -->
+      <div class="chat-pane active" id="chat-pane">
+        <div class="chat-scroll" id="chat-msgs">
+          <div class="bubble ai">
+            <div class="avatar"><i class="fa-solid fa-fire"></i></div>
+            <div class="bubble-body">
+              <strong>🔥 Streak Monitor AI</strong><br><br>
+              I analyze your <strong>12 daily accountability streaks</strong> and give you data-driven insights.
+              Ask me anything about your streaks — which are at risk, how to maintain them, or get a full analysis.<br><br>
+              <em>Try the quick prompts below to get started!</em>
+            </div>
+          </div>
+        </div>
+        <div class="chat-footer">
+          <div class="quick-prompts" id="quick-prompts">
+            <button class="qp-btn" onclick="quickAsk('Analyze all my streaks')">📊 Full Analysis</button>
+            <button class="qp-btn" onclick="quickAsk('Which streaks are at risk?')">⚠️ At Risk</button>
+            <button class="qp-btn" onclick="quickAsk('Weekly consistency review')">📅 Weekly Review</button>
+            <button class="qp-btn" onclick="quickAsk('What should I focus on today?')">🎯 Today Focus</button>
+            <button class="qp-btn" onclick="quickAsk('Celebrate my wins')">🏆 My Wins</button>
+          </div>
+          <div class="input-row">
+            <input class="chat-input" id="chat-inp" placeholder="Ask about your streaks…" onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="send-btn" id="send-btn" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i> Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/shared.js"></script>
+<script>
+const TASK_META = {
+  study:     { icon: 'fa-book', label: 'Study', color: '#6366f1' },
+  leetcode:  { icon: 'fa-code', label: 'LeetCode', color: '#10b981' },
+  gym:       { icon: 'fa-dumbbell', label: 'Gym', color: '#ef4444' },
+  english:   { icon: 'fa-language', label: 'English', color: '#3b82f6' },
+  cooking:   { icon: 'fa-utensils', label: 'Cooking', color: '#f59e0b' },
+  nopmo:     { icon: 'fa-shield-halved', label: 'NoPMO', color: '#8b5cf6' },
+  reading:   { icon: 'fa-book-open', label: 'Reading', color: '#14b8a6' },
+  walk:      { icon: 'fa-person-walking', label: 'Walk', color: '#06b6d4' },
+  meditation:{ icon: 'fa-spa', label: 'Meditation', color: '#a855f7' },
+  mindos:    { icon: 'fa-brain', label: 'Mind OS', color: '#ec4899' },
+  health:    { icon: 'fa-heart-pulse', label: 'Health', color: '#f43f5e' },
+  canvas_semester: { icon: 'fa-graduation-cap', label: 'Canvas LMS', color: '#0ea5e9' }
+};
+
+let streakData = {};
+const msgs = document.getElementById('chat-msgs');
+
+function renderMarkdown(text) {
+  if (!text) return '';
+  let html = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^### (.+)$/gm, '<h4 style="color:var(--amber);margin:8px 0 4px;">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="color:#e2e8f0;margin:10px 0 6px;">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="color:#e2e8f0;margin:12px 0 6px;">$1</h2>')
+    .replace(/^- (.+)$/gm, '• $1')
+    .replace(/\n/g, '<br>');
+
+  // Simple table rendering
+  if (html.includes('|')) {
+    html = html.replace(/(<br>)?\|(.+?)\|(<br>)?/g, (m, br1, content, br2) => {
+      if (content.match(/^[\s\-|]+$/)) return '';
+      const cells = content.split('|').map(c => c.trim()).filter(c => c);
+      return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+    });
+    html = html.replace(/(<tr>.*<\/tr>)/s, '<table>$1</table>');
+  }
+  return html;
+}
+
+async function loadStreaks() {
+  try {
+    const r = await fetch('/api/tasks/streaks');
+    const data = await r.json();
+    if (data.status !== 'success') return;
+    streakData = data.streaks;
+    renderStreakCards(data.streaks);
+  } catch(e) {
+    document.getElementById('streak-cards').innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:12px;">Failed to load streaks</div>';
+  }
+}
+
+function renderStreakCards(streaks) {
+  const container = document.getElementById('streak-cards');
+  const keys = Object.keys(TASK_META);
+  let doneCount = 0, atRiskCount = 0, bestStreak = 0;
+
+  let html = '';
+  keys.forEach(tk => {
+    const s = streaks[tk] || {};
+    const meta = TASK_META[tk];
+    const done = s.done_today || false;
+    const atRisk = s.missed_yesterday || false;
+    const streak = s.current_streak || 0;
+    const best = s.best_streak || 0;
+
+    if (done) doneCount++;
+    if (atRisk) atRiskCount++;
+    if (streak > bestStreak) bestStreak = streak;
+
+    const cls = done ? 'done' : (atRisk ? 'at-risk' : '');
+    html += `
+      <div class="sk-card ${cls}">
+        <div class="sk-icon"><i class="fa-solid ${meta.icon}"></i></div>
+        <div class="sk-info">
+          <div class="sk-name">${done ? '✅' : (atRisk ? '⚠️' : '⬜')} ${meta.label}</div>
+          <div class="sk-meta">Best: ${best}d | Total: ${s.total_done || 0}</div>
+        </div>
+        <div class="sk-streak-val ${streak === 0 ? 'zero' : ''}">
+          ${streak > 0 ? '🔥' : ''} ${streak}d
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('sum-done').textContent = `${doneCount}/12`;
+  document.getElementById('sum-risk').textContent = atRiskCount > 0 ? `${atRiskCount} ⚠️` : '0 ✅';
+  document.getElementById('sum-best').textContent = `🔥 ${bestStreak}d`;
+}
+
+function appendBubble(text, role, id, isThinking) {
+  const div = document.createElement('div');
+  div.className = `bubble ${role}`;
+  const fmt = (role === 'ai' && !isThinking) ? renderMarkdown(text) : (isThinking ? text : text.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  const iconCls = role === 'ai' ? 'fa-fire' : 'fa-user';
+  div.innerHTML = `
+    <div class="avatar"><i class="fa-solid ${iconCls}"></i></div>
+    <div class="bubble-body${isThinking ? ' thinking' : ''}${id ? ` id="${id}"` : ''}">${fmt}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function quickAsk(txt) {
+  document.getElementById('chat-inp').value = txt;
+  sendMsg();
+}
+
+async function sendMsg() {
+  const inp = document.getElementById('chat-inp');
+  const msg = inp.value.trim();
+  if (!msg) return;
+
+  document.getElementById('quick-prompts').style.display = 'none';
+  const key = localStorage.getItem('groq_key') || '';
+  const groqModel = window.getSanitizedGroqModel ? getSanitizedGroqModel() : (localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile');
+  inp.value = '';
+
+  appendBubble(msg, 'user');
+  const tid = 'thinking-' + Date.now();
+  appendBubble('🔥 Analyzing your streaks...', 'ai', tid, true);
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const r = await fetch('/api/ai/streak_monitor', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ message: msg, provider: 'groq', api_key: key, groq_model: groqModel })
+    });
+
+    const el = document.getElementById(tid);
+    if (el) el.closest('.bubble').remove();
+
+    if (!r.ok) {
+      let errText = 'Server Error';
+      try { const e = await r.json(); errText = e.detail || JSON.stringify(e); } catch(_) { errText = await r.text(); }
+      appendBubble(`⚠️ ${errText}`, 'ai');
+    } else {
+      const d = await r.json();
+      appendBubble(d.reply, 'ai');
+    }
+  } catch(e) {
+    const el = document.getElementById(tid);
+    if (el) el.closest('.bubble').remove();
+    appendBubble(`Connection error: ${e.message}`, 'ai');
+  } finally {
+    document.getElementById('send-btn').disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function mobileTab(tab) {
+  const btns = document.querySelectorAll('.streak-mobile-nav button');
+  btns.forEach(b => b.classList.remove('active'));
+  document.getElementById('streak-sidebar').classList.remove('active');
+  document.getElementById('chat-pane').classList.remove('active');
+  if (tab === 'streaks') {
+    btns[0].classList.add('active');
+    document.getElementById('streak-sidebar').classList.add('active');
+  } else {
+    btns[1].classList.add('active');
+    document.getElementById('chat-pane').classList.add('active');
+  }
+}
+
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/ai/streak_monitor/history?limit=30');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (!data.messages || !data.messages.length) return;
+    const divider = document.createElement('div');
+    divider.style.cssText = 'text-align:center;color:var(--text3);font-size:10px;padding:6px 0;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.06);font-family:var(--ff-mono);';
+    divider.textContent = '── Previous ──';
+    msgs.appendChild(divider);
+    for (const m of data.messages) {
+      appendBubble(m.message, m.role === 'user' ? 'user' : 'ai');
+    }
+    const divider2 = document.createElement('div');
+    divider2.style.cssText = 'text-align:center;color:var(--text3);font-size:10px;padding:6px 0;margin-top:6px;border-top:1px solid rgba(255,255,255,.06);font-family:var(--ff-mono);';
+    divider2.textContent = '── Now ──';
+    msgs.appendChild(divider2);
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) { console.warn('History load:', e); }
+}
+
+// Init
+(async () => {
+  await loadStreaks();
+  await loadHistory();
+})();
+</script>
+</body>
+</html>

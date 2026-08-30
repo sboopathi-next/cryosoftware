@@ -1165,17 +1165,25 @@ def get_human_contexts() -> list:
     return [r["name"] for r in rows]
 
 def get_unique_people() -> list:
-    """Fetch distinct person names previously met for easy select dropdown."""
+    """Fetch distinct person names from both human_connections and teaching_sessions."""
     if IS_SERVERLESS:
         from engine.neon_db import neon_get_unique_people
         return neon_get_unique_people()
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT DISTINCT person_name FROM human_connections WHERE person_name != '' ORDER BY person_name ASC")
+    # Merge people from human connections and teaching sessions
+    cursor.execute("""
+        SELECT DISTINCT name FROM (
+            SELECT person_name AS name FROM human_connections WHERE person_name != ''
+            UNION
+            SELECT person AS name FROM teaching_sessions WHERE person != ''
+        ) combined
+        ORDER BY name ASC
+    """)
     rows = cursor.fetchall()
     conn.close()
-    return [r["person_name"] for r in rows]
+    return [r["name"] for r in rows]
 
 def get_recent_offline_logs(limit: int = 3) -> str:
     """Fetch the latest manual offline logs to feed into AI context."""

@@ -147,6 +147,7 @@
       <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
       <li><a href="/system"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a></li>
       <li><a href="/task-streaks"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d;border-color:rgba(245,158,11,0.3)">🔥</span></a></li>
+      <li><a href="/streak-monitor"><i class="fa-solid fa-chart-line" style="color:#f59e0b"></i><span>Streak AI</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">AI</span></a></li>
       <li><a href="/semester"><i class="fa-solid fa-graduation-cap" style="color:#7c3aed"></i><span>Semester</span><span class="nav-badge" style="background:rgba(124,58,237,0.2);color:#a78bfa;border-color:rgba(124,58,237,0.3)">12W</span></a></li>
     </ul>
     <div class="sidebar-footer">
@@ -273,6 +274,44 @@
           <a href="/ai" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-robot"></i> Coach</a>
           <button class="btn btn-secondary btn-sm" onclick="openHumanModal()" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-handshake" style="color:var(--rose)"></i> Log HRT</button>
           <a href="/logs" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; grid-column:1/-1; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-list-check"></i> Activity Logs</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNIVERSAL SANCTUARY HOLIDAY ACTIVE BANNER -->
+    <div id="sanctuary-active-banner" class="hidden" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(245, 158, 11, 0.2)); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; flex-shrink: 0; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);">🛡️</div>
+        <div>
+          <div style="font-family: var(--ff-brand); font-size: 14.5px; font-weight: 800; color: #fef08a; display: flex; align-items: center; gap: 8px;">
+            <span>UNIVERSAL SANCTUARY HOLIDAY ACTIVE</span>
+            <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; font-family: var(--ff-mono);">100% IMMUNITY</span>
+          </div>
+          <div style="font-size: 11.5px; color: var(--text2); margin-top: 3px;">
+            All 12 daily task streaks protected • Cognitive Energy 100% • Semester Audit Exempt (+100 XP)
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="cancelSanctuaryPass()" style="font-size: 11px; font-family: var(--ff-mono); background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; flex-shrink: 0;">
+        Cancel Pass
+      </button>
+    </div>
+
+    <!-- SANCTUARY PASS CONTROL CARD -->
+    <div class="card" style="margin-bottom: 16px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(245, 158, 11, 0.25);">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #f59e0b;">🛡️</div>
+          <div>
+            <div style="font-family: var(--ff-brand); font-size: 13.5px; font-weight: 700; color: #e2e8f0;">Universal Monthly Sanctuary Passes</div>
+            <div style="font-size: 11px; color: var(--text3);" id="sanctuary-pass-subtitle">2 passes per calendar month • Freeze streaks & avoid burnout</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-family: var(--ff-mono); font-size: 13px; font-weight: 800; color: #f59e0b; background: rgba(245, 158, 11, 0.12); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);" id="sanctuary-pass-count">2 / 2 Available</span>
+          <button class="btn btn-primary btn-sm" id="sanctuary-act-btn" onclick="activateSanctuaryPass()" style="font-size: 11.5px; background: linear-gradient(135deg, #f59e0b, #7c3aed); border: none; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 6px 14px;">
+            <i class="fa-solid fa-shield-halved"></i> Activate Sanctuary Day
+          </button>
         </div>
       </div>
     </div>
@@ -468,6 +507,24 @@ async function loadDashboard() {
     }
 
     
+    // Universal Sanctuary Pass UI State
+    const sanctBanner = document.getElementById('sanctuary-active-banner');
+    const sanctCount = document.getElementById('sanctuary-pass-count');
+    const sanctBtn = document.getElementById('sanctuary-act-btn');
+    if (d.is_today_holiday) {
+      if (sanctBanner) sanctBanner.classList.remove('hidden');
+      if (sanctCount) { sanctCount.textContent = '🛡️ Active Today'; sanctCount.style.borderColor = '#10b981'; sanctCount.style.color = '#10b981'; }
+      if (sanctBtn) { sanctBtn.disabled = true; sanctBtn.innerHTML = '<i class="fa-solid fa-check"></i> Sanctuary Active'; }
+    } else {
+      if (sanctBanner) sanctBanner.classList.add('hidden');
+      const passesLeft = d.holiday_passes_left !== undefined ? d.holiday_passes_left : 2;
+      if (sanctCount) { sanctCount.textContent = `${passesLeft} / 2 Available`; sanctCount.style.borderColor = 'rgba(245,158,11,0.3)'; sanctCount.style.color = '#f59e0b'; }
+      if (sanctBtn) {
+        sanctBtn.disabled = passesLeft <= 0;
+        sanctBtn.innerHTML = passesLeft > 0 ? '<i class="fa-solid fa-shield-halved"></i> Activate Sanctuary Day' : '<i class="fa-solid fa-lock"></i> 0/2 Passes Used';
+      }
+    }
+
     const bookLbl = document.getElementById('reading-book-lbl');
     if (bookLbl) bookLbl.textContent = d.reading_book || 'None';
     const bookInp = document.getElementById('reading-book-inp');
@@ -1072,6 +1129,32 @@ async function submitHealthSync() {
     }
   } catch(e) {
     alert('Sync request failed: ' + e.message);
+  }
+async function activateSanctuaryPass() {
+  if (!confirm('🛡️ Activate Universal Sanctuary Pass for Today?\n\n• Freezes & protects all 12 task streaks\n• Refills Cognitive Energy to 100%\n• Grants Semester Audit Exemption (+100 XP)\n• Awards +150 XP, +2 HRT, +2 STC Recovery Rewards\n\nAre you ready for your Sanctuary Rest Day?')) return;
+  try {
+    const r = await fetch('/api/holiday/activate', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) {
+      alert(d.detail || 'Could not activate Sanctuary Pass');
+      return;
+    }
+    toast(d.message || 'Sanctuary Day Activated!', 'ok');
+    refreshState();
+  } catch(e) {
+    alert('Failed to activate: ' + e.message);
+  }
+}
+
+async function cancelSanctuaryPass() {
+  if (!confirm('Cancel today\'s Sanctuary Pass and return to normal accountability mode?')) return;
+  try {
+    const r = await fetch('/api/holiday/cancel', { method: 'POST' });
+    const d = await r.json();
+    toast(d.message || 'Sanctuary Pass cancelled', 'ok');
+    refreshState();
+  } catch(e) {
+    alert('Failed to cancel: ' + e.message);
   }
 }
 </script>

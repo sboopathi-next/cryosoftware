@@ -55,7 +55,7 @@ except ImportError:
     def add_xp(x): pass
 
 # ── 12-Week Semester Configuration ─────────────────────────────────────────────
-SEMESTER_START_DATE = datetime.date(2026, 8, 18)   # Monday — Week 1 Day 1
+SEMESTER_START_DATE = datetime.date(2026, 8, 11)   # Monday — Week 1 Day 1
 SEMESTER_WEEKS      = 12
 
 # 5-Day Rotating Course Schedule (weekday 0=Mon ... 4=Fri)
@@ -246,6 +246,22 @@ def _init_neon_tables():
             )
         """)
 
+        # Ensure Canvas completed items table exists (needed for semester audit)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS pg_canvas_completed_items (
+                id              SERIAL PRIMARY KEY,
+                course_id       INTEGER,
+                course_name     TEXT,
+                item_id         INTEGER,
+                item_title      TEXT,
+                item_type       TEXT,
+                module_name     TEXT,
+                completed_at    TIMESTAMP,
+                xp_awarded      INTEGER DEFAULT 0,
+                synced_at       TIMESTAMP DEFAULT NOW()
+            )
+        """)
+
         for c in ALL_COURSES:
             cursor.execute("""
                 INSERT INTO semester_course_stats (course_code, course_name)
@@ -334,6 +350,25 @@ def run_daily_audit(force: bool = False) -> dict:
     now_ts      = _now_ist().strftime("%Y-%m-%d %H:%M:%S")
 
     init_semester_tables()
+
+    # Sanctuary Pass Immunity Check
+    try:
+        from engine.database import get_state
+        state = get_state()
+        if state and state.get("active_holiday_date") == today_str:
+            return {
+                "status": "SANCTUARY_EXEMPT",
+                "date": today_str,
+                "week_number": week_number,
+                "course": CADENCE_SCHEDULE.get(weekday, {}).get("name", "Rest"),
+                "message": "🛡️ Universal Sanctuary Day Active — All Audits Exempt! (+100 XP)",
+                "xp_delta": 100,
+                "items_completed": 1,
+                "quizzes_done": 1,
+                "assignments_done": 1
+            }
+    except Exception:
+        pass
 
     if IS_SERVERLESS and DATABASE_URL:
         return _run_audit_neon(today_str, weekday, week_number, now_ts, force)
@@ -451,7 +486,8 @@ def _run_audit_neon(today_str, weekday, week_number, now_ts, force):
             items_completed  = int(row[0] or 0)
             quizzes_done     = int(row[1] or 0)
             assignments_done = int(row[2] or 0)
-        except Exception:
+        except Exception as e:
+            print(f"[Semester Audit Neon] Canvas items query failed (pg_canvas_completed_items may be empty or missing): {e}")
             items_completed = quizzes_done = assignments_done = 0
 
         status, xp_awarded = _apply_audit_result(

@@ -46,7 +46,11 @@ DEFAULT_STATE = {
     "walk_completed": 0,
     "meditation_completed": 0,
     "mindos_completed": 0,
-    "health_completed": 0
+    "health_completed": 0,
+    "holiday_month": "",
+    "holidays_used_this_month": 0,
+    "active_holiday_date": "",
+    "holiday_history": []
 }
 
 def get_db_connection():
@@ -299,9 +303,19 @@ def check_date_transition(state: dict) -> dict:
     if not state:
         return state
     today_str = get_today_ist_str()
+    current_month = today_str[:7] if today_str else ""
+    
+    # Auto-refresh 2 Universal Sanctuary Passes on 1st of every new month
+    if state.get("holiday_month") != current_month:
+        state["holiday_month"] = current_month
+        state["holidays_used_this_month"] = 0
+    
     last_update_str = state.get("last_update", "")
     
     if last_update_str and last_update_str != today_str:
+        # Check if last_update was an active Sanctuary Holiday
+        was_sanctuary_holiday = (state.get("active_holiday_date") == last_update_str)
+
         # Pre-check LeetCode sync to prevent losing streak
         try:
             from antigravity_core.engine.leetcode_sync import sync_leetcode
@@ -326,16 +340,22 @@ def check_date_transition(state: dict) -> dict:
         except Exception:
             elapsed_days = 1
 
-        # Require ALL core discipline targets (Study, LeetCode, Gym, English) to be completed
+        # Require ALL core discipline targets (Study, LeetCode, Gym, English) to be completed OR Sanctuary Holiday active
         mandatory_targets = [
             bool(state.get("study_completed", False)),
             bool(state.get("leetcode_completed", False)),
             bool(state.get("gym_completed", False)),
             bool(state.get("english_completed", False))
         ]
-        all_completed = all(mandatory_targets)
+        all_completed = all(mandatory_targets) or was_sanctuary_holiday
         
-        if all_completed:
+        if was_sanctuary_holiday:
+            current_streak = max(33, state.get("streak_days", 33))
+            state["streak_days"] = current_streak + elapsed_days
+            state["energy"] = 100.0  # Full recovery
+            doing = f"Day Transition: Universal Sanctuary Pass Activated for {last_update_str}"
+            accomplished = f"🛡️ Universal Sanctuary Day Immunity active! All 12 streaks protected & Cognitive Energy refilled to 100%."
+        elif all_completed:
             current_streak = max(33, state.get("streak_days", 33))
             state["streak_days"] = current_streak + elapsed_days
             state["energy"] = min(100.0, state.get("energy", 100.0) + 25.0)

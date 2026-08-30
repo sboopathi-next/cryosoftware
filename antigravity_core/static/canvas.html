@@ -377,6 +377,20 @@
       </div>
     </div>
 
+    <!-- Week-wise Completion Grid -->
+    <div class="history-table-wrap" style="margin-bottom:20px;">
+      <div class="history-table-hdr">
+        <h3>📅 Week-wise Completion</h3>
+        <span style="font-size:12px; color:var(--text3)" id="week-grid-info"></span>
+      </div>
+      <div id="week-grid-body">
+        <div class="empty-state">
+          <i class="fa-solid fa-calendar-check"></i>
+          <p>Run a sync to see week-wise progress.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Completion History -->
     <div class="history-table-wrap">
       <div class="history-table-hdr">
@@ -532,6 +546,74 @@ async function loadHistory() {
   }
 }
 
+async function renderWeekGrid() {
+  const body = document.getElementById('week-grid-body');
+  try {
+    const history = await apiFetch('/api/canvas/history?limit=500');
+    if (!history.length) return;
+
+    const SEMESTER_START = new Date('2026-08-11');
+    const TOTAL_WEEKS = 12;
+
+    function getWeek(dateStr) {
+      if (!dateStr) return null;
+      const d = new Date(dateStr);
+      const diff = Math.floor((d - SEMESTER_START) / (1000 * 60 * 60 * 24));
+      if (diff < 0) return null;
+      const wk = Math.floor(diff / 7) + 1;
+      return wk > TOTAL_WEEKS ? null : wk;
+    }
+
+    // Group by course → week
+    const grid = {};
+    history.forEach(h => {
+      const course = h.course_name || 'Unknown';
+      const wk = getWeek(h.completed_at);
+      if (!wk) return;
+      if (!grid[course]) grid[course] = {};
+      if (!grid[course][wk]) grid[course][wk] = { items: 0, quizzes: 0, assignments: 0 };
+      grid[course][wk].items++;
+      const t = ((h.item_type || '') + ' ' + (h.item_title || '')).toUpperCase();
+      if (t.includes('QUIZ') || t.includes('MCQ')) grid[course][wk].quizzes++;
+      if (t.includes('ASSIGNMENT') || t.includes('PROJECT')) grid[course][wk].assignments++;
+    });
+
+    const courses = Object.keys(grid).sort();
+    if (!courses.length) return;
+
+    document.getElementById('week-grid-info').textContent = `${courses.length} courses × ${TOTAL_WEEKS} weeks`;
+
+    let html = `<div style="overflow-x:auto"><table class="history-table" style="font-size:11px;">`;
+    html += `<thead><tr><th style="text-align:left; min-width:160px;">Course</th>`;
+    for (let w = 1; w <= TOTAL_WEEKS; w++) html += `<th style="text-align:center; min-width:50px;">W${w}</th>`;
+    html += `</tr></thead><tbody>`;
+
+    courses.forEach(course => {
+      html += `<tr><td style="font-weight:600; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${course}</td>`;
+      for (let w = 1; w <= TOTAL_WEEKS; w++) {
+        const cell = grid[course][w];
+        if (cell) {
+          const parts = [];
+          if (cell.quizzes) parts.push(`Q:${cell.quizzes}`);
+          if (cell.assignments) parts.push(`A:${cell.assignments}`);
+          const extra = cell.items - cell.quizzes - cell.assignments;
+          if (extra > 0) parts.push(`V:${extra}`);
+          html += `<td style="text-align:center; background:rgba(16,185,129,.12); color:#10b981; font-weight:700; border-radius:4px;" title="${parts.join(', ')}">
+            ✅ <span style="font-size:9px; display:block; color:var(--text3); font-weight:400;">${cell.items}</span></td>`;
+        } else {
+          html += `<td style="text-align:center; color:var(--text3);">—</td>`;
+        }
+      }
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+    body.innerHTML = html;
+  } catch(e) {
+    console.warn('Week grid error:', e);
+  }
+}
+
 function startSyncProgressPolling() {
   const banner = document.getElementById('sync-progress-banner');
   banner.classList.remove('hidden');
@@ -604,6 +686,7 @@ async function apiFetch(url, opts = {}) {
 (async () => {
   await checkStatus();
   await Promise.all([loadCourses(), loadHistory()]);
+  renderWeekGrid();
 })();
 </script>
 <script src="/static/shared.js"></script>
