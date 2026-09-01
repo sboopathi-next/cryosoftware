@@ -543,37 +543,37 @@ if ('speechSynthesis' in window) {
 }
 
 // ── Mini stats bar — floating top-right corner (Draggable & Movable) ────────
-function injectFloatingStatsBar() {
-  if (document.getElementById('ag-stats-bar')) return;
-  const bar = document.createElement('div');
-  bar.id = 'ag-stats-bar';
-  bar.style.cssText = [
-    'position:fixed', 'top:12px', 'right:16px', 'z-index:1005',
-    'display:flex', 'align-items:center', 'gap:6px',
-    'background:rgba(6,8,24,0.88)', 'backdrop-filter:blur(12px)',
-    'border:1px solid rgba(99,102,241,0.3)', 'border-radius:30px',
-    'padding:5px 12px', 'box-shadow:0 6px 24px rgba(0,0,0,0.6)',
-    'font-family:var(--ff-mono)', 'font-size:11px', 'color:var(--text2)',
-    'pointer-events:auto', 'user-select:none', 'touch-action:none'
-  ].join(';');
-  bar.innerHTML = `
-    <span class="drag-handle" style="cursor:grab; color:var(--text3); display:flex; align-items:center; margin-right:2px;" title="Drag to move"><i class="fa-solid fa-grip-vertical" style="font-size:10px"></i></span>
-    <span style="color:var(--indigo);font-weight:700;letter-spacing:.05em;"><i class="fa-solid fa-microchip" style="font-size:10px"></i></span>
-    <span style="color:var(--text3)">Lv</span><span id="hdr-lvl" style="color:var(--cyan);font-weight:700">—</span>
-    <span style="color:var(--border)">|</span>
-    <span id="hdr-energy" style="color:var(--green)">—%</span>
-    <span style="color:var(--border)">|</span>
-    <i class="fa-solid fa-fire" style="color:var(--amber);font-size:9px"></i>
-    <span id="hdr-streak" style="color:var(--amber)">0d</span>
-    <span style="color:var(--border)">|</span>
-    <button id="sync-status-btn" onclick="triggerManualSync()" title="Neon DB Sync Status (Click to Sync)" style="background:none; border:none; color:var(--text2); font-family:var(--ff-mono); font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; outline:none; padding: 2px 6px; border-radius: 12px; transition: background 0.2s;">
-      <i id="sync-icon" class="fa-solid fa-circle" style="color:var(--green); font-size:8px;"></i>
-      <span id="sync-text">Online</span>
-    </button>
-  `;
-  document.body.appendChild(bar);
-  makeElementDraggable(bar);
-}
+// function injectFloatingStatsBar() {
+//   if (document.getElementById('ag-stats-bar')) return;
+//   const bar = document.createElement('div');
+//   bar.id = 'ag-stats-bar';
+//   bar.style.cssText = [
+//     'position:fixed', 'top:12px', 'right:16px', 'z-index:1005',
+//     'display:flex', 'align-items:center', 'gap:6px',
+//     'background:rgba(6,8,24,0.88)', 'backdrop-filter:blur(12px)',
+//     'border:1px solid rgba(99,102,241,0.3)', 'border-radius:30px',
+//     'padding:5px 12px', 'box-shadow:0 6px 24px rgba(0,0,0,0.6)',
+//     'font-family:var(--ff-mono)', 'font-size:11px', 'color:var(--text2)',
+//     'pointer-events:auto', 'user-select:none', 'touch-action:none'
+//   ].join(';');
+//   bar.innerHTML = `
+//     <span class="drag-handle" style="cursor:grab; color:var(--text3); display:flex; align-items:center; margin-right:2px;" title="Drag to move"><i class="fa-solid fa-grip-vertical" style="font-size:10px"></i></span>
+//     <span style="color:var(--indigo);font-weight:700;letter-spacing:.05em;"><i class="fa-solid fa-microchip" style="font-size:10px"></i></span>
+//     <span style="color:var(--text3)">Lv</span><span id="hdr-lvl" style="color:var(--cyan);font-weight:700">—</span>
+//     <span style="color:var(--border)">|</span>
+//     <span id="hdr-energy" style="color:var(--green)">—%</span>
+//     <span style="color:var(--border)">|</span>
+//     <i class="fa-solid fa-fire" style="color:var(--amber);font-size:9px"></i>
+//     <span id="hdr-streak" style="color:var(--amber)">0d</span>
+//     <span style="color:var(--border)">|</span>
+//     <button id="sync-status-btn" onclick="triggerManualSync()" title="Neon DB Sync Status (Click to Sync)" style="background:none; border:none; color:var(--text2); font-family:var(--ff-mono); font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; outline:none; padding: 2px 6px; border-radius: 12px; transition: background 0.2s;">
+//       <i id="sync-icon" class="fa-solid fa-circle" style="color:var(--green); font-size:8px;"></i>
+//       <span id="sync-text">Online</span>
+//     </button>
+//   `;
+//   document.body.appendChild(bar);
+//   makeElementDraggable(bar);
+// }
 
 function makeElementDraggable(elmnt) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -1085,43 +1085,43 @@ function injectDesktopSidebarNav() {
 }
 
 async function loadMiniStats() {
-  // try {
-  //   injectFloatingStatsBar();
-  //   injectMobileNavigation();
-  //   injectDesktopSidebarNav();
-  //   initDashboardMobileTabs();
-  //   initGymMobileTabs();
-  //   initJournalMobileTabs();
-  //   renderVoiceControls();
-  //   startVoiceDaemonTimer();
+  try {
+    // injectFloatingStatsBar();
+    injectMobileNavigation();
+    injectDesktopSidebarNav();
+    initDashboardMobileTabs();
+    initGymMobileTabs();
+    initJournalMobileTabs();
+    renderVoiceControls();
+    startVoiceDaemonTimer();
 
-  //   const r = await apiFetch('/stats');
-  //   if (!r.ok) return;
-  //   const d = await r.json();
-  //   const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-  //   setEl('hdr-lvl', d.level);
-  //   setEl('hdr-xp', d.xp);
-  //   setEl('hdr-energy', Math.round(d.energy) + '%');
-  //   setEl('hdr-streak', d.streak_days + 'd');
+    const r = await apiFetch('/stats');
+    if (!r.ok) return;
+    const d = await r.json();
+    const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    setEl('hdr-lvl', d.level);
+    setEl('hdr-xp', d.xp);
+    setEl('hdr-energy', Math.round(d.energy) + '%');
+    setEl('hdr-streak', d.streak_days + 'd');
 
-  //   const syncIcon = document.getElementById('sync-icon');
-  //   const syncText = document.getElementById('sync-text');
-  //   if (syncIcon && syncText) {
-  //     if (d.neon_online) {
-  //       syncIcon.className = 'fa-solid fa-circle';
-  //       syncIcon.style.color = 'var(--green)';
-  //       syncText.textContent = 'Online';
-  //     } else {
-  //       syncIcon.className = 'fa-solid fa-triangle-exclamation';
-  //       syncIcon.style.color = 'var(--amber)';
-  //       syncText.textContent = 'Offline';
-  //     }
-  //   }
+    const syncIcon = document.getElementById('sync-icon');
+    const syncText = document.getElementById('sync-text');
+    if (syncIcon && syncText) {
+      if (d.neon_online) {
+        syncIcon.className = 'fa-solid fa-circle';
+        syncIcon.style.color = 'var(--green)';
+        syncText.textContent = 'Online';
+      } else {
+        syncIcon.className = 'fa-solid fa-triangle-exclamation';
+        syncIcon.style.color = 'var(--amber)';
+        syncText.textContent = 'Offline';
+      }
+    }
 
-  //   if (d.level) {
-  //     checkLevelUpEvent(d.level);
-  //   }
-  // } catch (_) { }
+    if (d.level) {
+      checkLevelUpEvent(d.level);
+    }
+  } catch (_) { }
 }
 
 if (document.readyState === 'loading') {
