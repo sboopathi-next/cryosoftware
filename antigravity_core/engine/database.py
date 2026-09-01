@@ -138,6 +138,47 @@ def init_db():
     # 7. Daily English Lessons Cache Table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS daily_english_lessons (
+        log_date TEXT PRIMARY KEY,
+        lesson_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+    """)
+
+    # 8. Financial Governance Tables
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS finance_expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        category TEXT NOT NULL,
+        sub_type TEXT DEFAULT 'variable',
+        description TEXT DEFAULT '',
+        is_fixed INTEGER DEFAULT 0,
+        expense_date TEXT NOT NULL,
+        logged_at TEXT NOT NULL
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS finance_monthly_budget (
+        month_str TEXT PRIMARY KEY,
+        income REAL DEFAULT 0.0,
+        category_budgets_json TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS finance_sinking_funds (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        target_amount REAL NOT NULL,
+        current_amount REAL DEFAULT 0.0,
+        monthly_contribution REAL DEFAULT 0.0,
+        target_date TEXT DEFAULT ''
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_english_lessons (
         date TEXT PRIMARY KEY,
         word TEXT NOT NULL,
         word_tamil TEXT NOT NULL,

@@ -85,6 +85,9 @@ ANTIGRAVITY_DB_PATH = os.path.join(DATA_DIR, "antigravity.db")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+from routers.finance_router import router as finance_router
+app.include_router(finance_router)
+
 
 
 # ─── Pydantic Models ────────────────────────────────────────────────────────
