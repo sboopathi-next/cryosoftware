@@ -750,6 +750,10 @@ window.syncGoogleFitCloudManual = syncGoogleFitCloudManual;
 // ── Mobile Bottom Nav & Sheet Injection ───────────────────────
 function injectMobileNavigation() {
   if (document.querySelector('.mobile-bottom-nav')) return;
+  if (!document.body) {
+    document.addEventListener('DOMContentLoaded', injectMobileNavigation);
+    return;
+  }
 
   // 1. Create and inject bottom nav container (1. Dashboard, 2. Finance, 3. Canvas, 4. GymPro, 5. More)
   const bottomNav = document.createElement('div');
@@ -1146,75 +1150,8 @@ if ("serviceWorker" in navigator) {
 (function initNotificationBell() {
   // ── Inject bell button + dropdown panel ────────────────────────────
   function _injectBellUI() {
-    if (document.getElementById('ag-bell-btn')) return;
-
-    // Floating bell (top-right on all pages)
-    const bellWrap = document.createElement('div');
-    bellWrap.id = 'ag-bell-wrap';
-    bellWrap.style.cssText = `
-      position:fixed; top:12px; right:16px; z-index:9999;
-      display:flex; align-items:center; gap:8px;
-    `;
-    bellWrap.innerHTML = `
-      <button id="ag-bell-btn" onclick="toggleNotificationPanel()" title="Notifications" style="
-        background:rgba(15,23,42,.85); border:1px solid rgba(255,255,255,.1);
-        border-radius:50%; width:36px; height:36px; cursor:pointer;
-        display:flex; align-items:center; justify-content:center;
-        position:relative; backdrop-filter:blur(8px); color:#94a3b8;
-        transition:border-color .2s, color .2s; font-size:14px;
-      ">
-        <i class="fa-solid fa-bell"></i>
-        <span id="ag-bell-badge" style="
-          display:none; position:absolute; top:-3px; right:-3px;
-          background:#ef4444; color:#fff; border-radius:50%;
-          width:16px; height:16px; font-size:9px; font-weight:900;
-          line-height:16px; text-align:center; border:2px solid #0a0f1d;
-          animation:bell-pulse 1.4s infinite;
-        "></span>
-      </button>
-      <div id="ag-notif-panel" style="
-        display:none; position:fixed; top:56px; right:16px;
-        width:320px; max-height:420px; overflow-y:auto;
-        background:#0e1221; border:1px solid rgba(255,255,255,.12);
-        border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,.6);
-        z-index:9998;
-      ">
-        <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between;">
-          <div style="font-size:.875rem; font-weight:700; color:#f1f5f9;">🔔 Notifications</div>
-          <button onclick="markAllNotificationsRead()" style="font-size:.65rem; color:#64748b; background:none; border:none; cursor:pointer; padding:0;">Mark all read</button>
-        </div>
-        <div id="ag-notif-list" style="padding:8px 0;"></div>
-      </div>
-    `;
-    document.body.appendChild(bellWrap);
-
-    // Add keyframe for pulse
-    if (!document.getElementById('bell-keyframes')) {
-      const s = document.createElement('style');
-      s.id = 'bell-keyframes';
-      s.textContent = `
-        @keyframes bell-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
-        #ag-bell-btn:hover { border-color:rgba(99,102,241,.6) !important; color:#a5b4fc !important; }
-        .ag-notif-item { padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.05); cursor:default; }
-        .ag-notif-item:last-child { border-bottom:none; }
-        .ag-notif-item.unread { background:rgba(99,102,241,.06); }
-        .ag-notif-item.danger { background:rgba(239,68,68,.08); border-left:3px solid #ef4444; }
-        .ag-notif-item.warning { border-left:3px solid #f59e0b; }
-        .ag-notif-title { font-size:.8rem; font-weight:700; color:#e2e8f0; margin-bottom:3px; }
-        .ag-notif-body  { font-size:.7rem; color:#94a3b8; line-height:1.5; white-space:pre-wrap; }
-        .ag-notif-time  { font-size:.6rem; color:#475569; margin-top:4px; }
-      `;
-      document.head.appendChild(s);
-    }
-
-    // Close panel when clicking outside
-    document.addEventListener('click', function(e) {
-      const panel = document.getElementById('ag-notif-panel');
-      const btn   = document.getElementById('ag-bell-btn');
-      if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
-        panel.style.display = 'none';
-      }
-    });
+    // Disabled floating overlay
+    return;
   }
 
   // ── Render notifications in the panel ──────────────────────────────
