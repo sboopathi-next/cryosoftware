@@ -9,14 +9,14 @@ from engine.database import save_chat_message, get_chat_history, update_stat
 from engine.english_daily import _get_api_key_from_db
 from services.finance_service import finance_service
 
-GROQ_DEFAULT_MODEL = "llama-3.3-70b-versatile"
+GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b"
 
 def sanitize_groq_model(m: Optional[str]) -> str:
     if not m or not isinstance(m, str):
         return GROQ_DEFAULT_MODEL
     m_clean = m.strip().lower()
-    deprecated = ["llama3-70b-8192", "llama3-8b-8192", "mixtral-8x7b-32768"]
-    if m_clean in deprecated or "llama3-" in m_clean:
+    deprecated = ["llama3-70b-8192", "llama3-8b-8192", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"]
+    if m_clean in deprecated or "llama" in m_clean or "mixtral" in m_clean:
         return GROQ_DEFAULT_MODEL
     return m.strip()
 

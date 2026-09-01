@@ -3400,7 +3400,7 @@ def auto_categorize_work_with_groq(description: str, work_item_id: str, default_
         import urllib.request
         import json
         req_data = {
-            "model": "llama-3.3-70b-versatile",
+            "model": "openai/gpt-oss-120b",
             "messages": [
                 {
                     "role": "system",

@@ -57,9 +57,24 @@ async function apiFetch(url, options = {}) {
   });
 })();
 
-// ── Active nav link ──────────────────────────────────────────
+// ── Active nav link & Nav Sync ──────────────────────────────────────────
 
 (function () {
+  const nav = document.querySelector('.nav');
+  if (nav) {
+    const hasFinance = Array.from(nav.querySelectorAll('a')).some(a => a.getAttribute('href') === '/finance');
+    if (!hasFinance) {
+      const dashItem = nav.querySelector('li');
+      const finItem = document.createElement('li');
+      finItem.innerHTML = `<a href="/finance"><i class="fa-solid fa-sack-dollar" style="color:var(--amber)"></i><span>Finance Advisor</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">AI</span></a>`;
+      if (dashItem && dashItem.nextSibling) {
+        nav.insertBefore(finItem, dashItem.nextSibling);
+      } else {
+        nav.appendChild(finItem);
+      }
+    }
+  }
+
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   document.querySelectorAll('.nav a').forEach(a => {
     const href = a.getAttribute('href').replace(/\/$/, '') || '/';
@@ -93,13 +108,13 @@ function toast(msg, type = 'info') {
 
 // ── Groq Models ─────────────────────────────────────────────────────────────
 const DECOMMISSIONED_MODELS_JS = [
-  'llama3-70b-8192', 'llama3-8b-8192'
+  'llama3-70b-8192', 'llama3-8b-8192', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it'
 ];
 
 function getSanitizedGroqModel() {
   let m = localStorage.getItem('groq_model');
-  if (!m || DECOMMISSIONED_MODELS_JS.includes(m) || m.includes('openai/')) {
-    m = 'llama-3.3-70b-versatile';
+  if (!m || DECOMMISSIONED_MODELS_JS.includes(m) || m.includes('llama') || m.includes('mixtral')) {
+    m = 'openai/gpt-oss-120b';
     localStorage.setItem('groq_model', m);
     localStorage.setItem('studio_model', m);
   }
@@ -107,10 +122,11 @@ function getSanitizedGroqModel() {
 }
 
 const GROQ_MODELS = [
-  { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile 🔥 Flagship (70B)' },
-  { value: 'llama-3.1-8b-instant', label: 'llama-3.1-8b-instant ⚡ Fast (8B)' },
-  { value: 'gemma2-9b-it', label: 'gemma2-9b-it 🎯 Google Gemma' },
-  { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768 🌀 Mixtral 8x7B' }
+  { value: 'openai/gpt-oss-120b', label: 'openai/gpt-oss-120b 🔥 Flagship (120B)' },
+  { value: 'openai/gpt-oss-20b', label: 'openai/gpt-oss-20b ⚡ Fast (20B)' },
+  { value: 'qwen/qwen3.8-27b', label: 'qwen/qwen3.8-27b 🎯 Alibaba Qwen' },
+  { value: 'groq/compound', label: 'groq/compound 🌀 Groq Compound' },
+  { value: 'groq/compound-mini', label: 'groq/compound-mini ⚡ Groq Mini' }
 ];
 
 function _buildGroqModelOptions(selected) {

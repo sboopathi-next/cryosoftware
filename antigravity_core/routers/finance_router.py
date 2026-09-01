@@ -33,7 +33,7 @@ class SinkingFundPayload(BaseModel):
 class FinanceAIChatPayload(BaseModel):
     message: str
     api_key: Optional[str] = ""
-    groq_model: Optional[str] = "llama-3.3-70b-versatile"
+    groq_model: Optional[str] = "openai/gpt-oss-120b"
     month_str: Optional[str] = None
 
 @router.get("/finance")
