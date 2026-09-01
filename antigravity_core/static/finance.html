@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0a0f1d">
-<title>💰 Financial Governance & AI Advisor — Antigravity</title>
+<title>💰 Financial Governance & AI Workstation — Antigravity</title>
 <link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
 <link rel="stylesheet" href="/static/style.css">
 <style>
@@ -17,7 +17,7 @@
   --purple: #8b5cf6;
 }
 
-/* Dual-Pane Workstation Layout */
+/* Workstation Layout */
 .fin-workstation {
   display: grid;
   grid-template-columns: 1.25fr 0.75fr;
@@ -99,34 +99,77 @@
 .status-WARNING { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-EXCEEDED { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 
-/* Gym Pro Style Log Set Table */
-.set-table {
-  width: 100%; border-collapse: separate; border-spacing: 0 6px;
+/* Mobile & Desktop 2-Line Card Row Layout for Log Set Sheet */
+.set-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
 }
-.set-table th {
-  font-size: 10px; font-family: var(--ff-mono); color: var(--text3);
-  text-transform: uppercase; text-align: left; padding: 4px 6px;
+
+.set-card-row {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.set-table td { padding: 4px; background: rgba(30, 41, 59, 0.5); }
-.set-table td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; text-align: center; }
-.set-table td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; text-align: center; }
+
+.set-row-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.set-row-num {
+  font-family: var(--ff-mono);
+  font-weight: 800;
+  color: var(--amber);
+  font-size: 12px;
+  min-width: 22px;
+}
+
+.set-row-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.set-row-running-bal {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.set-row-remove-btn {
+  background: none; border: none; color: var(--red);
+  font-size: 16px; font-weight: 800; cursor: pointer; padding: 0 4px;
+}
+
 .set-input {
-  width: 100%; background: #0f172a; border: 1px solid var(--border);
-  padding: 6px 8px; border-radius: 6px; color: #fff; font-size: 12px;
+  background: #0f172a; border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 6px; color: #fff; font-size: 12.5px;
 }
 
 .log-set-grid { display: grid; grid-template-columns: 1fr 240px; gap: 16px; }
 @media (max-width: 768px) { .log-set-grid { grid-template-columns: 1fr; } }
 
 .side-calc-card {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
 }
 .side-calc-item { display: flex; justify-content: space-between; font-size: 11.5px; }
 .side-calc-val { font-family: var(--ff-mono); font-weight: 800; }
 
-/* Sticky Dedicated AI Advisor Pane (Right Pane) */
+/* Sticky Dedicated AI Advisor Pane (ChatGPT / Gemini Mobile UI) */
 .ai-advisor-pane {
   position: sticky;
   top: 16px;
@@ -140,19 +183,25 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
+
 @media (max-width: 1080px) {
-  .ai-advisor-pane { position: static; height: 540px; }
+  .ai-advisor-pane {
+    position: static;
+    height: calc(100vh - 200px);
+    max-height: none;
+    border-radius: 14px;
+  }
 }
 
 .ai-pane-header {
-  padding: 14px 16px;
-  background: rgba(30, 41, 59, 0.8);
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.85);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.ai-pane-title { font-weight: 800; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 8px; }
+.ai-pane-title { font-weight: 800; font-size: 13.5px; color: #fff; display: flex; align-items: center; gap: 8px; }
 
 .ai-chat-stream {
   flex: 1;
@@ -189,6 +238,54 @@
   padding: 5px 10px; border-radius: 20px; font-size: 10.5px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
 }
 .quick-chip:hover { background: rgba(99, 102, 241, 0.3); color: #fff; }
+
+/* Mobile Segmented Tab Switcher */
+.mobile-pane-switcher {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+@media (max-width: 1080px) {
+  .mobile-pane-switcher { display: grid; }
+}
+
+.pane-tab-btn {
+  background: transparent; border: none; color: var(--text3);
+  padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 7px;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.pane-tab-btn.active {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Mobile Bottom Sheet Modal Solutions (Guarantees zero top clipping) */
+@media (max-width: 768px) {
+  .modal-mask {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    z-index: 999999 !important;
+  }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8) !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -220,7 +317,7 @@
     <div class="page-head">
       <div>
         <div class="page-title">💰 Financial Governance & AI Workstation</div>
-        <div class="page-sub">Dual-Pane Workstation · 50/30/20 Law · Multi-Row Log Set · Encrypted HDFC PDF</div>
+        <div class="page-sub">Dual-Pane Workstation · 2-Line Row Card Sheet · Live Running Balance</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <button class="btn btn-primary btn-sm" onclick="openLogSetModal()"><i class="fa-solid fa-layer-group"></i> ⚡ Log Set / Bulk Sheet</button>
@@ -231,11 +328,17 @@
       </div>
     </div>
 
+    <!-- MOBILE PANE SWITCHER -->
+    <div class="mobile-pane-switcher" id="mobile-pane-switcher">
+      <button class="pane-tab-btn active" id="tab-dash-btn" onclick="switchMobilePane('dash')"><i class="fa-solid fa-chart-pie"></i> Governance Telemetry</button>
+      <button class="pane-tab-btn" id="tab-ai-btn" onclick="switchMobilePane('ai')"><i class="fa-solid fa-robot"></i> 🤖 AI Advisor (ChatGPT UI)</button>
+    </div>
+
     <!-- DUAL-PANE WORKSTATION CONTAINER -->
     <div class="fin-workstation">
       
       <!-- LEFT PANE: FINANCIAL GOVERNANCE TELEMETRY & DASHBOARD -->
-      <div>
+      <div id="pane-telemetry">
         <!-- FINANCIAL HEALTH SCORE BANNER -->
         <div class="health-banner">
           <div class="score-badge">
@@ -339,15 +442,15 @@
         </div>
       </div>
 
-      <!-- RIGHT PANE: DEDICATED AI FINANCIAL ADVISOR -->
-      <div>
+      <!-- RIGHT PANE: DEDICATED AI FINANCIAL ADVISOR (ChatGPT / Gemini Mobile UI) -->
+      <div id="pane-ai">
         <div class="ai-advisor-pane">
           <div class="ai-pane-header">
             <div class="ai-pane-title">
               <i class="fa-solid fa-robot" style="color:var(--amber); font-size:18px;"></i>
               <div>
                 <div>AI Financial Advisor</div>
-                <div style="font-size:10px; color:var(--text3); font-weight:400;">Groq AI • 50/30/20 Governance</div>
+                <div style="font-size:10px; color:var(--text3); font-weight:400;">Groq AI • ChatGPT/Gemini Mobile Engine</div>
               </div>
             </div>
             <span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">ACTIVE</span>
@@ -379,9 +482,9 @@
   </main>
 </div>
 
-<!-- GYM PRO STYLE MULTI-ROW LOG SET MODAL WITH LIVE TELEMETRY SIDEBAR -->
+<!-- GYM PRO STYLE MULTI-ROW LOG SET MODAL WITH 2-LINE ROW CARDS & LIVE RUNNING BALANCES -->
 <div id="log-set-modal" class="modal-mask hidden">
-  <div class="modal" style="max-width:860px; width:94%;">
+  <div class="modal" style="max-width:880px; width:94%;">
     <div class="modal-hdr">
       <h3>⚡ Log Set — Multi-Item & Debt Sheet Logger</h3>
       <button class="modal-close" onclick="closeLogSetModal()">&times;</button>
@@ -389,9 +492,9 @@
     <div style="padding:16px; max-height:82vh; overflow-y:auto;">
       
       <div class="log-set-grid">
-        <!-- LEFT: SET ROWS & AI PASTE -->
+        <!-- LEFT: 2-LINE ROW CARDS & AI PASTE -->
         <div>
-          <!-- Paste & AI Auto-Fill Section -->
+          <!-- Quick AI Paste Box -->
           <div style="background:rgba(30,41,59,0.5); border:1px solid var(--border); padding:10px 12px; border-radius:10px; margin-bottom:14px;">
             <div style="font-size:11px; font-weight:700; color:var(--amber); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
               <span>🤖 Quick Paste & AI Auto-Parse Text</span>
@@ -401,27 +504,15 @@
             <button class="btn btn-secondary btn-sm" onclick="aiAutoFillRows()" style="margin-top:6px; font-size:11px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Auto-Fill Rows</button>
           </div>
 
-          <!-- Set Table -->
-          <div class="flex-between" style="margin-bottom:8px;">
-            <span style="font-size:11.5px; font-weight:700; color:#fff;">TRANSACTION ROWS</span>
+          <div class="flex-between" style="margin-bottom:10px;">
+            <span style="font-size:11.5px; font-weight:700; color:#fff;">TRANSACTION SET ROWS</span>
             <button class="btn btn-secondary btn-sm" onclick="addSetRow()"><i class="fa-solid fa-plus"></i> Add Row</button>
           </div>
 
-          <table class="set-table">
-            <thead>
-              <tr>
-                <th style="width:25px;">#</th>
-                <th>PERSON / PAYEE</th>
-                <th style="width:100px;">AMOUNT (₹)</th>
-                <th>CATEGORY</th>
-                <th style="width:90px;">TYPE</th>
-                <th style="width:25px;"></th>
-              </tr>
-            </thead>
-            <tbody id="set-rows-tbody">
-              <!-- Dynamically populated rows -->
-            </tbody>
-          </table>
+          <!-- 2-Line Row Card List -->
+          <div class="set-card-list" id="set-rows-tbody">
+            <!-- Dynamically populated row cards -->
+          </div>
         </div>
 
         <!-- RIGHT: LIVE CALCULATED TELEMETRY & BALANCE PANEL -->
@@ -451,7 +542,6 @@
               <span class="side-calc-val" id="calc-savings-rate" style="color:var(--cyan);">0%</span>
             </div>
 
-            <!-- LIVE CATEGORY BREAKDOWN IN SET -->
             <div style="font-size:11px; font-weight:700; color:var(--text3); margin-top:6px; border-top:1px solid var(--border); padding-top:6px;">
               SET CATEGORY BREAKDOWN
             </div>
@@ -593,6 +683,32 @@
 let finData = null;
 let setRowIndex = 0;
 
+function switchMobilePane(paneKey) {
+  const pDash = document.getElementById('pane-telemetry');
+  const pAI = document.getElementById('pane-ai');
+  const btnDash = document.getElementById('tab-dash-btn');
+  const btnAI = document.getElementById('tab-ai-btn');
+
+  if (paneKey === 'ai') {
+    pDash.style.display = 'none';
+    pAI.style.display = 'block';
+    btnDash.classList.remove('active');
+    btnAI.classList.add('active');
+  } else {
+    pDash.style.display = 'block';
+    pAI.style.display = window.innerWidth > 1080 ? 'block' : 'none';
+    btnAI.classList.remove('active');
+    btnDash.classList.add('active');
+  }
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 1080) {
+    document.getElementById('pane-telemetry').style.display = 'block';
+    document.getElementById('pane-ai').style.display = 'block';
+  }
+});
+
 async function loadFinanceSummary() {
   try {
     const r = await fetch('/api/finance/summary');
@@ -706,8 +822,8 @@ function populateCategoryDropdowns(cats) {
 
 function openLogSetModal() {
   document.getElementById('log-set-modal').classList.remove('hidden');
-  const tbody = document.getElementById('set-rows-tbody');
-  tbody.innerHTML = '';
+  const container = document.getElementById('set-rows-tbody');
+  container.innerHTML = '';
   setRowIndex = 0;
   addSetRow();
   addSetRow();
@@ -717,70 +833,88 @@ function closeLogSetModal() { document.getElementById('log-set-modal').classList
 
 function addSetRow(data = {}) {
   setRowIndex++;
-  const tbody = document.getElementById('set-rows-tbody');
-  const tr = document.createElement('tr');
-  tr.id = `set-row-${setRowIndex}`;
+  const container = document.getElementById('set-rows-tbody');
+  const div = document.createElement('div');
+  div.className = 'set-card-row';
+  div.id = `set-row-${setRowIndex}`;
 
   const catOpts = (finData && finData.all_categories ? finData.all_categories : [
     {name:'Food'},{name:'Debt'},{name:'Needs'},{name:'Transport'},{name:'Lifestyle'},{name:'Health'},{name:'Savings'}
   ]).map(c => `<option value="${c.name}" ${data.category === c.name ? 'selected':''}>${c.icon||'📦'} ${c.name}</option>`).join('');
 
-  tr.innerHTML = `
-    <td style="font-family:var(--ff-mono); font-weight:700; color:var(--text3);">${setRowIndex}</td>
-    <td><input type="text" class="set-input set-person" value="${data.person_tag || ''}" placeholder="e.g. Ramesh / Swiggy"></td>
-    <td><input type="number" class="set-input set-amount" value="${data.amount || ''}" placeholder="500" oninput="calculateLiveSetTelemetry()"></td>
-    <td><select class="set-input set-category" onchange="calculateLiveSetTelemetry()">${catOpts}</select></td>
-    <td>
-      <select class="set-input set-fixed">
-        <option value="0" ${!data.is_fixed ? 'selected':''}>Variable</option>
-        <option value="1" ${data.is_fixed ? 'selected':''}>Fixed / Debt</option>
-      </select>
-    </td>
-    <td><button onclick="removeSetRow(${setRowIndex})" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:800;">&times;</button></td>
+  div.innerHTML = `
+    <div class="set-row-top">
+      <span class="set-row-num">#${setRowIndex}</span>
+      <input type="text" class="set-input set-person" value="${data.person_tag || ''}" placeholder="Person / Payee / Note (e.g. Ramesh, Swiggy, Fuel)" style="flex:1;">
+      <select class="set-input set-category" style="width:110px;" onchange="calculateLiveSetTelemetry()">${catOpts}</select>
+    </div>
+    <div class="set-row-bottom">
+      <div style="display:flex; align-items:center; gap:6px; flex:1;">
+        <span style="font-size:11px; color:var(--text3); font-weight:700;">₹</span>
+        <input type="number" class="set-input set-amount" value="${data.amount || ''}" placeholder="Amount (e.g. 500)" style="flex:1;" oninput="calculateLiveSetTelemetry()">
+        <select class="set-input set-fixed" style="width:95px;">
+          <option value="0" ${!data.is_fixed ? 'selected':''}>Variable</option>
+          <option value="1" ${data.is_fixed ? 'selected':''}>Fixed/Debt</option>
+        </select>
+      </div>
+      <div class="set-row-running-bal">
+        <span style="font-size:9.5px; color:var(--text3);">RUNNING BAL:</span>
+        <span class="running-bal-val" id="row-bal-${setRowIndex}" style="font-family:var(--ff-mono); font-weight:800; color:var(--green); font-size:12px;">₹50,000</span>
+      </div>
+      <button onclick="removeSetRow(${setRowIndex})" class="set-row-remove-btn">&times;</button>
+    </div>
   `;
-  tbody.appendChild(tr);
+  container.appendChild(div);
   calculateLiveSetTelemetry();
 }
 
 function removeSetRow(idx) {
-  const tr = document.getElementById(`set-row-${idx}`);
-  if (tr) tr.remove();
+  const div = document.getElementById(`set-row-${idx}`);
+  if (div) div.remove();
   calculateLiveSetTelemetry();
 }
 
 function calculateLiveSetTelemetry() {
-  const tbody = document.getElementById('set-rows-tbody');
-  if (!tbody) return;
+  const container = document.getElementById('set-rows-tbody');
+  if (!container) return;
 
-  const rows = tbody.querySelectorAll('tr');
+  const rows = container.querySelectorAll('.set-card-row');
   let newBatchTotal = 0.0;
   const catTotals = {};
 
-  rows.forEach(r => {
+  const income = finData ? (finData.income || 50000.0) : 50000.0;
+  const spentSoFar = finData ? (finData.total_expenses || 0.0) : 0.0;
+  let runningBal = income - spentSoFar;
+
+  rows.forEach((r, i) => {
     const amtInput = r.querySelector('.set-amount');
     const catInput = r.querySelector('.set-category');
-    if (amtInput) {
-      const val = parseFloat(amtInput.value || '0');
-      if (val > 0) {
-        newBatchTotal += val;
-        const cat = catInput ? catInput.value : 'Needs';
-        catTotals[cat] = (catTotals[cat] || 0.0) + val;
-      }
+    const rowBalSpan = r.querySelector('.running-bal-val');
+
+    const val = parseFloat(amtInput ? amtInput.value || '0' : '0');
+    if (val > 0) {
+      newBatchTotal += val;
+      runningBal -= val;
+      const cat = catInput ? catInput.value : 'Needs';
+      catTotals[cat] = (catTotals[cat] || 0.0) + val;
+    }
+
+    if (rowBalSpan) {
+      rowBalSpan.textContent = `₹${runningBal.toLocaleString()}`;
+      rowBalSpan.style.color = runningBal >= 0 ? 'var(--green)' : 'var(--red)';
     }
   });
 
-  const income = finData ? (finData.income || 50000.0) : 50000.0;
-  const spentSoFar = finData ? (finData.total_expenses || 0.0) : 0.0;
-  const remBalance = income - spentSoFar - newBatchTotal;
-  const projSavingsRate = income > 0 ? Math.max(0, Math.round(((remBalance) / income) * 100)) : 0;
+  const finalRemBalance = income - spentSoFar - newBatchTotal;
+  const projSavingsRate = income > 0 ? Math.max(0, Math.round((finalRemBalance / income) * 100)) : 0;
 
   document.getElementById('calc-income').textContent = `₹${income.toLocaleString()}`;
   document.getElementById('calc-spent-sofar').textContent = `₹${spentSoFar.toLocaleString()}`;
   document.getElementById('calc-new-batch').textContent = `₹${newBatchTotal.toLocaleString()}`;
   
   const remElem = document.getElementById('calc-rem-balance');
-  remElem.textContent = `₹${remBalance.toLocaleString()}`;
-  remElem.style.color = remBalance >= 0 ? 'var(--green)' : 'var(--red)';
+  remElem.textContent = `₹${finalRemBalance.toLocaleString()}`;
+  remElem.style.color = finalRemBalance >= 0 ? 'var(--green)' : 'var(--red)';
 
   document.getElementById('calc-savings-rate').textContent = `${projSavingsRate}%`;
 
@@ -810,8 +944,8 @@ async function aiAutoFillRows() {
     });
     const d = await r.json();
     if (r.ok && d.parsed_rows && d.parsed_rows.length) {
-      const tbody = document.getElementById('set-rows-tbody');
-      tbody.innerHTML = '';
+      const container = document.getElementById('set-rows-tbody');
+      container.innerHTML = '';
       setRowIndex = 0;
       d.parsed_rows.forEach(row => addSetRow(row));
       calculateLiveSetTelemetry();
@@ -823,8 +957,8 @@ async function aiAutoFillRows() {
 }
 
 async function submitLogSetForm() {
-  const tbody = document.getElementById('set-rows-tbody');
-  const rows = tbody.querySelectorAll('tr');
+  const container = document.getElementById('set-rows-tbody');
+  const rows = container.querySelectorAll('.set-card-row');
   const entries = [];
 
   rows.forEach(r => {
