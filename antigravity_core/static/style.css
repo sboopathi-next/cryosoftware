@@ -714,10 +714,13 @@ select, input, textarea { font-family: var(--ff-body); }
   }
 
   /* 2. Main Content & Grid Division */
-  .main-content, .content, .container, main, .main, .body-content {
+  .main-content, .content, .container, main, .main, .body-content, .app {
     padding: 14px 12px !important;
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
   .grid, .grid-2, .grid-3, .grid-4, .dashboard-grid, .stat-grid {
     grid-template-columns: 1fr !important;
