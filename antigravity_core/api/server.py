@@ -86,7 +86,9 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 from routers.finance_router import router as finance_router
+from routers.bank_sync_router import router as bank_sync_router
 app.include_router(finance_router)
+app.include_router(bank_sync_router)
 
 
 

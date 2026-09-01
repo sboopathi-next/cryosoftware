@@ -1,11 +1,12 @@
 import os
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import FileResponse, JSONResponse
 
 from services.finance_service import finance_service
 from services.ai_service import ai_service
+from engine.auth import verify_token
 
 router = APIRouter(tags=["Financial Governance"])
 
@@ -17,6 +18,11 @@ class ExpensePayload(BaseModel):
     description: Optional[str] = ""
     is_fixed: Optional[bool] = False
     expense_date: Optional[str] = None
+
+class CategoryPayload(BaseModel):
+    name: str
+    icon: Optional[str] = "📦"
+    default_limit: Optional[float] = 0.0
 
 class BudgetPayload(BaseModel):
     month_str: str
@@ -41,14 +47,41 @@ def get_finance_page():
     return FileResponse(os.path.join(STATIC_DIR, "finance.html"))
 
 @router.get("/api/finance/summary")
-def get_finance_summary(month: Optional[str] = Query(None)):
+def get_finance_summary(month: Optional[str] = Query(None), authenticated: bool = Depends(verify_token)):
     try:
         return finance_service.get_monthly_summary(month)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/api/finance/categories")
+def get_categories(authenticated: bool = Depends(verify_token)):
+    try:
+        return {"categories": finance_service.get_all_categories()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/finance/category")
+def add_custom_category(payload: CategoryPayload, authenticated: bool = Depends(verify_token)):
+    try:
+        return finance_service.add_custom_category(
+            name=payload.name,
+            icon=payload.icon or "📦",
+            default_limit=payload.default_limit or 0.0
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/api/finance/category/{name}")
+def delete_custom_category(name: str, authenticated: bool = Depends(verify_token)):
+    try:
+        return finance_service.delete_custom_category(name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/api/finance/expense")
-def add_expense(payload: ExpensePayload):
+def add_expense(payload: ExpensePayload, authenticated: bool = Depends(verify_token)):
     try:
         return finance_service.log_expense(
             amount=payload.amount,
@@ -63,7 +96,7 @@ def add_expense(payload: ExpensePayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/api/finance/expense/{expense_id}")
-def delete_expense(expense_id: int):
+def delete_expense(expense_id: int, authenticated: bool = Depends(verify_token)):
     try:
         return finance_service.delete_expense(expense_id)
     except ValueError as ve:
@@ -72,7 +105,7 @@ def delete_expense(expense_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/api/finance/budget")
-def save_budget(payload: BudgetPayload):
+def save_budget(payload: BudgetPayload, authenticated: bool = Depends(verify_token)):
     try:
         return finance_service.save_monthly_budget(
             month_str=payload.month_str,
@@ -83,7 +116,7 @@ def save_budget(payload: BudgetPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/api/finance/sinking_fund")
-def save_sinking_fund(payload: SinkingFundPayload):
+def save_sinking_fund(payload: SinkingFundPayload, authenticated: bool = Depends(verify_token)):
     try:
         return finance_service.update_sinking_fund(
             name=payload.name,
@@ -96,7 +129,7 @@ def save_sinking_fund(payload: SinkingFundPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/api/ai/finance_advisor")
-async def chat_finance_advisor(payload: FinanceAIChatPayload):
+async def chat_finance_advisor(payload: FinanceAIChatPayload, authenticated: bool = Depends(verify_token)):
     try:
         res = await ai_service.chat_finance_advisor(
             user_message=payload.message,
