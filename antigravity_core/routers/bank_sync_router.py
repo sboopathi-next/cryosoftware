@@ -17,6 +17,7 @@ class AAConsentPayload(BaseModel):
 async def import_bank_statement(
     file: UploadFile = File(...),
     bank_name: str = Form("HDFC Bank"),
+    pdf_password: Optional[str] = Form(None),
     authenticated: bool = Depends(verify_token)
 ):
     try:
@@ -27,7 +28,8 @@ async def import_bank_statement(
         res = bank_sync_service.parse_and_import_statement(
             file_content=content,
             filename=file.filename or "bank_statement.csv",
-            bank_name=bank_name
+            bank_name=bank_name,
+            pdf_password=pdf_password
         )
         return res
     except Exception as e:

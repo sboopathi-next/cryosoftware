@@ -102,59 +102,49 @@
 .status-WARNING { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-EXCEEDED { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 
+/* Gym Pro Style Log Set Table */
+.set-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+.set-table th {
+  font-size: 10.5px; font-family: var(--ff-mono); color: var(--text3);
+  text-transform: uppercase; text-align: left; padding: 4px 8px;
+}
+.set-table td {
+  padding: 4px; background: rgba(30, 41, 59, 0.5);
+}
+.set-table td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; text-align: center; }
+.set-table td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; text-align: center; }
+.set-input {
+  width: 100%; background: #0f172a; border: 1px solid var(--border);
+  padding: 6px 8px; border-radius: 6px; color: #fff; font-size: 12.5px;
+}
+
 /* AI Chat Container */
 .fin-ai-chat {
-  display: flex;
-  flex-direction: column;
-  height: 480px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  display: flex; flex-direction: column; height: 480px;
+  background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px;
 }
 .fin-chat-stream {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;
 }
 .msg-bubble {
-  max-width: 85%;
-  padding: 12px 16px;
-  border-radius: 14px;
-  font-size: 13px;
-  line-height: 1.5;
+  max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 13px; line-height: 1.5;
 }
 .msg-user {
-  align-self: flex-end;
-  background: linear-gradient(135deg, #4f46e5, #3b82f6);
-  color: #fff;
-  border-bottom-right-radius: 2px;
+  align-self: flex-end; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: #fff; border-bottom-right-radius: 2px;
 }
 .msg-ai {
-  align-self: flex-start;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  color: #e2e8f0;
-  border-bottom-left-radius: 2px;
+  align-self: flex-start; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(99, 102, 241, 0.3); color: #e2e8f0; border-bottom-left-radius: 2px;
 }
 
 .quick-chip {
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  color: #a5b4fc;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
+  background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc;
+  padding: 5px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
 }
-.quick-chip:hover {
-  background: rgba(99, 102, 241, 0.3);
-  color: #fff;
-}
+.quick-chip:hover { background: rgba(99, 102, 241, 0.3); color: #fff; }
 </style>
 </head>
 <body>
@@ -186,11 +176,12 @@
     <div class="page-head">
       <div>
         <div class="page-title">💰 Financial Governance & AI Advisor</div>
-        <div class="page-sub">50/30/20 Financial Law · Debt Governance · Smart Bank Statement Import · AA Sandbox</div>
+        <div class="page-sub">50/30/20 Financial Law · Debt Governance · Multi-Row Log Set · Password PDF & AA Sync</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="openExpenseModal()"><i class="fa-solid fa-plus"></i> Log Expense</button>
-        <button class="btn btn-secondary btn-sm" onclick="openBankImportModal()" style="background:linear-gradient(135deg,#06b6d4,#3b82f6); border:none;"><i class="fa-solid fa-building-columns"></i> Import Bank Statement</button>
+        <button class="btn btn-primary btn-sm" onclick="openLogSetModal()"><i class="fa-solid fa-layer-group"></i> ⚡ Log Set / Bulk Sheet</button>
+        <button class="btn btn-secondary btn-sm" onclick="openExpenseModal()"><i class="fa-solid fa-plus"></i> Single Expense</button>
+        <button class="btn btn-secondary btn-sm" onclick="openBankImportModal()" style="background:linear-gradient(135deg,#06b6d4,#3b82f6); border:none;"><i class="fa-solid fa-building-columns"></i> Import Statement</button>
         <button class="btn btn-secondary btn-sm" onclick="openCustomCatModal()"><i class="fa-solid fa-folder-plus"></i> Add Category</button>
         <button class="btn btn-secondary btn-sm" onclick="openBudgetModal()"><i class="fa-solid fa-sliders"></i> Edit Budget</button>
       </div>
@@ -246,6 +237,17 @@
           </div>
         </div>
 
+        <!-- PEOPLE DEBT LEDGER CARD -->
+        <div class="card" style="margin-bottom:16px; border:1px solid rgba(139,92,246,0.3); background:rgba(139,92,246,0.05);">
+          <div class="card-title flex-between">
+            <span><i class="fa-solid fa-users" style="color:var(--purple)"></i> People Debt Ledger ("Money Sent / Debts")</span>
+            <button class="btn btn-secondary btn-sm" onclick="openLogSetModal()" style="font-size:10px;"><i class="fa-solid fa-plus"></i> Tag Person & Money</button>
+          </div>
+          <div id="people-ledger-list">
+            <div style="font-size:11px; color:var(--text3);">No tagged transactions yet. Tag people when logging sets (e.g. Ramesh, Suresh, Mom).</div>
+          </div>
+        </div>
+
         <!-- BANK SYNC & ACCOUNT AGGREGATOR CARD -->
         <div class="card" style="margin-bottom:16px; border:1px solid rgba(6,182,212,0.3); background:rgba(6,182,212,0.05);">
           <div class="card-title flex-between">
@@ -253,11 +255,11 @@
             <span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">SECURE</span>
           </div>
           <div style="font-size:11.5px; color:var(--text2); margin-bottom:12px;">
-            Import HDFC / Bank statements or connect via Account Aggregator (AA) consent gateway.
+            Import HDFC / Bank statements (supports Password-Protected PDFs & CSVs) or connect via Account Aggregator.
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
             <button class="btn btn-primary btn-sm" onclick="openBankImportModal()" style="background:linear-gradient(135deg,#06b6d4,#3b82f6); border:none;">
-              <i class="fa-solid fa-file-import"></i> Upload Bank Statement (CSV)
+              <i class="fa-solid fa-file-import"></i> Upload HDFC PDF / CSV
             </button>
             <button class="btn btn-secondary btn-sm" onclick="connectAASandbox()">
               <i class="fa-solid fa-link"></i> OneMoney / Setu AA Gateway
@@ -330,7 +332,7 @@
                 <tr>
                   <th>Date</th>
                   <th>Category</th>
-                  <th>Description</th>
+                  <th>Description / Person</th>
                   <th>Amount</th>
                   <th>Action</th>
                 </tr>
@@ -346,18 +348,65 @@
   </main>
 </div>
 
+<!-- GYM PRO STYLE MULTI-ROW LOG SET MODAL -->
+<div id="log-set-modal" class="modal-mask hidden">
+  <div class="modal" style="max-width:680px; width:92%;">
+    <div class="modal-hdr">
+      <h3>⚡ Log Set — Multi-Item & Debt Sheet Logger</h3>
+      <button class="modal-close" onclick="closeLogSetModal()">&times;</button>
+    </div>
+    <div style="padding:16px; max-height:80vh; overflow-y:auto;">
+      <!-- Paste & AI Auto-Fill Section -->
+      <div style="background:rgba(30,41,59,0.5); border:1px solid var(--border); padding:10px 12px; border-radius:10px; margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; color:var(--amber); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+          <span>🤖 Quick Paste & AI Auto-Parse Text</span>
+          <span style="font-size:9.5px; color:var(--text3);">Paste entries like: Paid 500 to Ramesh, Gave 1200 to Suresh</span>
+        </div>
+        <textarea id="ai-bulk-textarea" rows="2" placeholder="e.g. Paid 500 to Ramesh for dinner&#10;Gave 1200 to Suresh for fuel debt&#10;Swiggy 450" style="width:100%; background:#0f172a; border:1px solid var(--border); border-radius:6px; color:#fff; padding:6px 8px; font-size:12px;"></textarea>
+        <button class="btn btn-secondary btn-sm" onclick="aiAutoFillRows()" style="margin-top:6px; font-size:11px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Auto-Fill Rows</button>
+      </div>
+
+      <!-- Set Table -->
+      <div class="flex-between" style="margin-bottom:8px;">
+        <span style="font-size:11.5px; font-weight:700; color:#fff;">TRANSACTION ROWS</span>
+        <button class="btn btn-secondary btn-sm" onclick="addSetRow()"><i class="fa-solid fa-plus"></i> Add Row</button>
+      </div>
+
+      <table class="set-table">
+        <thead>
+          <tr>
+            <th style="width:30px;">#</th>
+            <th>PERSON / PAYEE</th>
+            <th style="width:110px;">AMOUNT (₹)</th>
+            <th>CATEGORY</th>
+            <th style="width:100px;">TYPE</th>
+            <th style="width:30px;"></th>
+          </tr>
+        </thead>
+        <tbody id="set-rows-tbody">
+          <!-- Dynamically populated rows -->
+        </tbody>
+      </table>
+
+      <button class="btn btn-primary" onclick="submitLogSetForm()" style="width:100%; margin-top:16px; font-size:15px; font-weight:800; background:linear-gradient(135deg,#4f46e5,#3b82f6); border:none; padding:12px;">
+        ⚡ Log Entries & Update Sheet (+25 XP)
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- BANK STATEMENT IMPORT MODAL -->
 <div id="bank-import-modal" class="modal-mask hidden">
   <div class="modal" style="max-width:460px;">
     <div class="modal-hdr">
-      <h3>🏦 Import Bank Statement (CSV)</h3>
+      <h3>🏦 Import Bank Statement</h3>
       <button class="modal-close" onclick="closeBankImportModal()">&times;</button>
     </div>
     <div style="display:flex; flex-direction:column; gap:12px; padding:16px;">
       <div>
         <label style="font-size:11px; color:var(--text3); font-weight:700;">SELECT BANK / SOURCE</label>
         <select id="import-bank-name" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:#fff;">
-          <option value="HDFC Bank">🏛️ HDFC Bank Statement</option>
+          <option value="HDFC Bank">🏛️ HDFC Bank (PDF / CSV)</option>
           <option value="SBI">🏛️ State Bank of India (SBI)</option>
           <option value="ICICI Bank">🏛️ ICICI Bank</option>
           <option value="Axis Bank">🏛️ Axis Bank</option>
@@ -366,22 +415,26 @@
         </select>
       </div>
       <div>
-        <label style="font-size:11px; color:var(--text3); font-weight:700;">STATEMENT FILE (.CSV)</label>
-        <input type="file" id="import-file-input" accept=".csv,.txt" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px; border-radius:8px; color:#fff;">
+        <label style="font-size:11px; color:var(--text3); font-weight:700;">STATEMENT FILE (.PDF / .CSV)</label>
+        <input type="file" id="import-file-input" accept=".pdf,.csv,.txt" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px; border-radius:8px; color:#fff;">
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--amber); font-weight:700;">PDF PASSWORD / HDFC CUSTOMER ID (If Encrypted)</label>
+        <input type="password" id="import-pdf-pass" placeholder="e.g. HDFC Customer ID or DOB" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:#fff;">
       </div>
       <div style="font-size:10.5px; color:var(--text3); background:rgba(0,0,0,0.2); padding:8px 10px; border-radius:6px;">
-        💡 Auto-categorizes transactions into Needs, Food, Debt, Transport, etc. Uses SHA-256 hash deduplication to prevent double importing.
+        💡 Decrypts HDFC PDFs locally using Customer ID. SHA-256 deduplication prevents double importing.
       </div>
       <button class="btn btn-primary" onclick="submitBankImportForm()" style="margin-top:8px; background:linear-gradient(135deg,#06b6d4,#3b82f6); border:none;">Parse & Import Transactions</button>
     </div>
   </div>
 </div>
 
-<!-- LOG EXPENSE MODAL -->
+<!-- SINGLE EXPENSE MODAL -->
 <div id="expense-modal" class="modal-mask hidden">
   <div class="modal" style="max-width:440px;">
     <div class="modal-hdr">
-      <h3>➕ Log Daily Expense</h3>
+      <h3>➕ Log Single Expense</h3>
       <button class="modal-close" onclick="closeExpenseModal()">&times;</button>
     </div>
     <div style="display:flex; flex-direction:column; gap:12px; padding:16px;">
@@ -394,6 +447,10 @@
         <select id="exp-category" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:#fff;">
           <!-- Dynamically populated -->
         </select>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text3); font-weight:700;">PERSON TAG (If Money Sent / Debt)</label>
+        <input type="text" id="exp-person" placeholder="e.g. Ramesh, Suresh, Mom" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:#fff;">
       </div>
       <div>
         <label style="font-size:11px; color:var(--text3); font-weight:700;">TYPE</label>
@@ -438,12 +495,12 @@
 
 <!-- EDIT BUDGET MODAL -->
 <div id="budget-modal" class="modal-mask hidden">
-  <div class="modal" style="max-width:500px;">
+  <div class="modal" style="max-width:520px; width:90%;">
     <div class="modal-hdr">
       <h3>⚙️ Configure Monthly Budget & Limits</h3>
       <button class="modal-close" onclick="closeBudgetModal()">&times;</button>
     </div>
-    <div style="display:flex; flex-direction:column; gap:12px; padding:16px;">
+    <div style="display:flex; flex-direction:column; gap:12px; padding:16px; max-height:80vh; overflow-y:auto;">
       <div>
         <label style="font-size:11px; color:var(--text3); font-weight:700;">PLANNED MONTHLY TAKE-HOME INCOME (₹)</label>
         <input type="number" id="bgt-income" value="50000" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:#fff; font-size:16px; font-weight:700;">
@@ -460,6 +517,7 @@
 <script src="/static/shared.js"></script>
 <script>
 let finData = null;
+let setRowIndex = 0;
 
 async function loadFinanceSummary() {
   try {
@@ -507,8 +565,22 @@ async function loadFinanceSummary() {
     });
     matrixContainer.innerHTML = html;
 
-    // Populate Category Select Dropdowns
+    // Populate Dropdowns & Budget Inputs
     populateCategoryDropdowns(finData.all_categories || []);
+
+    // Render People Debt Ledger
+    const plContainer = document.getElementById('people-ledger-list');
+    if (finData.people_ledger && finData.people_ledger.length) {
+      plContainer.innerHTML = finData.people_ledger.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(30,41,59,0.3); border:1px solid var(--border); padding:8px 10px; border-radius:8px; margin-bottom:6px;">
+          <div>
+            <div style="font-weight:700; font-size:12px; color:#fff;">👤 ${p.person_name}</div>
+            <div style="font-size:10px; color:var(--text3);">Last sent on ${p.last_transaction_date}</div>
+          </div>
+          <div style="font-family:var(--ff-mono); font-size:13px; font-weight:800; color:var(--purple);">₹${p.total_sent.toLocaleString()}</div>
+        </div>
+      `).join('');
+    }
 
     // Render Sinking Funds
     const sfContainer = document.getElementById('sinking-funds-list');
@@ -538,7 +610,7 @@ async function loadFinanceSummary() {
         <tr>
           <td>${e.expense_date}</td>
           <td><span style="font-weight:700;">${catMap[e.category] || '📦'} ${e.category}</span></td>
-          <td style="color:var(--text2);">${e.description || '—'}</td>
+          <td style="color:var(--text2);">${e.person_tag ? '👤 <b>'+e.person_tag+'</b> — ' : ''}${e.description || '—'}</td>
           <td style="font-family:var(--ff-mono); font-weight:700; color:var(--red);">₹${e.amount.toLocaleString()}</td>
           <td><button onclick="deleteExpenseItem(${e.id})" style="background:none; border:none; color:var(--red); cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
         </tr>
@@ -554,15 +626,136 @@ async function loadFinanceSummary() {
 
 function populateCategoryDropdowns(cats) {
   const sel = document.getElementById('exp-category');
-  sel.innerHTML = cats.map(c => `<option value="${c.name}">${c.icon || '📦'} ${c.name}</option>`).join('');
+  if (cats && cats.length) {
+    sel.innerHTML = cats.map(c => `<option value="${c.name}">${c.icon || '📦'} ${c.name}</option>`).join('');
+  }
 
   const grid = document.getElementById('bgt-categories-grid');
   let gHtml = '';
-  cats.forEach(c => {
+  const effectiveCats = cats && cats.length ? cats : [
+    {name:'Needs', icon:'🏠', default_limit:15000},
+    {name:'Debt', icon:'💳', default_limit:0},
+    {name:'Food', icon:'🍛', default_limit:7000},
+    {name:'Transport', icon:'🚗', default_limit:3000},
+    {name:'Health', icon:'💪', default_limit:4000},
+    {name:'Lifestyle', icon:'🎯', default_limit:4000},
+    {name:'Education', icon:'📚', default_limit:2000},
+    {name:'Savings', icon:'💰', default_limit:15000}
+  ];
+
+  effectiveCats.forEach(c => {
     const curVal = finData && finData.category_matrix ? (finData.category_matrix.find(m => m.category === c.name) || {}).budget || c.default_limit : c.default_limit;
     gHtml += `<div><label style="font-size:10px; color:var(--text3);">${c.icon || '📦'} ${c.name}</label><input type="number" id="bgt-${c.name}" value="${curVal}" style="width:100%; background:#0f172a; border:1px solid var(--border); padding:6px 10px; border-radius:6px; color:#fff;"></div>`;
   });
   grid.innerHTML = gHtml;
+}
+
+function openLogSetModal() {
+  document.getElementById('log-set-modal').classList.remove('hidden');
+  const tbody = document.getElementById('set-rows-tbody');
+  tbody.innerHTML = '';
+  setRowIndex = 0;
+  addSetRow();
+  addSetRow();
+}
+function closeLogSetModal() { document.getElementById('log-set-modal').classList.add('hidden'); }
+
+function addSetRow(data = {}) {
+  setRowIndex++;
+  const tbody = document.getElementById('set-rows-tbody');
+  const tr = document.createElement('tr');
+  tr.id = `set-row-${setRowIndex}`;
+
+  const catOpts = (finData && finData.all_categories ? finData.all_categories : [
+    {name:'Food'},{name:'Debt'},{name:'Needs'},{name:'Transport'},{name:'Lifestyle'},{name:'Health'},{name:'Savings'}
+  ]).map(c => `<option value="${c.name}" ${data.category === c.name ? 'selected':''}>${c.icon||'📦'} ${c.name}</option>`).join('');
+
+  tr.innerHTML = `
+    <td style="font-family:var(--ff-mono); font-weight:700; color:var(--text3);">${setRowIndex}</td>
+    <td><input type="text" class="set-input set-person" value="${data.person_tag || ''}" placeholder="e.g. Ramesh / Swiggy"></td>
+    <td><input type="number" class="set-input set-amount" value="${data.amount || ''}" placeholder="500"></td>
+    <td><select class="set-input set-category">${catOpts}</select></td>
+    <td>
+      <select class="set-input set-fixed">
+        <option value="0" ${!data.is_fixed ? 'selected':''}>Variable</option>
+        <option value="1" ${data.is_fixed ? 'selected':''}>Fixed / Debt</option>
+      </select>
+    </td>
+    <td><button onclick="removeSetRow(${setRowIndex})" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:800;">&times;</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function removeSetRow(idx) {
+  const tr = document.getElementById(`set-row-${idx}`);
+  if (tr) tr.remove();
+}
+
+async function aiAutoFillRows() {
+  const txt = document.getElementById('ai-bulk-textarea').value.trim();
+  if (!txt) { alert('Please paste or type text entries.'); return; }
+
+  try {
+    const r = await fetch('/api/finance/bulk_parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: txt })
+    });
+    const d = await r.json();
+    if (r.ok && d.parsed_rows && d.parsed_rows.length) {
+      const tbody = document.getElementById('set-rows-tbody');
+      tbody.innerHTML = '';
+      setRowIndex = 0;
+      d.parsed_rows.forEach(row => addSetRow(row));
+      toast(`AI Auto-Filled ${d.parsed_rows.length} rows!`, 'ok');
+    }
+  } catch(e) {
+    alert('AI Auto-Fill failed: ' + e.message);
+  }
+}
+
+async function submitLogSetForm() {
+  const tbody = document.getElementById('set-rows-tbody');
+  const rows = tbody.querySelectorAll('tr');
+  const entries = [];
+
+  rows.forEach(r => {
+    const person = r.querySelector('.set-person').value.trim();
+    const amount = parseFloat(r.querySelector('.set-amount').value || '0');
+    const category = r.querySelector('.set-category').value;
+    const is_fixed = parseInt(r.querySelector('.set-fixed').value) === 1;
+
+    if (amount > 0) {
+      entries.push({
+        amount: amount,
+        category: category,
+        description: person ? `Sent to / Paid ${person}` : 'Batch entry',
+        is_fixed: is_fixed,
+        person_tag: person
+      });
+    }
+  });
+
+  if (!entries.length) {
+    alert('Please enter at least one valid amount.');
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/finance/expense_batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries })
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast(d.message || 'Batch entries saved!', 'ok');
+      closeLogSetModal();
+      loadFinanceSummary();
+    }
+  } catch(e) {
+    alert('Failed to save batch entries: ' + e.message);
+  }
 }
 
 function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); }
@@ -574,21 +767,36 @@ function closeBankImportModal() { document.getElementById('bank-import-modal').c
 function openCustomCatModal() { document.getElementById('custom-cat-modal').classList.remove('hidden'); }
 function closeCustomCatModal() { document.getElementById('custom-cat-modal').classList.add('hidden'); }
 
-function openBudgetModal() { document.getElementById('budget-modal').classList.remove('hidden'); }
+async function openBudgetModal() {
+  document.getElementById('budget-modal').classList.remove('hidden');
+  if (!finData || !finData.all_categories || !finData.all_categories.length) {
+    try {
+      const r = await fetch('/api/finance/categories');
+      const d = await r.json();
+      populateCategoryDropdowns(d.categories || []);
+    } catch(e) {
+      populateCategoryDropdowns([]);
+    }
+  } else {
+    populateCategoryDropdowns(finData.all_categories);
+  }
+}
 function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
 
 async function submitBankImportForm() {
   const fileInput = document.getElementById('import-file-input');
   const bankName = document.getElementById('import-bank-name').value;
+  const pdfPass = document.getElementById('import-pdf-pass').value.trim();
 
   if (!fileInput.files || !fileInput.files.length) {
-    alert('Please select a CSV statement file to import.');
+    alert('Please select a file to import.');
     return;
   }
 
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
   formData.append('bank_name', bankName);
+  if (pdfPass) formData.append('pdf_password', pdfPass);
 
   try {
     const r = await fetch('/api/finance/bank_import', {
@@ -596,7 +804,10 @@ async function submitBankImportForm() {
       body: formData
     });
     const d = await r.json();
-    if (d.status === 'warning') {
+    if (d.requires_password) {
+      alert(d.message);
+      document.getElementById('import-pdf-pass').focus();
+    } else if (d.status === 'warning') {
       alert(d.message);
     } else if (r.ok) {
       toast(d.message || 'Bank statement imported!', 'ok');
@@ -630,6 +841,7 @@ async function connectAASandbox() {
 async function submitExpenseForm() {
   const amount = parseFloat(document.getElementById('exp-amount').value);
   const category = document.getElementById('exp-category').value;
+  const person_tag = document.getElementById('exp-person').value.trim();
   const is_fixed = parseInt(document.getElementById('exp-fixed').value) === 1;
   const description = document.getElementById('exp-desc').value;
 
@@ -642,7 +854,7 @@ async function submitExpenseForm() {
     const r = await fetch('/api/finance/expense', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, category, is_fixed, description })
+      body: JSON.stringify({ amount, category, is_fixed, person_tag, description })
     });
     const d = await r.json();
     if (!r.ok) {
@@ -653,6 +865,7 @@ async function submitExpenseForm() {
     closeExpenseModal();
     document.getElementById('exp-amount').value = '';
     document.getElementById('exp-desc').value = '';
+    document.getElementById('exp-person').value = '';
     loadFinanceSummary();
   } catch(e) {
     alert('Failed to log expense: ' + e.message);
@@ -704,7 +917,11 @@ async function submitBudgetForm() {
   const month_str = new Date().toISOString().slice(0, 7);
 
   const category_budgets = {};
-  (finData.all_categories || []).forEach(c => {
+  const effectiveCats = finData && finData.all_categories ? finData.all_categories : [
+    {name:'Needs'},{name:'Debt'},{name:'Food'},{name:'Transport'},{name:'Health'},{name:'Lifestyle'},{name:'Education'},{name:'Savings'}
+  ];
+
+  effectiveCats.forEach(c => {
     const inp = document.getElementById(`bgt-${c.name}`);
     if (inp) {
       category_budgets[c.name] = parseFloat(inp.value || '0');
@@ -739,7 +956,6 @@ async function sendChatMessage() {
 
   const stream = document.getElementById('chat-stream');
   
-  // Append User message
   const uBubble = document.createElement('div');
   uBubble.className = 'msg-bubble msg-user';
   uBubble.textContent = msg;
@@ -747,7 +963,6 @@ async function sendChatMessage() {
   inp.value = '';
   stream.scrollTop = stream.scrollHeight;
 
-  // Append Loading AI bubble
   const aiBubble = document.createElement('div');
   aiBubble.className = 'msg-bubble msg-ai';
   aiBubble.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing financial laws & telemetry...';

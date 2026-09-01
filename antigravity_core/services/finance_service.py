@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import datetime
+import re
 from typing import Dict, Any, List, Optional
 import os
 
@@ -31,8 +32,11 @@ CATEGORY_ICONS = {
 class FinanceService:
     """
     OOP Service for Antigravity Financial Governance.
-    Handles daily expense tracking, monthly budget planning, sinking funds,
-    custom category management, and Financial Laws scoring (50/30/20 rule & Debt Ratio).
+    Handles:
+    - Daily expense tracking & Gym-Pro style batch 'Log Set' logging
+    - Monthly budget planning & Category matrix
+    - AI Bulk Text parsing & People Debt Ledger tracking
+    - Sinking funds & 50/30/20 Financial Law evaluation
     """
 
     def __init__(self):
@@ -50,6 +54,7 @@ class FinanceService:
                 sub_type TEXT DEFAULT 'variable',
                 description TEXT DEFAULT '',
                 is_fixed INTEGER DEFAULT 0,
+                person_tag TEXT DEFAULT '',
                 expense_date TEXT NOT NULL,
                 logged_at TEXT NOT NULL
             )
@@ -81,6 +86,19 @@ class FinanceService:
                 created_at TEXT NOT NULL
             )
             """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS finance_people_ledger (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                person_name TEXT NOT NULL UNIQUE,
+                total_sent REAL DEFAULT 0.0,
+                total_received REAL DEFAULT 0.0,
+                last_transaction_date TEXT NOT NULL
+            )
+            """)
+            try:
+                cursor.execute("ALTER TABLE finance_expenses ADD COLUMN person_tag TEXT DEFAULT ''")
+            except Exception:
+                pass # Column already exists
             conn.commit()
             conn.close()
         except Exception as e:
@@ -145,8 +163,8 @@ class FinanceService:
 
         return categories
 
-    def log_expense(self, amount: float, category: str, description: str = "", is_fixed: bool = False, expense_date: Optional[str] = None) -> Dict[str, Any]:
-        """Logs a daily expense and updates user financial telemetry."""
+    def log_expense(self, amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None) -> Dict[str, Any]:
+        """Logs a single daily expense and updates people ledger telemetry if tagged."""
         if amount <= 0:
             raise ValueError("Expense amount must be greater than 0.")
             
@@ -154,14 +172,26 @@ class FinanceService:
         date_str = expense_date.strip() if expense_date else datetime.date.today().isoformat()
         now_ts = datetime.datetime.now().isoformat()
         sub_type = "fixed" if is_fixed else "variable"
+        person_clean = person_tag.strip().title() if person_tag else ""
 
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO finance_expenses (amount, category, sub_type, description, is_fixed, expense_date, logged_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (amount, category_clean, sub_type, description, 1 if is_fixed else 0, date_str, now_ts))
+            INSERT INTO finance_expenses (amount, category, sub_type, description, is_fixed, person_tag, expense_date, logged_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (amount, category_clean, sub_type, description, 1 if is_fixed else 0, person_clean, date_str, now_ts))
         expense_id = cursor.lastrowid
+
+        # Update people ledger if tagged
+        if person_clean:
+            cursor.execute("""
+                INSERT INTO finance_people_ledger (person_name, total_sent, total_received, last_transaction_date)
+                VALUES (?, ?, 0, ?)
+                ON CONFLICT(person_name) DO UPDATE SET
+                    total_sent = total_sent + EXCLUDED.total_sent,
+                    last_transaction_date = EXCLUDED.last_transaction_date
+            """, (person_clean, amount, date_str))
+
         conn.commit()
         conn.close()
 
@@ -173,8 +203,106 @@ class FinanceService:
             "expense_id": expense_id,
             "amount": amount,
             "category": category_clean,
+            "person_tag": person_clean,
             "expense_date": date_str
         }
+
+    def log_batch_expenses(self, entries: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Logs a Gym-Pro style batch 'Log Set' of transactions in one atomic operation.
+        """
+        if not entries:
+            raise ValueError("No transaction rows provided.")
+
+        logged_count = 0
+        total_amount = 0.0
+        date_str = datetime.date.today().isoformat()
+
+        for item in entries:
+            amt = float(item.get("amount", 0.0))
+            if amt <= 0:
+                continue
+            cat = item.get("category", "Needs")
+            desc = item.get("description", "")
+            is_fixed = bool(item.get("is_fixed", False))
+            person = item.get("person_tag", "")
+            exp_date = item.get("expense_date") or date_str
+
+            self.log_expense(
+                amount=amt,
+                category=cat,
+                description=desc,
+                is_fixed=is_fixed,
+                person_tag=person,
+                expense_date=exp_date
+            )
+            logged_count += 1
+            total_amount += amt
+
+        add_xp(logged_count * 5 + 10)
+
+        return {
+            "status": "success",
+            "message": f"Logged {logged_count} entries totaling ₹{total_amount:,.2f}! +{logged_count * 5 + 10} XP",
+            "logged_count": logged_count,
+            "total_amount": total_amount
+        }
+
+    def parse_bulk_ai_text(self, raw_text: str) -> List[Dict[str, Any]]:
+        """
+        Parses freeform text or bulleted list into structured transaction rows for the Log Set UI.
+        """
+        if not raw_text or not raw_text.strip():
+            return []
+
+        lines = raw_text.strip().splitlines()
+        parsed_rows = []
+
+        for line in lines:
+            line_str = line.strip()
+            if not line_str:
+                continue
+
+            # Extract amount
+            amt_match = re.search(r'(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d{1,2})?)', line_str, re.IGNORECASE)
+            if not amt_match:
+                continue
+
+            amt = float(amt_match.group(1))
+
+            # Extract Person Tag (e.g. "to Ramesh", "for Suresh", "to Mom")
+            person_match = re.search(r'(?:to|for|given to|sent to)\s+([A-Z][a-z]+|\bMom\b|\bDad\b)', line_str, re.IGNORECASE)
+            person_tag = person_match.group(1).title() if person_match else ""
+
+            # Detect Category & Fixed/Variable
+            d = line_str.upper()
+            if any(w in d for w in ["SWIGGY", "ZOMATO", "FOOD", "DINNER", "LUNCH", "COFFEE", "TEA"]):
+                cat, is_fixed = "Food", False
+            elif any(w in d for w in ["EMI", "LOAN", "DEBT", "CREDIT CARD", "SENT", "GAVE", "MUTHOOT"]):
+                cat, is_fixed = "Debt", True if "EMI" in d else False
+            elif any(w in d for w in ["PETROL", "CAB", "UBER", "OLA", "RAPIDO", "BUS", "METRO", "FUEL"]):
+                cat, is_fixed = "Transport", False
+            elif any(w in d for w in ["RENT", "GROCERY", "ELECTRICITY", "BILL", "JIO", "AIRTEL"]):
+                cat, is_fixed = "Needs", True
+            elif any(w in d for w in ["DOCTOR", "MEDICINE", "GYM", "PHARMACY"]):
+                cat, is_fixed = "Health", True if "GYM" in d else False
+            elif any(w in d for w in ["SHOPPING", "MOVIE", "NETFLIX", "AMAZON"]):
+                cat, is_fixed = "Lifestyle", False
+            elif any(w in d for w in ["SIP", "INVEST", "FD", "SAVINGS"]):
+                cat, is_fixed = "Savings", True
+            else:
+                cat, is_fixed = "Needs", False
+
+            parsed_rows.append({
+                "amount": amt,
+                "category": cat,
+                "description": line_str[:60],
+                "is_fixed": is_fixed,
+                "person_tag": person_tag,
+                "expense_date": datetime.date.today().isoformat()
+            })
+
+        return parsed_rows
 
     def delete_expense(self, expense_id: int) -> Dict[str, Any]:
         """Deletes an expense log entry by ID."""
@@ -215,7 +343,7 @@ class FinanceService:
         }
 
     def update_sinking_fund(self, name: str, target_amount: float, current_amount: float, monthly_contribution: float, target_date: str = "") -> Dict[str, Any]:
-        """Creates or updates a sinking fund (e.g. Phone, Insurance, Bike service)."""
+        """Creates or updates a sinking fund."""
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -232,12 +360,7 @@ class FinanceService:
         return {"status": "success", "message": f"Sinking fund '{name}' updated successfully!"}
 
     def _calculate_financial_laws(self, income: float, total_expenses: float, needs_amt: float, debt_amt: float, wants_amt: float, savings_amt: float) -> Dict[str, Any]:
-        """
-        Calculates Financial Health Score (0-100) using established financial principles:
-        1. 50/30/20 Rule: 50% Needs & Debt, 30% Wants, 20% Savings.
-        2. Debt Service Ratio: Debt / Income <= 20%.
-        3. Savings Rate: Actual Savings / Income >= 20%.
-        """
+        """Calculates Financial Health Score (0-100) using 50/30/20 & Debt Ratio."""
         if income <= 0:
             return {
                 "health_score": 50,
@@ -252,21 +375,12 @@ class FinanceService:
         savings_pct = round((savings_amt / income) * 100, 1)
         debt_ratio_pct = round((debt_amt / income) * 100, 1)
 
-        # Score components (Total 100)
-        # Needs & Debt score (Max 30): Target <= 50%
         needs_score = 30 if needs_and_debt_pct <= 50 else max(0, 30 - int((needs_and_debt_pct - 50) * 1.2))
-        
-        # Wants score (Max 30): Target <= 30%
         wants_score = 30 if wants_pct <= 30 else max(0, 30 - int((wants_pct - 30) * 1.5))
-        
-        # Savings score (Max 30): Target >= 20%
         savings_score = min(30, int((savings_pct / 20.0) * 30))
-        
-        # Debt ratio score (Max 10): Target <= 20%
         debt_score = 10 if debt_ratio_pct <= 20 else max(0, 10 - int((debt_ratio_pct - 20) * 0.8))
 
         total_score = min(100, needs_score + wants_score + savings_score + debt_score)
-        
         rating = "EXCELLENT" if total_score >= 85 else ("GOOD" if total_score >= 70 else ("NEEDS ATTENTION" if total_score >= 50 else "CRITICAL"))
 
         advice_points = []
@@ -292,10 +406,7 @@ class FinanceService:
         }
 
     def get_monthly_summary(self, month_str: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Calculates complete financial summary for a month including custom categories
-        and Financial Laws scoring.
-        """
+        """Calculates complete financial summary for a month including people ledger telemetry."""
         if not month_str:
             month_str = datetime.date.today().strftime("%Y-%m")
 
@@ -307,7 +418,6 @@ class FinanceService:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Load monthly budget
         cursor.execute("SELECT * FROM finance_monthly_budget WHERE month_str = ?", (month_str,))
         b_row = cursor.fetchone()
         
@@ -319,7 +429,6 @@ class FinanceService:
         else:
             income = 50000.0
 
-        # Load expenses for month_str
         cursor.execute("""
             SELECT * FROM finance_expenses 
             WHERE expense_date LIKE ? 
@@ -327,9 +436,11 @@ class FinanceService:
         """, (f"{month_str}%",))
         expenses = [dict(r) for r in cursor.fetchall()]
 
-        # Load sinking funds
         cursor.execute("SELECT * FROM finance_sinking_funds ORDER BY id ASC")
         sinking_funds = [dict(r) for r in cursor.fetchall()]
+
+        cursor.execute("SELECT * FROM finance_people_ledger ORDER BY total_sent DESC")
+        people_ledger = [dict(r) for r in cursor.fetchall()]
         conn.close()
 
         if not sinking_funds:
@@ -339,7 +450,6 @@ class FinanceService:
                 {"name": "Emergency Fund (3 Months)", "target_amount": 100000.0, "current_amount": 45000.0, "monthly_contribution": 5000.0, "target_date": "2027-03-31"}
             ]
 
-        # Calculate actuals per category
         category_actuals = {cat: 0.0 for cat in all_cat_names}
         fixed_total = 0.0
         variable_total = 0.0
@@ -361,7 +471,6 @@ class FinanceService:
         actual_savings = max(0.0, income - total_expenses)
         savings_rate_pct = round((actual_savings / income * 100.0), 1) if income > 0 else 0.0
 
-        # Sub-groupings for Financial Laws (50/30/20)
         needs_amt = category_actuals.get("Needs", 0.0) + category_actuals.get("Transport", 0.0) + category_actuals.get("Health", 0.0)
         debt_amt = category_actuals.get("Debt", 0.0)
         wants_amt = category_actuals.get("Food", 0.0) + category_actuals.get("Lifestyle", 0.0)
@@ -369,7 +478,6 @@ class FinanceService:
 
         fin_laws = self._calculate_financial_laws(income, total_expenses, needs_amt, debt_amt, wants_amt, savings_amt)
 
-        # Build category variance matrix
         matrix = []
         for cat in all_cat_names:
             budget_amt = category_budgets.get(cat, 0.0)
@@ -402,7 +510,8 @@ class FinanceService:
             "all_categories": all_cats,
             "financial_health": fin_laws,
             "recent_expenses": expenses[:50],
-            "sinking_funds": sinking_funds
+            "sinking_funds": sinking_funds,
+            "people_ledger": people_ledger
         }
 
 # Global Singleton Instance

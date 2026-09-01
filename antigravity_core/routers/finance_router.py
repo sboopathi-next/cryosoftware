@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import FileResponse, JSONResponse
@@ -17,7 +17,14 @@ class ExpensePayload(BaseModel):
     category: str
     description: Optional[str] = ""
     is_fixed: Optional[bool] = False
+    person_tag: Optional[str] = ""
     expense_date: Optional[str] = None
+
+class ExpenseBatchPayload(BaseModel):
+    entries: List[ExpensePayload]
+
+class BulkParsePayload(BaseModel):
+    text: str
 
 class CategoryPayload(BaseModel):
     name: str
@@ -88,10 +95,29 @@ def add_expense(payload: ExpensePayload, authenticated: bool = Depends(verify_to
             category=payload.category,
             description=payload.description or "",
             is_fixed=bool(payload.is_fixed),
+            person_tag=payload.person_tag or "",
             expense_date=payload.expense_date
         )
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/finance/expense_batch")
+def add_expense_batch(payload: ExpenseBatchPayload, authenticated: bool = Depends(verify_token)):
+    try:
+        entries_dicts = [e.dict() for e in payload.entries]
+        return finance_service.log_batch_expenses(entries_dicts)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/finance/bulk_parse")
+def parse_bulk_text(payload: BulkParsePayload, authenticated: bool = Depends(verify_token)):
+    try:
+        rows = finance_service.parse_bulk_ai_text(payload.text)
+        return {"status": "success", "parsed_rows": rows}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
