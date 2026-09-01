@@ -1085,43 +1085,43 @@ function injectDesktopSidebarNav() {
 }
 
 async function loadMiniStats() {
-  try {
-    injectFloatingStatsBar();
-    injectMobileNavigation();
-    injectDesktopSidebarNav();
-    initDashboardMobileTabs();
-    initGymMobileTabs();
-    initJournalMobileTabs();
-    renderVoiceControls();
-    startVoiceDaemonTimer();
+  // try {
+  //   injectFloatingStatsBar();
+  //   injectMobileNavigation();
+  //   injectDesktopSidebarNav();
+  //   initDashboardMobileTabs();
+  //   initGymMobileTabs();
+  //   initJournalMobileTabs();
+  //   renderVoiceControls();
+  //   startVoiceDaemonTimer();
 
-    const r = await apiFetch('/stats');
-    if (!r.ok) return;
-    const d = await r.json();
-    const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-    setEl('hdr-lvl', d.level);
-    setEl('hdr-xp', d.xp);
-    setEl('hdr-energy', Math.round(d.energy) + '%');
-    setEl('hdr-streak', d.streak_days + 'd');
+  //   const r = await apiFetch('/stats');
+  //   if (!r.ok) return;
+  //   const d = await r.json();
+  //   const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  //   setEl('hdr-lvl', d.level);
+  //   setEl('hdr-xp', d.xp);
+  //   setEl('hdr-energy', Math.round(d.energy) + '%');
+  //   setEl('hdr-streak', d.streak_days + 'd');
 
-    const syncIcon = document.getElementById('sync-icon');
-    const syncText = document.getElementById('sync-text');
-    if (syncIcon && syncText) {
-      if (d.neon_online) {
-        syncIcon.className = 'fa-solid fa-circle';
-        syncIcon.style.color = 'var(--green)';
-        syncText.textContent = 'Online';
-      } else {
-        syncIcon.className = 'fa-solid fa-triangle-exclamation';
-        syncIcon.style.color = 'var(--amber)';
-        syncText.textContent = 'Offline';
-      }
-    }
+  //   const syncIcon = document.getElementById('sync-icon');
+  //   const syncText = document.getElementById('sync-text');
+  //   if (syncIcon && syncText) {
+  //     if (d.neon_online) {
+  //       syncIcon.className = 'fa-solid fa-circle';
+  //       syncIcon.style.color = 'var(--green)';
+  //       syncText.textContent = 'Online';
+  //     } else {
+  //       syncIcon.className = 'fa-solid fa-triangle-exclamation';
+  //       syncIcon.style.color = 'var(--amber)';
+  //       syncText.textContent = 'Offline';
+  //     }
+  //   }
 
-    if (d.level) {
-      checkLevelUpEvent(d.level);
-    }
-  } catch (_) { }
+  //   if (d.level) {
+  //     checkLevelUpEvent(d.level);
+  //   }
+  // } catch (_) { }
 }
 
 if (document.readyState === 'loading') {
