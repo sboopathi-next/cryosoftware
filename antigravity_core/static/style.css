@@ -724,10 +724,21 @@ select, input, textarea { font-family: var(--ff-body); }
     display: none !important;
   }
   .nav {
-    display: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 6px 10px !important;
+    gap: 6px !important;
+    border-top: 1px solid var(--border) !important;
   }
   .nav::-webkit-scrollbar {
     display: none !important;
+  }
+  .nav li {
+    display: inline-block !important;
+    flex-shrink: 0 !important;
   }
   .nav a {
     padding: 6px 12px !important;
@@ -736,6 +747,9 @@ select, input, textarea { font-family: var(--ff-body); }
     background: rgba(14, 17, 40, 0.7) !important;
     border: 1px solid var(--border) !important;
     flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
     transition: all 0.2s ease !important;
   }
   .nav a.active {
@@ -743,6 +757,17 @@ select, input, textarea { font-family: var(--ff-body); }
     color: #ffffff !important;
     border-color: var(--indigo) !important;
     box-shadow: 0 0 12px rgba(99,102,241,0.3) !important;
+  }
+
+  .stats-grid, .fin-stats-grid, .matrix-grid, .fin-workstation {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .gate-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .attrs {
+    grid-template-columns: repeat(3, 1fr) !important;
   }
 
   /* 2. Main Content & Grid Division */
