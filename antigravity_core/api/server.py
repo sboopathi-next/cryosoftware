@@ -146,18 +146,18 @@ class CustomWorkoutPayload(BaseModel):
 ACTIVE_GROQ_MODELS = [
     "llama-3.3-70b-versatile",
     "deepseek-r1-distill-llama-70b",
-    "qwen-2.5-coder-32b",
     "llama-3.1-8b-instant",
     "gemma2-9b-it"
 ]
 
 DECOMMISSIONED_GROQ_MODELS = {
+    "qwen-2.5-coder-32b": "llama-3.3-70b-versatile",
+    "qwen/qwen3.8-27b": "llama-3.3-70b-versatile",
     "llama3-70b-8192": "llama-3.3-70b-versatile",
     "llama3-8b-8192": "llama-3.1-8b-instant",
     "mixtral-8x7b-32768": "llama-3.3-70b-versatile",
     "openai/gpt-oss-120b": "llama-3.3-70b-versatile",
     "openai/gpt-oss-20b": "llama-3.1-8b-instant",
-    "qwen/qwen3.8-27b": "qwen-2.5-coder-32b",
     "groq/compound": "llama-3.3-70b-versatile",
     "groq/compound-mini": "llama-3.1-8b-instant"
 }
@@ -2322,27 +2322,14 @@ Recent Logs:
 
         messages.append({"role": "user", "content": payload.message})
 
-        request_body = {
-            "model": groq_model,
-            "messages": messages,
-            "temperature": 0.75,
-            "max_tokens": 2048
-        }
+        from services.ai_service import execute_groq_chat_with_fallback
+        res_dict = await execute_groq_chat_with_fallback(api_key, payload.groq_model, messages, temperature=0.75, max_tokens=2048)
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(groq_url, json=request_body, headers=headers)
-            
-        if response.status_code != 200:
-            error_detail = response.json().get("error", {}).get("message", "Unknown error from Groq API.")
-            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {error_detail}"})
-        
-        result = response.json()
-        choices = result.get("choices", [])
-        if not choices:
-            return JSONResponse(status_code=502, content={"detail": "Groq returned no candidates."})
-        
-        ai_text = choices[0].get("message", {}).get("content", "No response generated.")
-        
+        if res_dict.get("status") == "error":
+            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {res_dict.get('detail')}"})
+
+        ai_text = res_dict.get("content", "No response generated.")
+
         # Save AI reply to database
         save_chat_message("ai", ai_text, "stoic")
 
