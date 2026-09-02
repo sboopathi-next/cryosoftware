@@ -10,6 +10,8 @@ from engine.database import get_db_connection, save_state, get_state, add_xp
 
 DEFAULT_CATEGORIES = {
     "Needs": 15000.0,
+    "House": 15000.0,
+    "Loan": 15000.0,
     "Debt": 0.0,
     "Food": 7000.0,
     "Transport": 3000.0,
@@ -21,6 +23,8 @@ DEFAULT_CATEGORIES = {
 
 CATEGORY_ICONS = {
     "Needs": "🏠",
+    "House": "🏢",
+    "Loan": "🏦",
     "Debt": "💳",
     "Food": "🍛",
     "Transport": "🚗",
@@ -334,6 +338,7 @@ class FinanceService:
     def parse_bulk_ai_text(self, raw_text: str) -> List[Dict[str, Any]]:
         """
         Parses freeform text or bulleted list into structured transaction rows for the Log Set UI.
+        Distinguishes repeating 'Loan' / 'House' entries from one-time personal 'Debt' entries.
         """
         if not raw_text or not raw_text.strip():
             return []
@@ -346,23 +351,26 @@ class FinanceService:
             if not line_str:
                 continue
 
-            # Extract amount
             amt_match = re.search(r'(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d{1,2})?)', line_str, re.IGNORECASE)
             if not amt_match:
                 continue
 
             amt = float(amt_match.group(1))
 
-            # Extract Person Tag (e.g. "to Ramesh", "for Suresh", "to Mom")
-            person_match = re.search(r'(?:to|for|given to|sent to)\s+([A-Z][a-z]+|\bMom\b|\bDad\b)', line_str, re.IGNORECASE)
+            person_match = re.search(r'(?:to|for|given to|sent to)\s+([A-Z][a-z]+|\bMom\b|\bDad\b|\bBrother\b|\bThamizh\b|\bVignesh\b)', line_str, re.IGNORECASE)
+            if not person_match:
+                person_match = re.search(r'([A-Z][a-z]+)\s+debt', line_str, re.IGNORECASE)
             person_tag = person_match.group(1).title() if person_match else ""
 
-            # Detect Category & Fixed/Variable
             d = line_str.upper()
-            if any(w in d for w in ["SWIGGY", "ZOMATO", "FOOD", "DINNER", "LUNCH", "COFFEE", "TEA"]):
+            if any(w in d for w in ["RENT", "HOUSE", "HOME", "ROOM", "WIFI", "BROADBAND"]):
+                cat, is_fixed = "House", True
+            elif any(w in d for w in ["LOAN", "BUILDING", "VEHICLE", "WHEELER", "MONTHLY DEBT", "EDUCATION LOAN"]):
+                cat, is_fixed = "Loan", True
+            elif "DEBT" in d or person_tag:
+                cat, is_fixed = "Debt", False
+            elif any(w in d for w in ["SWIGGY", "ZOMATO", "FOOD", "DINNER", "LUNCH", "COFFEE", "TEA"]):
                 cat, is_fixed = "Food", False
-            elif any(w in d for w in ["EMI", "LOAN", "DEBT", "CREDIT CARD", "SENT", "GAVE", "MUTHOOT"]):
-                cat, is_fixed = "Debt", True if "EMI" in d else False
             elif any(w in d for w in ["PETROL", "CAB", "UBER", "OLA", "RAPIDO", "BUS", "METRO", "FUEL"]):
                 cat, is_fixed = "Transport", False
             elif any(w in d for w in ["RENT", "GROCERY", "ELECTRICITY", "BILL", "JIO", "AIRTEL"]):
@@ -379,7 +387,7 @@ class FinanceService:
             parsed_rows.append({
                 "amount": amt,
                 "category": cat,
-                "description": line_str[:60],
+                "description": line_str[:80],
                 "is_fixed": is_fixed,
                 "person_tag": person_tag,
                 "expense_date": datetime.date.today().isoformat()

@@ -1244,11 +1244,11 @@ def neon_add_custom_category(name: str, icon: str = "📦", default_limit: float
 
 def neon_get_all_categories() -> list:
     DEFAULT_CATEGORIES = {
-        "Needs": 15000.0, "Debt": 0.0, "Food": 7000.0, "Transport": 3000.0,
+        "Needs": 15000.0, "House": 15000.0, "Loan": 15000.0, "Debt": 0.0, "Food": 7000.0, "Transport": 3000.0,
         "Health": 4000.0, "Lifestyle": 4000.0, "Education": 2000.0, "Savings": 15000.0
     }
     CATEGORY_ICONS = {
-        "Needs": "🏠", "Debt": "💳", "Food": "🍛", "Transport": "🚗",
+        "Needs": "🏠", "House": "🏢", "Loan": "🏦", "Debt": "💳", "Food": "🍛", "Transport": "🚗",
         "Health": "💪", "Lifestyle": "🎯", "Education": "📚", "Savings": "💰"
     }
     categories = []
