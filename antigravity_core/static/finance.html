@@ -986,6 +986,9 @@ async function aiAutoFillRows() {
 }
 
 async function submitLogSetForm() {
+  const submitBtn = document.querySelector('#log-set-modal .btn-primary');
+  if (submitBtn && submitBtn.disabled) return;
+
   const container = document.getElementById('set-rows-tbody');
   const rows = container.querySelectorAll('.set-card-row');
   const entries = [];
@@ -1012,6 +1015,12 @@ async function submitLogSetForm() {
     return;
   }
 
+  const origHTML = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging Entries...';
+  }
+
   try {
     const r = await apiFetch('/api/finance/expense_batch', {
       method: 'POST',
@@ -1026,6 +1035,11 @@ async function submitLogSetForm() {
     }
   } catch(e) {
     alert('Failed to save batch entries: ' + e.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origHTML;
+    }
   }
 }
 
@@ -1110,6 +1124,9 @@ async function connectAASandbox() {
 }
 
 async function submitExpenseForm() {
+  const submitBtn = document.querySelector('#expense-modal .btn-primary');
+  if (submitBtn && submitBtn.disabled) return;
+
   const amount = parseFloat(document.getElementById('exp-amount').value);
   const category = document.getElementById('exp-category').value;
   const person_tag = document.getElementById('exp-person').value.trim();
@@ -1119,6 +1136,12 @@ async function submitExpenseForm() {
   if (!amount || amount <= 0) {
     alert('Please enter a valid expense amount.');
     return;
+  }
+
+  const origHTML = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging...';
   }
 
   try {
@@ -1140,6 +1163,11 @@ async function submitExpenseForm() {
     loadFinanceSummary();
   } catch(e) {
     alert('Failed to log expense: ' + e.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origHTML;
+    }
   }
 }
 
@@ -1174,16 +1202,22 @@ async function deleteExpenseItem(id) {
   if (!confirm('Delete this expense entry?')) return;
   try {
     const r = await apiFetch(`/api/finance/expense/${id}`, { method: 'DELETE' });
+    const d = await r.json();
     if (r.ok) {
-      toast('Expense entry deleted', 'ok');
+      toast(d.message || 'Expense entry deleted', 'ok');
       loadFinanceSummary();
+    } else {
+      alert(d.detail || 'Error deleting expense');
     }
   } catch(e) {
-    alert('Failed to delete expense');
+    alert('Failed to delete expense: ' + e.message);
   }
 }
 
 async function submitBudgetForm() {
+  const submitBtn = document.querySelector('#budget-modal .btn-primary');
+  if (submitBtn && submitBtn.disabled) return;
+
   const income = parseFloat(document.getElementById('bgt-income').value);
   const month_str = new Date().toISOString().slice(0, 7);
 
@@ -1199,6 +1233,12 @@ async function submitBudgetForm() {
     }
   });
 
+  const origHTML = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving Budget...';
+  }
+
   try {
     const r = await apiFetch('/api/finance/budget', {
       method: 'POST',
@@ -1212,6 +1252,11 @@ async function submitBudgetForm() {
     }
   } catch(e) {
     alert('Failed to save budget: ' + e.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origHTML;
+    }
   }
 }
 

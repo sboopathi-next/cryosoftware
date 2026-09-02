@@ -170,12 +170,36 @@ class FinanceService:
             
         category_clean = category.strip().title() if category else "Needs"
         date_str = expense_date.strip() if expense_date else datetime.date.today().isoformat()
-        now_ts = datetime.datetime.now().isoformat()
+        now_dt = datetime.datetime.now()
+        now_ts = now_dt.isoformat()
+        ten_sec_ago = (now_dt - datetime.timedelta(seconds=10)).isoformat()
         sub_type = "fixed" if is_fixed else "variable"
         person_clean = person_tag.strip().title() if person_tag else ""
 
         conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+
+        # Prevent duplicate submissions triggered within 10 seconds
+        cursor.execute("""
+            SELECT id FROM finance_expenses
+            WHERE amount = ? AND category = ? AND description = ? AND person_tag = ? AND expense_date = ?
+            AND logged_at >= ?
+        """, (amount, category_clean, description, person_clean, date_str, ten_sec_ago))
+        existing_dup = cursor.fetchone()
+        if existing_dup:
+            dup_id = existing_dup["id"]
+            conn.close()
+            return {
+                "status": "duplicate_prevented",
+                "message": f"Duplicate entry ignored for ₹{amount:,.2f}",
+                "expense_id": dup_id,
+                "amount": amount,
+                "category": category_clean,
+                "person_tag": person_clean,
+                "expense_date": date_str
+            }
+
         cursor.execute("""
             INSERT INTO finance_expenses (amount, category, sub_type, description, is_fixed, person_tag, expense_date, logged_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -206,6 +230,34 @@ class FinanceService:
             "person_tag": person_clean,
             "expense_date": date_str
         }
+
+    def delete_expense(self, expense_id: int) -> Dict[str, Any]:
+        """Deletes an expense item and reverts the person ledger total if applicable."""
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM finance_expenses WHERE id = ?", (expense_id,))
+        exp = cursor.fetchone()
+        if not exp:
+            conn.close()
+            raise ValueError(f"Expense entry #{expense_id} not found.")
+
+        amt = float(exp["amount"] or 0.0)
+        person_clean = exp["person_tag"] or ""
+
+        cursor.execute("DELETE FROM finance_expenses WHERE id = ?", (expense_id,))
+
+        if person_clean:
+            cursor.execute("""
+                UPDATE finance_people_ledger
+                SET total_sent = MAX(0.0, total_sent - ?)
+                WHERE person_name = ?
+            """, (amt, person_clean))
+
+        conn.commit()
+        conn.close()
+
+        return {"status": "success", "message": f"Expense entry #{expense_id} deleted successfully."}
 
     def log_batch_expenses(self, entries: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
