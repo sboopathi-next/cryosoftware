@@ -338,10 +338,13 @@ class FinanceService:
     def parse_bulk_ai_text(self, raw_text: str) -> List[Dict[str, Any]]:
         """
         Parses freeform text or bulleted list into structured transaction rows for the Log Set UI.
-        Distinguishes repeating 'Loan' / 'House' entries from one-time personal 'Debt' entries.
+        Dynamically matches against all active categories (default + custom categories created in DB).
         """
         if not raw_text or not raw_text.strip():
             return []
+
+        all_cats = self.get_all_categories()
+        custom_cats = [c["name"] for c in all_cats if c.get("is_custom")]
 
         lines = raw_text.strip().splitlines()
         parsed_rows = []
@@ -363,7 +366,17 @@ class FinanceService:
             person_tag = person_match.group(1).title() if person_match else ""
 
             d = line_str.upper()
-            if any(w in d for w in ["RENT", "HOUSE", "HOME", "ROOM", "WIFI", "BROADBAND"]):
+
+            # Check dynamic user-created custom categories first
+            matched_custom = None
+            for c_name in custom_cats:
+                if c_name.upper() in d:
+                    matched_custom = c_name
+                    break
+
+            if matched_custom:
+                cat, is_fixed = matched_custom, False
+            elif any(w in d for w in ["RENT", "HOUSE", "HOME", "ROOM", "WIFI", "BROADBAND"]):
                 cat, is_fixed = "House", True
             elif any(w in d for w in ["LOAN", "BUILDING", "VEHICLE", "WHEELER", "MONTHLY DEBT", "EDUCATION LOAN"]):
                 cat, is_fixed = "Loan", True
