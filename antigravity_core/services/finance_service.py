@@ -5,6 +5,7 @@ import re
 from typing import Dict, Any, List, Optional
 import os
 
+from config import IS_SERVERLESS, DATABASE_URL
 from engine.database import get_db_connection, save_state, get_state, add_xp
 
 DEFAULT_CATEGORIES = {
@@ -106,6 +107,10 @@ class FinanceService:
 
     def add_custom_category(self, name: str, icon: str = "📦", default_limit: float = 0.0) -> Dict[str, Any]:
         """Creates a new custom expense category."""
+        if IS_SERVERLESS and DATABASE_URL:
+            from engine.neon_db import neon_add_custom_category
+            return neon_add_custom_category(name, icon, default_limit)
+
         clean_name = name.strip().title()
         if not clean_name:
             raise ValueError("Category name cannot be empty.")
@@ -136,6 +141,10 @@ class FinanceService:
 
     def get_all_categories(self) -> List[Dict[str, Any]]:
         """Fetches all categories (default + custom)."""
+        if IS_SERVERLESS and DATABASE_URL:
+            from engine.neon_db import neon_get_all_categories
+            return neon_get_all_categories()
+
         categories = []
         for name, limit in DEFAULT_CATEGORIES.items():
             categories.append({
@@ -165,6 +174,10 @@ class FinanceService:
 
     def log_expense(self, amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None) -> Dict[str, Any]:
         """Logs a single daily expense and updates people ledger telemetry if tagged."""
+        if IS_SERVERLESS and DATABASE_URL:
+            from engine.neon_db import neon_log_expense
+            return neon_log_expense(amount, category, description, is_fixed, person_tag, expense_date)
+
         if amount <= 0:
             raise ValueError("Expense amount must be greater than 0.")
             
@@ -232,7 +245,11 @@ class FinanceService:
         }
 
     def delete_expense(self, expense_id: int) -> Dict[str, Any]:
-        """Deletes an expense item and reverts the person ledger total if applicable."""
+        """Deletes an expense log entry by ID."""
+        if IS_SERVERLESS and DATABASE_URL:
+            from engine.neon_db import neon_delete_expense
+            return neon_delete_expense(expense_id)
+
         conn = get_db_connection()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -356,20 +373,12 @@ class FinanceService:
 
         return parsed_rows
 
-    def delete_expense(self, expense_id: int) -> Dict[str, Any]:
-        """Deletes an expense log entry by ID."""
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM finance_expenses WHERE id = ?", (expense_id,))
-        rows = cursor.rowcount
-        conn.commit()
-        conn.close()
-        if rows == 0:
-            raise ValueError(f"Expense with ID {expense_id} not found.")
-        return {"status": "success", "message": f"Deleted expense ID {expense_id}"}
-
     def save_monthly_budget(self, month_str: str, income: float, category_budgets: Dict[str, float]) -> Dict[str, Any]:
         """Saves or updates planned income and category budget limits for a given month (YYYY-MM)."""
+        if IS_SERVERLESS and DATABASE_URL:
+            from engine.neon_db import neon_save_monthly_budget
+            return neon_save_monthly_budget(month_str, income, category_budgets)
+            
         now_ts = datetime.datetime.now().isoformat()
         budget_json = json.dumps(category_budgets)
 
@@ -459,6 +468,10 @@ class FinanceService:
 
     def get_monthly_summary(self, month_str: Optional[str] = None) -> Dict[str, Any]:
         """Calculates complete financial summary for a month including people ledger telemetry."""
+        if IS_SERVERLESS and DATABASE_URL:
+            from engine.neon_db import neon_get_finance_summary
+            return neon_get_finance_summary(month_str)
+
         if not month_str:
             month_str = datetime.date.today().strftime("%Y-%m")
 

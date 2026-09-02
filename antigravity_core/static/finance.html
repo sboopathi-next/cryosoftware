@@ -1054,6 +1054,9 @@ function closeCustomCatModal() { document.getElementById('custom-cat-modal').cla
 
 async function openBudgetModal() {
   document.getElementById('budget-modal').classList.remove('hidden');
+  if (finData && finData.income) {
+    document.getElementById('bgt-income').value = finData.income;
+  }
   if (!finData || !finData.all_categories || !finData.all_categories.length) {
     try {
       const r = await apiFetch('/api/finance/categories');

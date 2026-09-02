@@ -1074,4 +1074,347 @@ def neon_get_unread_notification_count() -> int:
         return 0
 
 
+# ─── Financial Governance (Neon Serverless Mode) ─────────────────────────────
+
+def _init_pg_finance(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_finance_expenses (
+            id SERIAL PRIMARY KEY,
+            amount DOUBLE PRECISION NOT NULL,
+            category TEXT NOT NULL,
+            sub_type TEXT DEFAULT 'variable',
+            description TEXT DEFAULT '',
+            is_fixed INTEGER DEFAULT 0,
+            person_tag TEXT DEFAULT '',
+            expense_date TEXT NOT NULL,
+            logged_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS pg_finance_monthly_budget (
+            month_str TEXT PRIMARY KEY,
+            income DOUBLE PRECISION DEFAULT 0.0,
+            category_budgets_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS pg_finance_custom_categories (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            icon TEXT DEFAULT '📦',
+            default_limit DOUBLE PRECISION DEFAULT 0.0,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS pg_finance_sinking_funds (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            target_amount DOUBLE PRECISION NOT NULL,
+            current_amount DOUBLE PRECISION DEFAULT 0.0,
+            monthly_contribution DOUBLE PRECISION DEFAULT 0.0,
+            target_date TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS pg_finance_people_ledger (
+            id SERIAL PRIMARY KEY,
+            person_name TEXT UNIQUE NOT NULL,
+            total_sent DOUBLE PRECISION DEFAULT 0.0,
+            total_received DOUBLE PRECISION DEFAULT 0.0,
+            last_transaction_date TEXT NOT NULL
+        );
+    """)
+
+def neon_log_expense(amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None) -> dict:
+    import json
+    category_clean = category.strip().title() if category else "Needs"
+    date_str = expense_date.strip() if expense_date else datetime.date.today().isoformat()
+    now_dt = datetime.datetime.now()
+    now_ts = now_dt.isoformat()
+    ten_sec_ago = (now_dt - datetime.timedelta(seconds=10)).isoformat()
+    sub_type = "fixed" if is_fixed else "variable"
+    person_clean = person_tag.strip().title() if person_tag else ""
+
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_finance(cur)
+
+            cur.execute("""
+                SELECT id FROM pg_finance_expenses
+                WHERE amount = %s AND category = %s AND description = %s AND person_tag = %s AND expense_date = %s
+                AND logged_at >= %s
+            """, (amount, category_clean, description, person_clean, date_str, ten_sec_ago))
+            dup = cur.fetchone()
+            if dup:
+                return {
+                    "status": "duplicate_prevented",
+                    "message": f"Duplicate entry ignored for ₹{amount:,.2f}",
+                    "expense_id": dup["id"],
+                    "amount": amount,
+                    "category": category_clean,
+                    "person_tag": person_clean,
+                    "expense_date": date_str
+                }
+
+            cur.execute("""
+                INSERT INTO pg_finance_expenses (amount, category, sub_type, description, is_fixed, person_tag, expense_date, logged_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """, (amount, category_clean, sub_type, description, 1 if is_fixed else 0, person_clean, date_str, now_ts))
+            exp_id = cur.fetchone()["id"]
+
+            if person_clean:
+                cur.execute("""
+                    INSERT INTO pg_finance_people_ledger (person_name, total_sent, total_received, last_transaction_date)
+                    VALUES (%s, %s, 0, %s)
+                    ON CONFLICT(person_name) DO UPDATE SET
+                        total_sent = pg_finance_people_ledger.total_sent + EXCLUDED.total_sent,
+                        last_transaction_date = EXCLUDED.last_transaction_date
+                """, (person_clean, amount, date_str))
+
+    return {
+        "status": "success",
+        "message": f"Logged expense of ₹{amount:,.2f} under {category_clean}",
+        "expense_id": exp_id,
+        "amount": amount,
+        "category": category_clean,
+        "person_tag": person_clean,
+        "expense_date": date_str
+    }
+
+def neon_delete_expense(expense_id: int) -> dict:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_finance(cur)
+            cur.execute("SELECT * FROM pg_finance_expenses WHERE id = %s", (expense_id,))
+            exp = cur.fetchone()
+            if not exp:
+                raise ValueError(f"Expense entry #{expense_id} not found.")
+
+            amt = float(exp["amount"] or 0.0)
+            person_clean = exp["person_tag"] or ""
+
+            cur.execute("DELETE FROM pg_finance_expenses WHERE id = %s", (expense_id,))
+
+            if person_clean:
+                cur.execute("""
+                    UPDATE pg_finance_people_ledger
+                    SET total_sent = GREATEST(0.0, total_sent - %s)
+                    WHERE person_name = %s
+                """, (amt, person_clean))
+
+    return {"status": "success", "message": f"Expense entry #{expense_id} deleted successfully."}
+
+def neon_save_monthly_budget(month_str: str, income: float, category_budgets: dict) -> dict:
+    import json
+    now_ts = datetime.datetime.now().isoformat()
+    budget_json = json.dumps(category_budgets)
+
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_finance(cur)
+            cur.execute("""
+                INSERT INTO pg_finance_monthly_budget (month_str, income, category_budgets_json, updated_at)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT(month_str) DO UPDATE SET
+                    income = EXCLUDED.income,
+                    category_budgets_json = EXCLUDED.category_budgets_json,
+                    updated_at = EXCLUDED.updated_at
+            """, (month_str, income, budget_json, now_ts))
+
+    return {
+        "status": "success",
+        "message": f"Monthly budget for {month_str} saved successfully!",
+        "month_str": month_str,
+        "income": income,
+        "category_budgets": category_budgets
+    }
+
+def neon_add_custom_category(name: str, icon: str = "📦", default_limit: float = 0.0) -> dict:
+    clean_name = name.strip().title()
+    if not clean_name:
+        raise ValueError("Category name cannot be empty.")
+    now_ts = datetime.datetime.now().isoformat()
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_finance(cur)
+            cur.execute("""
+                INSERT INTO pg_finance_custom_categories (name, icon, default_limit, created_at)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT(name) DO UPDATE SET
+                    icon = EXCLUDED.icon,
+                    default_limit = EXCLUDED.default_limit
+            """, (clean_name, icon.strip() or "📦", default_limit, now_ts))
+    return {"status": "success", "message": f"Category '{clean_name}' created successfully!", "name": clean_name, "icon": icon}
+
+def neon_get_all_categories() -> list:
+    DEFAULT_CATEGORIES = {
+        "Needs": 15000.0, "Debt": 0.0, "Food": 7000.0, "Transport": 3000.0,
+        "Health": 4000.0, "Lifestyle": 4000.0, "Education": 2000.0, "Savings": 15000.0
+    }
+    CATEGORY_ICONS = {
+        "Needs": "🏠", "Debt": "💳", "Food": "🍛", "Transport": "🚗",
+        "Health": "💪", "Lifestyle": "🎯", "Education": "📚", "Savings": "💰"
+    }
+    categories = []
+    for name, limit in DEFAULT_CATEGORIES.items():
+        categories.append({
+            "name": name,
+            "icon": CATEGORY_ICONS.get(name, "📦"),
+            "default_limit": limit,
+            "is_custom": False
+        })
+    try:
+        with _conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                _init_pg_finance(cur)
+                cur.execute("SELECT * FROM pg_finance_custom_categories ORDER BY name ASC")
+                rows = cur.fetchall()
+                for r in rows:
+                    if r["name"] not in DEFAULT_CATEGORIES:
+                        categories.append({
+                            "name": r["name"],
+                            "icon": r["icon"] or "📦",
+                            "default_limit": float(r["default_limit"] or 0.0),
+                            "is_custom": True
+                        })
+    except Exception as e:
+        print(f"[Neon] neon_get_all_categories error: {e}")
+    return categories
+
+def neon_get_finance_summary(month_str: Optional[str] = None) -> dict:
+    import json
+    if not month_str:
+        month_str = datetime.date.today().strftime("%Y-%m")
+
+    all_cats = neon_get_all_categories()
+    all_cat_names = [c["name"] for c in all_cats]
+    cat_icon_map = {c["name"]: c["icon"] for c in all_cats}
+
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_finance(cur)
+
+            cur.execute("SELECT * FROM pg_finance_monthly_budget WHERE month_str = %s", (month_str,))
+            b_row = cur.fetchone()
+            category_budgets = {c["name"]: c["default_limit"] for c in all_cats}
+            if b_row:
+                income = float(b_row["income"] or 50000.0)
+                saved_budgets = json.loads(b_row["category_budgets_json"])
+                category_budgets.update(saved_budgets)
+            else:
+                income = 50000.0
+
+            cur.execute("""
+                SELECT * FROM pg_finance_expenses 
+                WHERE expense_date LIKE %s 
+                ORDER BY expense_date DESC, id DESC
+            """, (f"{month_str}%",))
+            expenses = [dict(r) for r in cur.fetchall()]
+
+            cur.execute("SELECT * FROM pg_finance_sinking_funds ORDER BY id ASC")
+            sinking_funds = [dict(r) for r in cur.fetchall()]
+
+            cur.execute("SELECT * FROM pg_finance_people_ledger ORDER BY total_sent DESC")
+            people_ledger = [dict(r) for r in cur.fetchall()]
+
+    if not sinking_funds:
+        sinking_funds = [
+            {"name": "New Phone Fund", "target_amount": 30000.0, "current_amount": 7500.0, "monthly_contribution": 2500.0, "target_date": "2026-12-31"},
+            {"name": "Vehicle Insurance", "target_amount": 12000.0, "current_amount": 4000.0, "monthly_contribution": 1000.0, "target_date": "2026-11-30"},
+            {"name": "Emergency Fund (3 Months)", "target_amount": 100000.0, "current_amount": 45000.0, "monthly_contribution": 5000.0, "target_date": "2027-03-31"}
+        ]
+
+    category_actuals = {cat: 0.0 for cat in all_cat_names}
+    fixed_total = 0.0
+    variable_total = 0.0
+
+    for exp in expenses:
+        amt = float(exp.get("amount", 0.0))
+        cat = exp.get("category", "Needs").title()
+        if cat not in category_actuals:
+            category_actuals[cat] = 0.0
+        category_actuals[cat] += amt
+
+        if exp.get("is_fixed") or exp.get("sub_type") == "fixed":
+            fixed_total += amt
+        else:
+            variable_total += amt
+
+    total_expenses = fixed_total + variable_total
+    planned_savings = float(category_budgets.get("Savings", 15000.0))
+    actual_savings = max(0.0, income - total_expenses)
+    savings_rate_pct = round((actual_savings / income * 100.0), 1) if income > 0 else 0.0
+
+    needs_amt = category_actuals.get("Needs", 0.0) + category_actuals.get("Transport", 0.0) + category_actuals.get("Health", 0.0)
+    debt_amt = category_actuals.get("Debt", 0.0)
+    wants_amt = category_actuals.get("Food", 0.0) + category_actuals.get("Lifestyle", 0.0)
+    savings_amt = actual_savings
+
+    needs_and_debt_pct = round(((needs_amt + debt_amt) / income) * 100, 1) if income > 0 else 0
+    wants_pct = round((wants_amt / income) * 100, 1) if income > 0 else 0
+    savings_pct = round((savings_amt / income) * 100, 1) if income > 0 else 0
+    debt_ratio_pct = round((debt_amt / income) * 100, 1) if income > 0 else 0
+
+    needs_score = 30 if needs_and_debt_pct <= 50 else max(0, 30 - int((needs_and_debt_pct - 50) * 1.2))
+    wants_score = 30 if wants_pct <= 30 else max(0, 30 - int((wants_pct - 30) * 1.5))
+    savings_score = min(30, int((savings_pct / 20.0) * 30))
+    debt_score = 10 if debt_ratio_pct <= 20 else max(0, 10 - int((debt_ratio_pct - 20) * 0.8))
+
+    total_score = min(100, needs_score + wants_score + savings_score + debt_score)
+    rating = "EXCELLENT" if total_score >= 85 else ("GOOD" if total_score >= 70 else ("NEEDS ATTENTION" if total_score >= 50 else "CRITICAL"))
+
+    advice_points = []
+    if debt_ratio_pct > 20:
+        advice_points.append(f"⚠️ High Debt Ratio ({debt_ratio_pct}% of income goes to Debt/EMIs). Target < 20% using Debt Snowball method.")
+    if wants_pct > 30:
+        advice_points.append(f"🍛 Food & Lifestyle spending is {wants_pct}% (Ideal: ≤ 30%). Cap dining out next month.")
+    if savings_pct < 20:
+        advice_points.append(f"💰 Savings rate is {savings_pct}% (Ideal: ≥ 20%). Automate savings on the 1st of every month.")
+    if not advice_points:
+        advice_points.append("✅ Outstanding financial discipline! Maintain your 50/30/20 balance.")
+
+    matrix = []
+    for cat in all_cat_names:
+        budget_amt = category_budgets.get(cat, 0.0)
+        actual_amt = category_actuals.get(cat, 0.0)
+        diff = budget_amt - actual_amt
+        pct = round((actual_amt / budget_amt * 100.0), 1) if budget_amt > 0 else 0.0
+        status = "EXCEEDED" if (budget_amt > 0 and actual_amt > budget_amt) else ("WARNING" if pct >= 85.0 else "HEALTHY")
+        matrix.append({
+            "category": cat,
+            "icon": cat_icon_map.get(cat, "📦"),
+            "budget": budget_amt,
+            "actual": actual_amt,
+            "difference": diff,
+            "usage_pct": pct,
+            "status": status
+        })
+
+    return {
+        "month_str": month_str,
+        "income": income,
+        "total_expenses": total_expenses,
+        "fixed_total": fixed_total,
+        "variable_total": variable_total,
+        "planned_savings": planned_savings,
+        "actual_savings": actual_savings,
+        "savings_rate_pct": savings_rate_pct,
+        "remaining_budget": max(0.0, income - total_expenses),
+        "debt_total": debt_amt,
+        "category_matrix": matrix,
+        "all_categories": all_cats,
+        "financial_health": {
+            "health_score": total_score,
+            "rating": rating,
+            "rule_50_30_20": {
+                "needs_debt_pct": needs_and_debt_pct,
+                "wants_pct": wants_pct,
+                "savings_pct": savings_pct
+            },
+            "debt_service_ratio_pct": debt_ratio_pct,
+            "advice": " ".join(advice_points)
+        },
+        "recent_expenses": expenses[:50],
+        "sinking_funds": sinking_funds,
+        "people_ledger": people_ledger
+    }
+
+
+
+
 
