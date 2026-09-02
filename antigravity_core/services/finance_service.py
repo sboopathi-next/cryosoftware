@@ -108,8 +108,11 @@ class FinanceService:
     def add_custom_category(self, name: str, icon: str = "📦", default_limit: float = 0.0) -> Dict[str, Any]:
         """Creates a new custom expense category."""
         if IS_SERVERLESS and DATABASE_URL:
-            from engine.neon_db import neon_add_custom_category
-            return neon_add_custom_category(name, icon, default_limit)
+            try:
+                from engine.neon_db import neon_add_custom_category
+                return neon_add_custom_category(name, icon, default_limit)
+            except Exception as e:
+                print(f"[FinanceService] Neon add_custom_category failed ({e}), falling back to SQLite", flush=True)
 
         clean_name = name.strip().title()
         if not clean_name:
@@ -142,8 +145,11 @@ class FinanceService:
     def get_all_categories(self) -> List[Dict[str, Any]]:
         """Fetches all categories (default + custom)."""
         if IS_SERVERLESS and DATABASE_URL:
-            from engine.neon_db import neon_get_all_categories
-            return neon_get_all_categories()
+            try:
+                from engine.neon_db import neon_get_all_categories
+                return neon_get_all_categories()
+            except Exception as e:
+                print(f"[FinanceService] Neon get_all_categories failed ({e}), falling back to SQLite", flush=True)
 
         categories = []
         for name, limit in DEFAULT_CATEGORIES.items():
@@ -175,8 +181,11 @@ class FinanceService:
     def log_expense(self, amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None) -> Dict[str, Any]:
         """Logs a single daily expense and updates people ledger telemetry if tagged."""
         if IS_SERVERLESS and DATABASE_URL:
-            from engine.neon_db import neon_log_expense
-            return neon_log_expense(amount, category, description, is_fixed, person_tag, expense_date)
+            try:
+                from engine.neon_db import neon_log_expense
+                return neon_log_expense(amount, category, description, is_fixed, person_tag, expense_date)
+            except Exception as e:
+                print(f"[FinanceService] Neon log_expense failed ({e}), falling back to SQLite", flush=True)
 
         if amount <= 0:
             raise ValueError("Expense amount must be greater than 0.")
@@ -247,8 +256,11 @@ class FinanceService:
     def delete_expense(self, expense_id: int) -> Dict[str, Any]:
         """Deletes an expense log entry by ID."""
         if IS_SERVERLESS and DATABASE_URL:
-            from engine.neon_db import neon_delete_expense
-            return neon_delete_expense(expense_id)
+            try:
+                from engine.neon_db import neon_delete_expense
+                return neon_delete_expense(expense_id)
+            except Exception as e:
+                print(f"[FinanceService] Neon delete_expense failed ({e}), falling back to SQLite", flush=True)
 
         conn = get_db_connection()
         conn.row_factory = sqlite3.Row
@@ -376,9 +388,12 @@ class FinanceService:
     def save_monthly_budget(self, month_str: str, income: float, category_budgets: Dict[str, float]) -> Dict[str, Any]:
         """Saves or updates planned income and category budget limits for a given month (YYYY-MM)."""
         if IS_SERVERLESS and DATABASE_URL:
-            from engine.neon_db import neon_save_monthly_budget
-            return neon_save_monthly_budget(month_str, income, category_budgets)
-            
+            try:
+                from engine.neon_db import neon_save_monthly_budget
+                return neon_save_monthly_budget(month_str, income, category_budgets)
+            except Exception as e:
+                print(f"[FinanceService] Neon save_monthly_budget failed ({e}), falling back to SQLite", flush=True)
+
         now_ts = datetime.datetime.now().isoformat()
         budget_json = json.dumps(category_budgets)
 
@@ -469,8 +484,11 @@ class FinanceService:
     def get_monthly_summary(self, month_str: Optional[str] = None) -> Dict[str, Any]:
         """Calculates complete financial summary for a month including people ledger telemetry."""
         if IS_SERVERLESS and DATABASE_URL:
-            from engine.neon_db import neon_get_finance_summary
-            return neon_get_finance_summary(month_str)
+            try:
+                from engine.neon_db import neon_get_finance_summary
+                return neon_get_finance_summary(month_str)
+            except Exception as e:
+                print(f"[FinanceService] Neon get_monthly_summary failed ({e}), falling back to SQLite", flush=True)
 
         if not month_str:
             month_str = datetime.date.today().strftime("%Y-%m")

@@ -741,7 +741,16 @@ window.addEventListener('resize', () => {
 async function loadFinanceSummary() {
   try {
     const r = await apiFetch('/api/finance/summary');
-    finData = await r.json();
+    if (!r.ok) {
+      console.warn('[Finance UI] Summary fetch failed with status:', r.status);
+      return;
+    }
+    const data = await r.json();
+    if (!data || typeof data.income !== 'number') {
+      console.warn('[Finance UI] Invalid summary payload received:', data);
+      return;
+    }
+    finData = data;
 
     document.getElementById('st-income').textContent = `₹${(finData.income || 0).toLocaleString()}`;
     document.getElementById('st-spent').textContent = `₹${(finData.total_expenses || 0).toLocaleString()}`;
