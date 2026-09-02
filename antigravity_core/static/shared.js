@@ -113,8 +113,25 @@ const DECOMMISSIONED_MODELS_JS = [
 
 function getSanitizedGroqModel() {
   let m = localStorage.getItem('groq_model');
-  if (!m || DECOMMISSIONED_MODELS_JS.includes(m) || m.includes('llama') || m.includes('mixtral')) {
-    m = 'openai/gpt-oss-120b';
+  const activeModels = [
+    'llama-3.3-70b-versatile',
+    'deepseek-r1-distill-llama-70b',
+    'qwen-2.5-coder-32b',
+    'llama-3.1-8b-instant',
+    'gemma2-9b-it'
+  ];
+  const decommissioned = {
+    'llama3-70b-8192': 'llama-3.3-70b-versatile',
+    'llama3-8b-8192': 'llama-3.1-8b-instant',
+    'mixtral-8x7b-32768': 'llama-3.3-70b-versatile',
+    'openai/gpt-oss-120b': 'llama-3.3-70b-versatile',
+    'openai/gpt-oss-20b': 'llama-3.1-8b-instant',
+    'qwen/qwen3.8-27b': 'qwen-2.5-coder-32b',
+    'groq/compound': 'llama-3.3-70b-versatile',
+    'groq/compound-mini': 'llama-3.1-8b-instant'
+  };
+  if (!m || decommissioned[m] || !activeModels.includes(m)) {
+    m = decommissioned[m] || 'llama-3.3-70b-versatile';
     localStorage.setItem('groq_model', m);
     localStorage.setItem('studio_model', m);
   }
@@ -122,11 +139,11 @@ function getSanitizedGroqModel() {
 }
 
 const GROQ_MODELS = [
-  { value: 'openai/gpt-oss-120b', label: 'openai/gpt-oss-120b 🔥 Flagship (120B)' },
-  { value: 'openai/gpt-oss-20b', label: 'openai/gpt-oss-20b ⚡ Fast (20B)' },
-  { value: 'qwen/qwen3.8-27b', label: 'qwen/qwen3.8-27b 🎯 Alibaba Qwen' },
-  { value: 'groq/compound', label: 'groq/compound 🌀 Groq Compound' },
-  { value: 'groq/compound-mini', label: 'groq/compound-mini ⚡ Groq Mini' }
+  { value: 'llama-3.3-70b-versatile', label: '🚀 Llama 3.3 70B Versatile (Recommended Flagship)' },
+  { value: 'deepseek-r1-distill-llama-70b', label: '🧠 DeepSeek R1 Reasoner (70B)' },
+  { value: 'qwen-2.5-coder-32b', label: '💻 Qwen 2.5 Coder (32B)' },
+  { value: 'llama-3.1-8b-instant', label: '⚡ Llama 3.1 8B Instant (Ultra-Fast)' },
+  { value: 'gemma2-9b-it', label: '💎 Google Gemma 2 9B' }
 ];
 
 function _buildGroqModelOptions(selected) {

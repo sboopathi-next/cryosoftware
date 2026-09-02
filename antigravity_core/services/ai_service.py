@@ -9,16 +9,68 @@ from engine.database import save_chat_message, get_chat_history, update_stat
 from engine.english_daily import _get_api_key_from_db
 from services.finance_service import finance_service
 
-GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b"
+ACTIVE_GROQ_MODELS = [
+    "llama-3.3-70b-versatile",
+    "deepseek-r1-distill-llama-70b",
+    "qwen-2.5-coder-32b",
+    "llama-3.1-8b-instant",
+    "gemma2-9b-it"
+]
+
+DECOMMISSIONED_GROQ_MODELS = {
+    "llama3-70b-8192": "llama-3.3-70b-versatile",
+    "llama3-8b-8192": "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768": "llama-3.3-70b-versatile",
+    "openai/gpt-oss-120b": "llama-3.3-70b-versatile",
+    "openai/gpt-oss-20b": "llama-3.1-8b-instant",
+    "qwen/qwen3.8-27b": "qwen-2.5-coder-32b",
+    "groq/compound": "llama-3.3-70b-versatile",
+    "groq/compound-mini": "llama-3.1-8b-instant"
+}
 
 def sanitize_groq_model(m: Optional[str]) -> str:
     if not m or not isinstance(m, str):
-        return GROQ_DEFAULT_MODEL
-    m_clean = m.strip().lower()
-    deprecated = ["llama3-70b-8192", "llama3-8b-8192", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"]
-    if m_clean in deprecated or "llama" in m_clean or "mixtral" in m_clean:
-        return GROQ_DEFAULT_MODEL
-    return m.strip()
+        return "llama-3.3-70b-versatile"
+    m_clean = m.strip()
+    return DECOMMISSIONED_GROQ_MODELS.get(m_clean, m_clean if m_clean in ACTIVE_GROQ_MODELS else "llama-3.3-70b-versatile")
+
+async def execute_groq_chat_with_fallback(groq_key: str, requested_model: str, messages: list, temperature: float = 0.7, max_tokens: int = 1024) -> dict:
+    primary = sanitize_groq_model(requested_model)
+    candidates = [primary] + [m for m in ACTIVE_GROQ_MODELS if m != primary]
+    
+    last_error = ""
+    async with httpx.AsyncClient(timeout=25.0) as client:
+        for m in candidates:
+            try:
+                res = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {groq_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": m,
+                        "messages": messages,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens
+                    }
+                )
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        content = choices[0].get("message", {}).get("content", "")
+                        if content:
+                            return {"status": "success", "model_used": m, "content": content}
+                
+                err_msg = res.json().get("error", {}).get("message", res.text[:120])
+                print(f"[Groq Engine Warning] Model {m} failed HTTP {res.status_code}: {err_msg}. Retrying next active model...", flush=True)
+                last_error = f"Model {m} ({res.status_code}): {err_msg}"
+            except Exception as ex:
+                print(f"[Groq Engine Error] Exception with model {m}: {ex}. Retrying next active model...", flush=True)
+                last_error = str(ex)
+
+    return {"status": "error", "detail": f"All Groq models failed. Last error: {last_error}"}
 
 class AIService:
     """
@@ -46,15 +98,14 @@ class AIService:
         """
         AI Financial Advisor Chat Engine.
         Injects real monthly budget vs actual telemetry into Groq system prompt.
+        Uses Multi-Model Fallback Execution Engine.
         """
         groq_key = self._get_groq_key(api_key)
         if not groq_key:
             return {"status": "error", "detail": "No Groq API Key found. Please set GROQ_API_KEY or configure in settings."}
 
-        groq_model = sanitize_groq_model(model)
         fin_summary = finance_service.get_monthly_summary(month_str)
 
-        # Build clean financial context for prompt
         cat_lines = []
         for m in fin_summary.get("category_matrix", []):
             cat_lines.append(f"  - {m['category']}: Budgeted ₹{m['budget']:,.0f} | Actual ₹{m['actual']:,.0f} | Diff: ₹{m['difference']:,.0f} ({m['status']})")
@@ -86,35 +137,16 @@ INSTRUCTIONS:
             messages.append({"role": role, "content": msg["message"]})
         messages.append({"role": "user", "content": user_message})
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {groq_key}"
-        }
+        result = await execute_groq_chat_with_fallback(groq_key, model or "llama-3.3-70b-versatile", messages, temperature=0.7, max_tokens=1024)
 
-        request_body = {
-            "model": groq_model,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 1024
-        }
+        if result.get("status") == "error":
+            return result
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post("https://api.groq.com/openai/v1/chat/completions", json=request_body, headers=headers)
-
-        if response.status_code != 200:
-            error_detail = response.json().get("error", {}).get("message", "Groq API Error")
-            return {"status": "error", "detail": f"Groq API Error: {error_detail}"}
-
-        result = response.json()
-        choices = result.get("choices", [])
-        if not choices:
-            return {"status": "error", "detail": "Groq returned no candidates."}
-
-        ai_text = choices[0].get("message", {}).get("content", "No response generated.")
+        ai_text = result.get("content", "No response generated.")
         self._process_governance_tags(ai_text)
         save_chat_message("ai", ai_text, "finance")
 
-        return {"status": "success", "reply": ai_text}
+        return {"status": "success", "reply": ai_text, "model_used": result.get("model_used")}
 
 # Global Singleton Instance
 ai_service = AIService()
