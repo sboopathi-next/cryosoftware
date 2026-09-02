@@ -178,12 +178,12 @@ class FinanceService:
 
         return categories
 
-    def log_expense(self, amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None) -> Dict[str, Any]:
+    def log_expense(self, amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None, skip_dedup: bool = False) -> Dict[str, Any]:
         """Logs a single daily expense and updates people ledger telemetry if tagged."""
         if IS_SERVERLESS and DATABASE_URL:
             try:
                 from engine.neon_db import neon_log_expense
-                return neon_log_expense(amount, category, description, is_fixed, person_tag, expense_date)
+                return neon_log_expense(amount, category, description, is_fixed, person_tag, expense_date, skip_dedup=skip_dedup)
             except Exception as e:
                 print(f"[FinanceService] Neon log_expense failed ({e}), falling back to SQLite", flush=True)
 
@@ -194,7 +194,7 @@ class FinanceService:
         date_str = expense_date.strip() if expense_date else datetime.date.today().isoformat()
         now_dt = datetime.datetime.now()
         now_ts = now_dt.isoformat()
-        ten_sec_ago = (now_dt - datetime.timedelta(seconds=10)).isoformat()
+        two_sec_ago = (now_dt - datetime.timedelta(seconds=2)).isoformat()
         sub_type = "fixed" if is_fixed else "variable"
         person_clean = person_tag.strip().title() if person_tag else ""
 
@@ -202,25 +202,26 @@ class FinanceService:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Prevent duplicate submissions triggered within 10 seconds
-        cursor.execute("""
-            SELECT id FROM finance_expenses
-            WHERE amount = ? AND category = ? AND description = ? AND person_tag = ? AND expense_date = ?
-            AND logged_at >= ?
-        """, (amount, category_clean, description, person_clean, date_str, ten_sec_ago))
-        existing_dup = cursor.fetchone()
-        if existing_dup:
-            dup_id = existing_dup["id"]
-            conn.close()
-            return {
-                "status": "duplicate_prevented",
-                "message": f"Duplicate entry ignored for ₹{amount:,.2f}",
-                "expense_id": dup_id,
-                "amount": amount,
-                "category": category_clean,
-                "person_tag": person_clean,
-                "expense_date": date_str
-            }
+        # Prevent duplicate submissions triggered within 2 seconds
+        if not skip_dedup:
+            cursor.execute("""
+                SELECT id FROM finance_expenses
+                WHERE amount = ? AND category = ? AND description = ? AND person_tag = ? AND expense_date = ?
+                AND logged_at >= ?
+            """, (amount, category_clean, description, person_clean, date_str, two_sec_ago))
+            existing_dup = cursor.fetchone()
+            if existing_dup:
+                dup_id = existing_dup["id"]
+                conn.close()
+                return {
+                    "status": "duplicate_prevented",
+                    "message": f"Duplicate entry ignored for ₹{amount:,.2f}",
+                    "expense_id": dup_id,
+                    "amount": amount,
+                    "category": category_clean,
+                    "person_tag": person_clean,
+                    "expense_date": date_str
+                }
 
         cursor.execute("""
             INSERT INTO finance_expenses (amount, category, sub_type, description, is_fixed, person_tag, expense_date, logged_at)
@@ -315,7 +316,8 @@ class FinanceService:
                 description=desc,
                 is_fixed=is_fixed,
                 person_tag=person,
-                expense_date=exp_date
+                expense_date=exp_date,
+                skip_dedup=True
             )
             logged_count += 1
             total_amount += amt

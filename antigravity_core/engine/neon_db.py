@@ -1119,13 +1119,13 @@ def _init_pg_finance(cur):
         );
     """)
 
-def neon_log_expense(amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None) -> dict:
+def neon_log_expense(amount: float, category: str, description: str = "", is_fixed: bool = False, person_tag: str = "", expense_date: Optional[str] = None, skip_dedup: bool = False) -> dict:
     import json
     category_clean = category.strip().title() if category else "Needs"
     date_str = expense_date.strip() if expense_date else datetime.date.today().isoformat()
     now_dt = datetime.datetime.now()
     now_ts = now_dt.isoformat()
-    ten_sec_ago = (now_dt - datetime.timedelta(seconds=10)).isoformat()
+    two_sec_ago = (now_dt - datetime.timedelta(seconds=2)).isoformat()
     sub_type = "fixed" if is_fixed else "variable"
     person_clean = person_tag.strip().title() if person_tag else ""
 
@@ -1133,22 +1133,23 @@ def neon_log_expense(amount: float, category: str, description: str = "", is_fix
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             _init_pg_finance(cur)
 
-            cur.execute("""
-                SELECT id FROM pg_finance_expenses
-                WHERE amount = %s AND category = %s AND description = %s AND person_tag = %s AND expense_date = %s
-                AND logged_at >= %s
-            """, (amount, category_clean, description, person_clean, date_str, ten_sec_ago))
-            dup = cur.fetchone()
-            if dup:
-                return {
-                    "status": "duplicate_prevented",
-                    "message": f"Duplicate entry ignored for ₹{amount:,.2f}",
-                    "expense_id": dup["id"],
-                    "amount": amount,
-                    "category": category_clean,
-                    "person_tag": person_clean,
-                    "expense_date": date_str
-                }
+            if not skip_dedup:
+                cur.execute("""
+                    SELECT id FROM pg_finance_expenses
+                    WHERE amount = %s AND category = %s AND description = %s AND person_tag = %s AND expense_date = %s
+                    AND logged_at >= %s
+                """, (amount, category_clean, description, person_clean, date_str, two_sec_ago))
+                dup = cur.fetchone()
+                if dup:
+                    return {
+                        "status": "duplicate_prevented",
+                        "message": f"Duplicate entry ignored for ₹{amount:,.2f}",
+                        "expense_id": dup["id"],
+                        "amount": amount,
+                        "category": category_clean,
+                        "person_tag": person_clean,
+                        "expense_date": date_str
+                    }
 
             cur.execute("""
                 INSERT INTO pg_finance_expenses (amount, category, sub_type, description, is_fixed, person_tag, expense_date, logged_at)
