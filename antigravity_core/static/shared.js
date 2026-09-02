@@ -138,17 +138,67 @@ function getSanitizedGroqModel() {
   return m;
 }
 
-const GROQ_MODELS = [
-  { value: 'llama-3.3-70b-versatile', label: '🚀 Llama 3.3 70B Versatile (Recommended Flagship)' },
-  { value: 'deepseek-r1-distill-llama-70b', label: '🧠 DeepSeek R1 Reasoner (70B)' },
-  { value: 'qwen-2.5-coder-32b', label: '💻 Qwen 2.5 Coder (32B)' },
-  { value: 'llama-3.1-8b-instant', label: '⚡ Llama 3.1 8B Instant (Ultra-Fast)' },
-  { value: 'gemma2-9b-it', label: '💎 Google Gemma 2 9B' }
+let GROQ_DYNAMIC_MODELS = [
+  { value: 'llama-3.3-70b-versatile', label: '🚀 Llama 3.3 70B Versatile (128,000 tokens)' },
+  { value: 'deepseek-r1-distill-llama-70b', label: '🧠 DeepSeek R1 Reasoner (128,000 tokens)' },
+  { value: 'qwen-2.5-coder-32b', label: '💻 Qwen 2.5 Coder (128,000 tokens)' },
+  { value: 'llama-3.1-8b-instant', label: '⚡ Llama 3.1 8B Instant (128,000 tokens)' },
+  { value: 'gemma2-9b-it', label: '💎 Google Gemma 2 9B (8,192 tokens)' }
 ];
 
+async function syncDynamicGroqModels(forceRefresh = false) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const cachedDate = localStorage.getItem('groq_models_cached_date');
+  const cachedModels = localStorage.getItem('groq_models_cache');
+
+  if (!forceRefresh && cachedDate === todayStr && cachedModels) {
+    try {
+      const parsed = JSON.parse(cachedModels);
+      if (parsed && parsed.length) {
+        GROQ_DYNAMIC_MODELS = parsed.map(m => ({
+          value: m.id,
+          label: `⚡ ${m.id} (${(m.context_window || 128000).toLocaleString()} tokens)`
+        }));
+        return GROQ_DYNAMIC_MODELS;
+      }
+    } catch(e) {}
+  }
+
+  try {
+    const key = localStorage.getItem('groq_key') || '';
+    const r = await apiFetch(`/api/groq/models?api_key=${encodeURIComponent(key)}`);
+    if (r.ok) {
+      const data = await r.json();
+      if (data.models && data.models.length) {
+        GROQ_DYNAMIC_MODELS = data.models.map(m => ({
+          value: m.id,
+          label: `⚡ ${m.id} (${(m.context_window || 128000).toLocaleString()} tokens)`
+        }));
+        localStorage.setItem('groq_models_cached_date', todayStr);
+        localStorage.setItem('groq_models_cache', JSON.stringify(data.models));
+      }
+    }
+  } catch(e) {
+    console.warn('[Groq Sync Warning] Failed to fetch live models:', e);
+  }
+
+  return GROQ_DYNAMIC_MODELS;
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => { syncDynamicGroqModels(); });
+}
+
 function _buildGroqModelOptions(selected) {
-  let html = '<optgroup label="🚀 Groq Models (Ultra-Fast Hardware)">';
-  for (const m of GROQ_MODELS) {
+  let html = '<optgroup label="🚀 Live Groq Models (Auto-Discovered via API)">';
+  const list = GROQ_DYNAMIC_MODELS.length ? GROQ_DYNAMIC_MODELS : [
+    { value: 'llama-3.3-70b-versatile', label: '🚀 Llama 3.3 70B Versatile (128,000 tokens)' },
+    { value: 'deepseek-r1-distill-llama-70b', label: '🧠 DeepSeek R1 Reasoner (128,000 tokens)' },
+    { value: 'qwen-2.5-coder-32b', label: '💻 Qwen 2.5 Coder (128,000 tokens)' },
+    { value: 'llama-3.1-8b-instant', label: '⚡ Llama 3.1 8B Instant (128,000 tokens)' },
+    { value: 'gemma2-9b-it', label: '💎 Google Gemma 2 9B (8,192 tokens)' }
+  ];
+  for (const m of list) {
     html += `<option value="${m.value}" ${selected === m.value ? 'selected' : ''}>${escHTML(m.label)}</option>`;
   }
   html += '</optgroup>';

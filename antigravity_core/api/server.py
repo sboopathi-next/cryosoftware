@@ -182,6 +182,20 @@ class TranslationPayload(BaseModel):
     api_key: Optional[str] = "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"
     groq_model: Optional[str] = "llama-3.3-70b-versatile"
 
+@app.get("/api/groq/models")
+async def get_groq_models_route(api_key: Optional[str] = None):
+    from services.ai_service import fetch_live_groq_models
+    groq_key = api_key.strip() if api_key else os.environ.get("GROQ_API_KEY", "")
+    if not groq_key:
+        groq_key = _get_api_key_from_db()
+    models = await fetch_live_groq_models(groq_key)
+    return {
+        "status": "success",
+        "date": datetime.date.today().isoformat(),
+        "today_done": bool(models),
+        "models": models
+    }
+
 
 class BadExperiencePayload(BaseModel):
     title: str

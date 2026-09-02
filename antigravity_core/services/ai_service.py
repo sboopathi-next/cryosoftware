@@ -28,6 +28,48 @@ DECOMMISSIONED_GROQ_MODELS = {
     "groq/compound-mini": "llama-3.1-8b-instant"
 }
 
+GROQ_LIVE_MODELS_CACHE = {"date": "", "models": []}
+
+async def fetch_live_groq_models(groq_key: str) -> List[Dict[str, Any]]:
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    global GROQ_LIVE_MODELS_CACHE
+
+    if GROQ_LIVE_MODELS_CACHE.get("date") == today_str and GROQ_LIVE_MODELS_CACHE.get("models"):
+        return GROQ_LIVE_MODELS_CACHE["models"]
+
+    if not groq_key:
+        return []
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(
+                "https://api.groq.com/openai/v1/models",
+                headers={"Authorization": f"Bearer {groq_key}"}
+            )
+            if res.status_code == 200:
+                data = res.json().get("data", [])
+                live_models = []
+                for m in data:
+                    if m.get("active", True):
+                        m_id = m.get("id", "")
+                        ctx = m.get("context_window", 128000)
+                        live_models.append({
+                            "id": m_id,
+                            "context_window": ctx,
+                            "label": f"{m_id} ({ctx:,} tokens)"
+                        })
+                
+                live_models.sort(key=lambda x: (-x["context_window"], x["id"]))
+
+                if live_models:
+                    GROQ_LIVE_MODELS_CACHE = {"date": today_str, "models": live_models}
+                    return live_models
+    except Exception as e:
+        print(f"[Groq Live Models Fetch Exception] {e}", flush=True)
+
+    return GROQ_LIVE_MODELS_CACHE.get("models", [])
+
 def sanitize_groq_model(m: Optional[str]) -> str:
     if not m or not isinstance(m, str):
         return "llama-3.3-70b-versatile"
