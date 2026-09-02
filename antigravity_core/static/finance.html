@@ -311,6 +311,7 @@ html, body {
     max-height: 88vh !important;
     overflow-y: auto !important;
     margin: 0 !important;
+    padding-bottom: calc(85px + env(safe-area-inset-bottom)) !important;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8) !important;
   }
 }
@@ -739,7 +740,7 @@ window.addEventListener('resize', () => {
 
 async function loadFinanceSummary() {
   try {
-    const r = await fetch('/api/finance/summary');
+    const r = await apiFetch('/api/finance/summary');
     finData = await r.json();
 
     document.getElementById('st-income').textContent = `₹${(finData.income || 0).toLocaleString()}`;
@@ -965,7 +966,7 @@ async function aiAutoFillRows() {
   if (!txt) { alert('Please paste or type text entries.'); return; }
 
   try {
-    const r = await fetch('/api/finance/bulk_parse', {
+    const r = await apiFetch('/api/finance/bulk_parse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: txt })
@@ -1012,7 +1013,7 @@ async function submitLogSetForm() {
   }
 
   try {
-    const r = await fetch('/api/finance/expense_batch', {
+    const r = await apiFetch('/api/finance/expense_batch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entries })
@@ -1041,7 +1042,7 @@ async function openBudgetModal() {
   document.getElementById('budget-modal').classList.remove('hidden');
   if (!finData || !finData.all_categories || !finData.all_categories.length) {
     try {
-      const r = await fetch('/api/finance/categories');
+      const r = await apiFetch('/api/finance/categories');
       const d = await r.json();
       populateCategoryDropdowns(d.categories || []);
     } catch(e) {
@@ -1069,7 +1070,7 @@ async function submitBankImportForm() {
   if (pdfPass) formData.append('pdf_password', pdfPass);
 
   try {
-    const r = await fetch('/api/finance/bank_import', {
+    const r = await apiFetch('/api/finance/bank_import', {
       method: 'POST',
       body: formData
     });
@@ -1094,7 +1095,7 @@ async function submitBankImportForm() {
 
 async function connectAASandbox() {
   try {
-    const r = await fetch('/api/finance/aa_sandbox/connect', {
+    const r = await apiFetch('/api/finance/aa_sandbox/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bank_name: 'HDFC Bank', provider: 'OneMoney' })
@@ -1121,7 +1122,7 @@ async function submitExpenseForm() {
   }
 
   try {
-    const r = await fetch('/api/finance/expense', {
+    const r = await apiFetch('/api/finance/expense', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount, category, is_fixed, person_tag, description })
@@ -1153,7 +1154,7 @@ async function submitCustomCatForm() {
   }
 
   try {
-    const r = await fetch('/api/finance/category', {
+    const r = await apiFetch('/api/finance/category', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, icon, default_limit })
@@ -1172,7 +1173,7 @@ async function submitCustomCatForm() {
 async function deleteExpenseItem(id) {
   if (!confirm('Delete this expense entry?')) return;
   try {
-    const r = await fetch(`/api/finance/expense/${id}`, { method: 'DELETE' });
+    const r = await apiFetch(`/api/finance/expense/${id}`, { method: 'DELETE' });
     if (r.ok) {
       toast('Expense entry deleted', 'ok');
       loadFinanceSummary();
@@ -1199,7 +1200,7 @@ async function submitBudgetForm() {
   });
 
   try {
-    const r = await fetch('/api/finance/budget', {
+    const r = await apiFetch('/api/finance/budget', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ month_str, income, category_budgets })
@@ -1240,7 +1241,7 @@ async function sendChatMessage() {
   stream.scrollTop = stream.scrollHeight;
 
   try {
-    const r = await fetch('/api/ai/finance_advisor', {
+    const r = await apiFetch('/api/ai/finance_advisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg })

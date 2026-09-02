@@ -856,7 +856,7 @@ select, input, textarea { font-family: var(--ff-body); }
 
   /* Padding adjustments to prevent content overlap with bottom nav */
   .main, main, .body-content, .mind-pane {
-    padding-bottom: 90px !important;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
   }
 
   /* Full screen-ish slide up sheet */
@@ -887,16 +887,24 @@ select, input, textarea { font-family: var(--ff-body); }
     border-top: 1.5px solid var(--border-hi) !important;
     border-radius: 20px 20px 0 0 !important;
     z-index: 10001 !important;
-    max-height: 75vh !important;
+    max-height: 80vh !important;
     overflow-y: auto !important;
     transform: translateY(100%) !important;
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    padding: 16px 20px 40px !important;
+    padding: 16px 20px calc(95px + env(safe-area-inset-bottom)) !important;
     box-shadow: 0 -8px 30px rgba(0,0,0,0.6) !important;
   }
   
   .mobile-bottom-sheet.active {
     transform: translateY(0) !important;
+  }
+
+  /* Ensure all mobile modals have bottom clearance above fixed bottom nav bar */
+  .modal-mask {
+    z-index: 999999 !important;
+  }
+  .modal {
+    padding-bottom: calc(85px + env(safe-area-inset-bottom)) !important;
   }
   
   .sheet-header {

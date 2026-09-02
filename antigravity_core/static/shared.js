@@ -195,7 +195,7 @@ async function saveWorkstationSettings() {
 
   if (groqKey) {
     try {
-      await fetch('/api/settings/save', {
+      await apiFetch('/api/settings/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groq_api_key: groqKey, groq_model: groqModel })
