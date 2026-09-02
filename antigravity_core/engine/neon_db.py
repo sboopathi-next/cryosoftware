@@ -1291,13 +1291,17 @@ def neon_get_finance_summary(month_str: Optional[str] = None) -> dict:
 
             cur.execute("SELECT * FROM pg_finance_monthly_budget WHERE month_str = %s", (month_str,))
             b_row = cur.fetchone()
+            if not b_row:
+                cur.execute("SELECT * FROM pg_finance_monthly_budget ORDER BY updated_at DESC LIMIT 1")
+                b_row = cur.fetchone()
+
             category_budgets = {c["name"]: c["default_limit"] for c in all_cats}
             if b_row:
-                income = float(b_row["income"] or 50000.0)
+                income = float(b_row["income"] or 68000.0)
                 saved_budgets = json.loads(b_row["category_budgets_json"])
                 category_budgets.update(saved_budgets)
             else:
-                income = 50000.0
+                income = 68000.0
 
             cur.execute("""
                 SELECT * FROM pg_finance_expenses 
@@ -1306,11 +1310,28 @@ def neon_get_finance_summary(month_str: Optional[str] = None) -> dict:
             """, (f"{month_str}%",))
             expenses = [dict(r) for r in cur.fetchall()]
 
+            if not expenses:
+                cur.execute("SELECT * FROM pg_finance_expenses ORDER BY expense_date DESC, id DESC LIMIT 100")
+                expenses = [dict(r) for r in cur.fetchall()]
+
             cur.execute("SELECT * FROM pg_finance_sinking_funds ORDER BY id ASC")
             sinking_funds = [dict(r) for r in cur.fetchall()]
 
             cur.execute("SELECT * FROM pg_finance_people_ledger ORDER BY total_sent DESC")
             people_ledger = [dict(r) for r in cur.fetchall()]
+
+            if not people_ledger and expenses:
+                p_map = {}
+                p_dates = {}
+                for e in expenses:
+                    ptag = e.get("person_tag")
+                    if ptag:
+                        p_map[ptag] = p_map.get(ptag, 0.0) + float(e.get("amount", 0.0))
+                        p_dates[ptag] = e.get("expense_date") or datetime.date.today().isoformat()
+                people_ledger = [
+                    {"person_name": name, "total_sent": amt, "last_transaction_date": p_dates.get(name, "")}
+                    for name, amt in p_map.items()
+                ]
 
     if not sinking_funds:
         sinking_funds = [
