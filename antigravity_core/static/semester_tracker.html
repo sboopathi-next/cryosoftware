@@ -595,10 +595,41 @@ function renderTodayCard(target) {
     document.getElementById(id).style.background = color;
   });
 
-  // Deliverables
-  document.getElementById('del-videos').textContent = `Watch Week ${target.week_number} lecture videos`;
-  document.getElementById('del-quiz').textContent   = `Submit Quiz ${target.week_number}.1 on Canvas LMS`;
-  document.getElementById('del-assign').textContent = `Complete Week ${target.week_number} assignment`;
+  // Deliverables with Live Sub-Item Progress Badges
+  const vDone = target.videos_done || 0;
+  const vTot  = target.target_videos || 4;
+  const qDone = target.quizzes_done || 0;
+  const aDone = target.assignments_done || 0;
+
+  const vPct  = Math.round(Math.min(1.0, vDone / vTot) * 100);
+  const vBadgeClass = vDone >= vTot ? 'color:#10b981;background:rgba(16,185,129,0.15)' : (vDone > 0 ? 'color:#f59e0b;background:rgba(245,158,11,0.15)' : 'color:#94a3b8;background:rgba(148,163,184,0.1)');
+  const qBadgeClass = qDone >= 1 ? 'color:#10b981;background:rgba(16,185,129,0.15)' : 'color:#f59e0b;background:rgba(245,158,11,0.15)';
+  const aBadgeClass = aDone >= 1 ? 'color:#10b981;background:rgba(16,185,129,0.15)' : 'color:#f59e0b;background:rgba(245,158,11,0.15)';
+
+  document.getElementById('del-videos').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;flex-wrap:wrap">
+      <span>Watch Week ${target.week_number} lecture videos</span>
+      <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;${vBadgeClass}">
+        ${vDone >= vTot ? '✅' : '⏳'} ${vDone}/${vTot} Completed (${vPct}%)
+      </span>
+    </div>
+  `;
+  document.getElementById('del-quiz').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;flex-wrap:wrap">
+      <span>Submit Quiz ${target.week_number}.1 on Canvas LMS</span>
+      <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;${qBadgeClass}">
+        ${qDone >= 1 ? '✅ 1/1 Submitted' : '⏳ 0/1 Pending'}
+      </span>
+    </div>
+  `;
+  document.getElementById('del-assign').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;flex-wrap:wrap">
+      <span>Complete Week ${target.week_number} digital assignment</span>
+      <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;${aBadgeClass}">
+        ${aDone >= 1 ? '✅ 1/1 Completed' : '⏳ 0/1 Pending'}
+      </span>
+    </div>
+  `;
 
   // Status badge
   const badge   = document.getElementById('today-status-badge');

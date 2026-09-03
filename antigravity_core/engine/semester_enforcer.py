@@ -316,6 +316,50 @@ def get_today_target() -> dict:
     deadline          = datetime.datetime.combine(today, datetime.time(23, 59, 0), tzinfo=IST)
     seconds_remaining = max(0, int((deadline - now_ist).total_seconds()))
 
+    # Live today item counts for target course
+    videos_done = 0
+    quizzes_done = 0
+    assignments_done = 0
+    target_videos = 4  # Standard Wk 4 syllabus lectures count
+    
+    try:
+        if IS_SERVERLESS and DATABASE_URL:
+            conn = _get_neon_conn()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT
+                    SUM(CASE WHEN item_type IN ('Page', 'Module', 'Video') OR (item_title NOT ILIKE '%%Quiz%%' AND item_title NOT ILIKE '%%Assignment%%') THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN item_type IN ('Quiz') OR item_title ILIKE '%%Quiz%%' THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN item_type IN ('Assignment') OR item_title ILIKE '%%Assignment%%' THEN 1 ELSE 0 END)
+                FROM pg_canvas_completed_items
+                WHERE completed_at::date = %s::date
+                  AND (course_name ILIKE %s OR course_name ILIKE %s)
+            """, (today.isoformat(), f"%{target['name']}%", f"%{target['code']}%"))
+            r = cursor.fetchone()
+            if r:
+                videos_done = int(r[0] or 0)
+                quizzes_done = int(r[1] or 0)
+                assignments_done = int(r[2] or 0)
+            cursor.close(); conn.close()
+        else:
+            conn = _get_sqlite_conn()
+            r = conn.execute("""
+                SELECT
+                    SUM(CASE WHEN item_type IN ('Page', 'Module', 'Video') OR (item_title NOT LIKE '%Quiz%' AND item_title NOT LIKE '%Assignment%') THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN item_type IN ('Quiz') OR item_title LIKE '%Quiz%' THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN item_type IN ('Assignment') OR item_title LIKE '%Assignment%' THEN 1 ELSE 0 END)
+                FROM canvas_completed_items
+                WHERE date(completed_at) = ?
+                  AND (course_name LIKE ? OR course_name LIKE ?)
+            """, (today.isoformat(), f"%{target['name']}%", f"%{target['code']}%")).fetchone()
+            if r:
+                videos_done = int(r[0] or 0)
+                quizzes_done = int(r[1] or 0)
+                assignments_done = int(r[2] or 0)
+            conn.close()
+    except Exception as e:
+        print(f"[Semester Target] Error querying today item counts: {e}")
+
     return {
         "date":              today.isoformat(),
         "weekday":           weekday,
@@ -332,6 +376,10 @@ def get_today_target() -> dict:
         "seconds_remaining": seconds_remaining,
         "semester_pct":      round((week_number - 1) / SEMESTER_WEEKS * 100, 1),
         "weeks_left":        SEMESTER_WEEKS - week_number + 1,
+        "videos_done":       videos_done,
+        "target_videos":     target_videos,
+        "quizzes_done":      quizzes_done,
+        "assignments_done":  assignments_done,
     }
 
 
