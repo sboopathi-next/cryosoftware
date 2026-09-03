@@ -350,27 +350,27 @@ def check_date_transition(state: dict) -> dict:
         all_completed = all(mandatory_targets) or was_sanctuary_holiday
         
         if was_sanctuary_holiday:
-            current_streak = max(33, state.get("streak_days", 33))
+            current_streak = state.get("streak_days", 0)
             state["streak_days"] = current_streak + elapsed_days
             state["energy"] = 100.0  # Full recovery
             doing = f"Day Transition: Universal Sanctuary Pass Activated for {last_update_str}"
             accomplished = f"🛡️ Universal Sanctuary Day Immunity active! All 12 streaks protected & Cognitive Energy refilled to 100%."
         elif all_completed:
-            current_streak = max(33, state.get("streak_days", 33))
+            current_streak = state.get("streak_days", 0)
             state["streak_days"] = current_streak + elapsed_days
             state["energy"] = min(100.0, state.get("energy", 100.0) + 25.0)
             doing = f"Day Transition: ALL Core Discipline Targets Passed for {last_update_str}"
             accomplished = f"Completed ALL core targets! Streak incremented by +{elapsed_days}d to {state['streak_days']} days."
         else:
-            current_streak = max(33, state.get("streak_days", 33))
-            state["streak_days"] = current_streak
+            state["streak_days"] = 0
+            state["continuous_study_days"] = 0
             doing = f"Day Transition: Partial Completion for {last_update_str}"
             failures = []
             if not state.get("study_completed", False): failures.append("Study")
             if not state.get("leetcode_completed", False): failures.append("LeetCode")
             if not state.get("gym_completed", False): failures.append("Gym")
             if not state.get("english_completed", False): failures.append("English")
-            accomplished = f"Streak maintained at {state['streak_days']} days. Missing: {', '.join(failures)}."
+            accomplished = f"❌ Missed mandatory targets ({', '.join(failures)}). Streak reset to 0."
 
         # Write check-in to activity log file
         try:
