@@ -112,7 +112,39 @@ async def execute_groq_chat_with_fallback(groq_key: str, requested_model: str, m
                 print(f"[Groq Engine Error] Exception with model {m}: {ex}. Retrying next active model...", flush=True)
                 last_error = str(ex)
 
-    return {"status": "error", "detail": f"All Groq models failed. Last error: {last_error}"}
+    # 🚨 TIER 3 EMERGENCY FALLBACK: If ALL known models fail/decommissioned, fetch Groq's LIVE /v1/models endpoint dynamically!
+    try:
+        print("[Groq Emergency Engine] All primary candidate models failed. Dynamically querying Groq GET /v1/models for live active models...", flush=True)
+        live_models = await fetch_live_groq_models(groq_key)
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            for lm in live_models:
+                m_id = lm.get("id")
+                if m_id and m_id not in candidates:
+                    try:
+                        res = await client.post(
+                            "https://api.groq.com/openai/v1/chat/completions",
+                            headers={
+                                "Authorization": f"Bearer {groq_key}",
+                                "Content-Type": "application/json"
+                            },
+                            json={
+                                "model": m_id,
+                                "messages": messages,
+                                "temperature": temperature,
+                                "max_tokens": max_tokens
+                            }
+                        )
+                        if res.status_code == 200:
+                            content = res.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+                            if content:
+                                print(f"[Groq Emergency Engine] Successfully auto-discovered & executed on live model: {m_id}", flush=True)
+                                return {"status": "success", "model_used": m_id, "content": content}
+                    except Exception as ex:
+                        print(f"[Groq Emergency Engine] Emergency model {m_id} failed: {ex}", flush=True)
+    except Exception as e:
+        print(f"[Groq Emergency Engine] Live models discovery exception: {e}", flush=True)
+
+    return {"status": "error", "detail": f"All Groq models (including live discovered models) failed. Last error: {last_error}"}
 
 class AIService:
     """
