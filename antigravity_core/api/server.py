@@ -2082,6 +2082,13 @@ async def ai_teacher_chat(payload: TeacherChatPayload):
             return JSONResponse(status_code=400, content={"detail": "Message cannot be empty."})
 
         # Configure endpoints and authorization headers based on selected Provider
+        api_key = payload.api_key.strip() if payload.api_key else os.environ.get("GROQ_API_KEY", "")
+        if not api_key:
+            try:
+                from engine.english_daily import _get_api_key_from_db
+                api_key = _get_api_key_from_db()
+            except Exception:
+                pass
         groq_model = sanitize_groq_model(payload.groq_model)
         groq_url = "https://api.groq.com/openai/v1/chat/completions"
         

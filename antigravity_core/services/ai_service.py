@@ -76,7 +76,14 @@ def sanitize_groq_model(m: Optional[str]) -> str:
     m_clean = m.strip()
     return DECOMMISSIONED_GROQ_MODELS.get(m_clean, m_clean if m_clean in ACTIVE_GROQ_MODELS else "llama-3.3-70b-versatile")
 
-async def execute_groq_chat_with_fallback(groq_key: str, requested_model: str, messages: list, temperature: float = 0.7, max_tokens: int = 1024) -> dict:
+async def execute_groq_chat_with_fallback(groq_key: Optional[str], requested_model: str, messages: list, temperature: float = 0.7, max_tokens: int = 1024) -> dict:
+    if not groq_key or not isinstance(groq_key, str) or not groq_key.strip():
+        try:
+            from engine.english_daily import _get_api_key_from_db
+            groq_key = os.environ.get("GROQ_API_KEY", "") or _get_api_key_from_db()
+        except Exception:
+            groq_key = os.environ.get("GROQ_API_KEY", "")
+
     primary = sanitize_groq_model(requested_model)
     candidates = [primary] + [m for m in ACTIVE_GROQ_MODELS if m != primary]
     
