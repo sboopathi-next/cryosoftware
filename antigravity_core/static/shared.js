@@ -851,6 +851,8 @@ function injectMobileNavigation() {
     </div>
     <div class="sheet-body">
       <div class="sheet-grid">
+        <a href="/ai" class="sheet-grid-item" style="border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.12)"><i class="fa-solid fa-robot" style="color:#818cf8"></i><span style="color:#a5b4fc">AI Coach</span></a>
+        <a href="/teacher" class="sheet-grid-item" style="border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.12)"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span style="color:#6ee7b7">AI Teacher</span></a>
         <a href="/finance" class="sheet-grid-item" style="border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07)"><i class="fa-solid fa-sack-dollar" style="color:#f59e0b"></i><span style="color:#fcd34d">Finance Advisor</span></a>
         <a href="/task-streaks" class="sheet-grid-item" style="border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07)"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span style="color:#fcd34d">Task Streaks</span></a>
         <a href="/semester" class="sheet-grid-item" style="border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.07)"><i class="fa-solid fa-graduation-cap" style="color:#a78bfa"></i><span style="color:#c4b5fd">Semester</span></a>

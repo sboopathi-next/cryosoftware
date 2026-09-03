@@ -1989,26 +1989,13 @@ Recent Logs:
         
         messages.append({"role": "user", "content": payload.message})
         
-        request_body = {
-            "model": groq_model,
-            "messages": messages,
-            "temperature": 0.85,
-            "max_tokens": 2048
-        }
-        
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(groq_url, json=request_body, headers=headers)
-            
-        if response.status_code != 200:
-            error_detail = response.json().get("error", {}).get("message", "Unknown error from Groq API.")
-            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {error_detail}"})
-        
-        result = response.json()
-        choices = result.get("choices", [])
-        if not choices:
-            return JSONResponse(status_code=502, content={"detail": "Groq returned no candidates."})
-        
-        ai_text = choices[0].get("message", {}).get("content", "No response generated.")
+        from services.ai_service import execute_groq_chat_with_fallback
+        res_dict = await execute_groq_chat_with_fallback(api_key, payload.groq_model, messages, temperature=0.85, max_tokens=2048)
+
+        if res_dict.get("status") == "error":
+            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {res_dict.get('detail')}"})
+
+        ai_text = res_dict.get("content", "No response generated.")
         
         # Process GOVERNANCE tokens (supports [GOVERNANCE:STAT:AMT:REASON] and 🟢 STAT: +AMT (REASON))
         valid_stats = {"XP", "STR", "INT", "AGI", "WIL", "ENERGY", "HRT", "HEART", "STC", "STOIC"}
@@ -2095,14 +2082,6 @@ async def ai_teacher_chat(payload: TeacherChatPayload):
             return JSONResponse(status_code=400, content={"detail": "Message cannot be empty."})
 
         # Configure endpoints and authorization headers based on selected Provider
-        headers = {"Content-Type": "application/json"}
-        api_key = payload.api_key.strip() if payload.api_key else os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "No Groq API key provided. Set GROQ_API_KEY env variable or pass api_key in settings."}
-            )
-        headers["Authorization"] = f"Bearer {api_key}"
         groq_model = sanitize_groq_model(payload.groq_model)
         groq_url = "https://api.groq.com/openai/v1/chat/completions"
         
@@ -2126,26 +2105,13 @@ Level: {state.get('level', 1)} | Subject: {state.get('active_subject', 'Python_D
 
         messages.append({"role": "user", "content": payload.message})
 
-        request_body = {
-            "model": groq_model,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 2048
-        }
+        from services.ai_service import execute_groq_chat_with_fallback
+        res_dict = await execute_groq_chat_with_fallback(api_key, payload.groq_model, messages, temperature=0.7, max_tokens=2048)
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(groq_url, json=request_body, headers=headers)
-            
-        if response.status_code != 200:
-            error_detail = response.json().get("error", {}).get("message", "Unknown error from Groq API.")
-            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {error_detail}"})
-        
-        result = response.json()
-        choices = result.get("choices", [])
-        if not choices:
-            return JSONResponse(status_code=502, content={"detail": "Groq returned no candidates."})
-        
-        ai_text = choices[0].get("message", {}).get("content", "No response generated.")
+        if res_dict.get("status") == "error":
+            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {res_dict.get('detail')}"})
+
+        ai_text = res_dict.get("content", "No response generated.")
         
         # Save AI reply to database
         save_chat_message("ai", ai_text, "teacher")
