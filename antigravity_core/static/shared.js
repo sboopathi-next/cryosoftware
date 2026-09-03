@@ -121,12 +121,14 @@ function getSanitizedGroqModel() {
     'gemma2-9b-it'
   ];
   const decommissioned = {
+    'gemma2-9b-it': 'llama-3.1-8b-instant',
+    'qwen-2.5-coder-32b': 'llama-3.3-70b-versatile',
     'llama3-70b-8192': 'llama-3.3-70b-versatile',
     'llama3-8b-8192': 'llama-3.1-8b-instant',
     'mixtral-8x7b-32768': 'llama-3.3-70b-versatile',
     'openai/gpt-oss-120b': 'llama-3.3-70b-versatile',
     'openai/gpt-oss-20b': 'llama-3.1-8b-instant',
-    'qwen/qwen3.8-27b': 'qwen-2.5-coder-32b',
+    'qwen/qwen3.8-27b': 'llama-3.3-70b-versatile',
     'groq/compound': 'llama-3.3-70b-versatile',
     'groq/compound-mini': 'llama-3.1-8b-instant'
   };

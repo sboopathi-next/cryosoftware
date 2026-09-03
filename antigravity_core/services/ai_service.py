@@ -12,11 +12,11 @@ from services.finance_service import finance_service
 ACTIVE_GROQ_MODELS = [
     "llama-3.3-70b-versatile",
     "deepseek-r1-distill-llama-70b",
-    "llama-3.1-8b-instant",
-    "gemma2-9b-it"
+    "llama-3.1-8b-instant"
 ]
 
 DECOMMISSIONED_GROQ_MODELS = {
+    "gemma2-9b-it": "llama-3.1-8b-instant",
     "qwen-2.5-coder-32b": "llama-3.3-70b-versatile",
     "qwen/qwen3.8-27b": "llama-3.3-70b-versatile",
     "llama3-70b-8192": "llama-3.3-70b-versatile",

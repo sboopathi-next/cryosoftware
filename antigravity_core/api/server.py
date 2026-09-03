@@ -146,11 +146,11 @@ class CustomWorkoutPayload(BaseModel):
 ACTIVE_GROQ_MODELS = [
     "llama-3.3-70b-versatile",
     "deepseek-r1-distill-llama-70b",
-    "llama-3.1-8b-instant",
-    "gemma2-9b-it"
+    "llama-3.1-8b-instant"
 ]
 
 DECOMMISSIONED_GROQ_MODELS = {
+    "gemma2-9b-it": "llama-3.1-8b-instant",
     "qwen-2.5-coder-32b": "llama-3.3-70b-versatile",
     "qwen/qwen3.8-27b": "llama-3.3-70b-versatile",
     "llama3-70b-8192": "llama-3.3-70b-versatile",
@@ -2377,26 +2377,13 @@ To reward discipline: [GOVERNANCE: WIL: +1: reason]"""
             messages.append({"role": role, "content": msg["message"]})
         messages.append({"role": "user", "content": payload.message})
 
-        request_body = {
-            "model": groq_model,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 2048
-        }
+        from services.ai_service import execute_groq_chat_with_fallback
+        res_dict = await execute_groq_chat_with_fallback(api_key, payload.groq_model, messages, temperature=0.7, max_tokens=2048)
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(groq_url, json=request_body, headers=headers)
+        if res_dict.get("status") == "error":
+            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {res_dict.get('detail')}"})
 
-        if response.status_code != 200:
-            error_detail = response.json().get("error", {}).get("message", "Unknown error from Groq API.")
-            return JSONResponse(status_code=502, content={"detail": f"Groq API error: {error_detail}"})
-
-        result = response.json()
-        choices = result.get("choices", [])
-        if not choices:
-            return JSONResponse(status_code=502, content={"detail": "Groq returned no candidates."})
-
-        ai_text = choices[0].get("message", {}).get("content", "No response generated.")
+        ai_text = res_dict.get("content", "No response generated.")
 
         # Process GOVERNANCE tokens if present
         import re
