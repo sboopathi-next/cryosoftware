@@ -104,9 +104,15 @@ class RoutineEngine:
         now = datetime.datetime.now()
         today_date = now.strftime("%Y-%m-%d")
 
-        # Fetch today's triggers
+        # Fetch today's triggers from DB (SQLite local or Neon serverless)
         triggered_map = {}
-        if not IS_SERVERLESS:
+        if IS_SERVERLESS:
+            try:
+                from engine.neon_db import neon_get_routine_triggers_today
+                triggered_map = neon_get_routine_triggers_today(today_date)
+            except Exception as e:
+                print(f"[RoutineEngine] Neon trigger fetch error: {e}")
+        else:
             conn = get_db_connection()
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -212,7 +218,17 @@ class RoutineEngine:
         id_, name, sched_time_str, attr, boost = ms_def
 
         # Check if already triggered today
-        if not IS_SERVERLESS:
+        if IS_SERVERLESS:
+            try:
+                from engine.neon_db import neon_check_routine_trigger_exists
+                if neon_check_routine_trigger_exists(milestone_id, today_date):
+                    return {
+                        "status": "REJECTED",
+                        "message": f"Milestone '{name}' has already been triggered today!"
+                    }
+            except Exception as e:
+                print(f"[RoutineEngine] Neon duplicate check error: {e}")
+        else:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM routine_triggers WHERE milestone_id = ? AND log_date = ?", (milestone_id, today_date))
@@ -237,8 +253,22 @@ class RoutineEngine:
 
         xp_earned = self.calculate_punctuality_xp(delay_hours)
 
-        # Commit to DB
-        if not IS_SERVERLESS:
+        # Save trigger to DB
+        if IS_SERVERLESS:
+            try:
+                from engine.neon_db import neon_save_routine_trigger
+                neon_save_routine_trigger(
+                    milestone_id=milestone_id,
+                    milestone_name=name,
+                    scheduled_ts=sched_dt.isoformat(),
+                    triggered_ts=now.isoformat(),
+                    delay_hours=round(delay_hours, 2),
+                    xp_awarded=xp_earned,
+                    log_date=today_date
+                )
+            except Exception as e:
+                print(f"[RoutineEngine] Neon trigger save error: {e}")
+        else:
             with _DB_WRITE_LOCK:
                 conn = get_db_connection()
                 cursor = conn.cursor()

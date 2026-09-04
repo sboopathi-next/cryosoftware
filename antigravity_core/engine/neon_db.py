@@ -598,6 +598,82 @@ def neon_get_health_logs(limit: int = 10) -> list:
     return result
 
 
+# ─── ROUTINE TRIGGERS (Cadence OS) ────────────────────────────────────────────
+
+def _init_pg_routine_triggers(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_routine_triggers (
+            id SERIAL PRIMARY KEY,
+            milestone_id TEXT NOT NULL,
+            milestone_name TEXT,
+            scheduled_timestamp TEXT NOT NULL,
+            triggered_timestamp TEXT NOT NULL,
+            delay_hours REAL NOT NULL,
+            xp_awarded INTEGER NOT NULL,
+            log_date TEXT NOT NULL,
+            created_at TEXT DEFAULT now()
+        );
+    """)
+    try:
+        cur.execute("SAVEPOINT rt_idx;")
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_routine_trigger_date ON pg_routine_triggers (milestone_id, log_date);")
+        cur.execute("RELEASE SAVEPOINT rt_idx;")
+    except Exception:
+        try: cur.execute("ROLLBACK TO SAVEPOINT rt_idx;")
+        except Exception: pass
+
+def neon_save_routine_trigger(milestone_id: str, milestone_name: str, scheduled_ts: str, triggered_ts: str, delay_hours: float, xp_awarded: int, log_date: str) -> dict:
+    """Save a routine trigger to Neon DB. One trigger per milestone per day (UPSERT)."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_routine_triggers(cur)
+            cur.execute("""
+                INSERT INTO pg_routine_triggers
+                (milestone_id, milestone_name, scheduled_timestamp, triggered_timestamp, delay_hours, xp_awarded, log_date, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (milestone_id, log_date) DO UPDATE SET
+                    triggered_timestamp = EXCLUDED.triggered_timestamp,
+                    delay_hours         = EXCLUDED.delay_hours,
+                    xp_awarded          = EXCLUDED.xp_awarded,
+                    created_at          = EXCLUDED.created_at
+                RETURNING id
+            """, (milestone_id, milestone_name, scheduled_ts, triggered_ts, delay_hours, xp_awarded, log_date, _now()))
+            new_id = cur.fetchone()[0]
+    return {"id": new_id, "status": "success"}
+
+def neon_get_routine_triggers_today(log_date: str) -> dict:
+    """Returns {milestone_id: trigger_dict} for all triggers on the given date."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_routine_triggers(cur)
+            cur.execute("""
+                SELECT milestone_id, milestone_name, scheduled_timestamp, triggered_timestamp,
+                       delay_hours, xp_awarded, log_date
+                FROM pg_routine_triggers
+                WHERE log_date = %s
+            """, (log_date,))
+            rows = cur.fetchall()
+    result = {}
+    for row in rows:
+        result[row[0]] = {
+            "milestone_id":          row[0],
+            "milestone_name":        row[1],
+            "scheduled_timestamp":   row[2],
+            "triggered_timestamp":   row[3],
+            "delay_hours":           float(row[4] or 0),
+            "xp_awarded":            int(row[5] or 0),
+            "log_date":              row[6],
+        }
+    return result
+
+def neon_check_routine_trigger_exists(milestone_id: str, log_date: str) -> bool:
+    """Returns True if a trigger already exists for this milestone on this date."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_routine_triggers(cur)
+            cur.execute("SELECT id FROM pg_routine_triggers WHERE milestone_id = %s AND log_date = %s", (milestone_id, log_date))
+            return cur.fetchone() is not None
+
 
 def _init_pg_office_work_logs(cur):
     cur.execute("""
