@@ -102,6 +102,38 @@ def init_db():
     )
     """)
     
+    # Dynamic System Energy State Register
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS energy_state (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        current_energy REAL DEFAULT 80.0,
+        cumulative_fatigue REAL DEFAULT 0.0,
+        tier_status TEXT DEFAULT 'NORMAL',
+        deep_work_blocks_today INTEGER DEFAULT 0,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # Immutable Ledger of Energy Drains and Restorations
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS energy_ledger (
+        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transaction_type TEXT CHECK(transaction_type IN ('DRAIN', 'RECOVERY', 'RESET')),
+        category TEXT,
+        magnitude REAL,
+        energy_before REAL,
+        energy_after REAL,
+        associated_quest_id TEXT,
+        logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # Seed Singleton Register
+    cursor.execute("""
+    INSERT OR IGNORE INTO energy_state (id, current_energy, cumulative_fatigue, tier_status)
+    VALUES (1, 80.0, 0.0, 'NORMAL');
+    """)
+
     # Initialize default state if empty
     cursor.execute("SELECT COUNT(*) FROM system_state")
     if cursor.fetchone()[0] == 0:

@@ -1,1166 +1,666 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#0a0f1d">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Antigravity — Dashboard</title>
-<meta name="description" content="GATE 2028 DA mission control: stats, energy, attributes, progress overview.">
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
-<link rel="apple-touch-icon" href="/static/icon-192.png">
-<link rel="stylesheet" href="/static/vendor/fa/css/all.min.css">
-<link rel="stylesheet" href="/static/style.css?v=nav_v3">
-<style>
-/* ── Dashboard-specific ─── */
-.stats-grid { display: grid; grid-template-columns: 260px 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-@media (max-width: 900px) {
-  .stats-grid { grid-template-columns: 1fr; }
-}
-.level-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.level-ring { position: relative; width: 130px; height: 130px; }
-.level-ring svg { width: 130px; height: 130px; transform: rotate(-90deg); }
-.ring-track { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 9; }
-.ring-prog  { fill: none; stroke: url(#rg); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset .9s ease; }
-.ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
-.ring-lbl { font-size: 9px; color: var(--text3); font-family: var(--ff-mono); letter-spacing: .1em; display: block; }
-.ring-val { font-family: var(--ff-brand); font-size: 36px; font-weight: 900; color: #e2e8f0; line-height: 1; }
-.xp-label { font-family: var(--ff-mono); font-size: 11px; color: var(--cyan); }
-.streak-label { font-size: 12px; color: var(--amber); font-weight: 600; }
 
-.energy-ring-wrap { position: relative; width: 90px; height: 90px; margin: 8px auto; }
-
-
-.energy-ring-wrap svg { width: 90px; height: 90px; transform: rotate(-90deg); }
-.energy-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 20px; }
-.energy-pct { font-family: var(--ff-brand); font-size: 24px; font-weight: 800; text-align: center; }
-.circuit-bar {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
-  color: #f87171; font-size: 11px; font-weight: 600;
-  padding: 7px 10px; border-radius: 8px; margin-top: 8px;
-}
-
-.attrs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-.attr {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  background: #0a0d1e; border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px;
-  transition: border-color .18s;
-}
-.attr:hover { border-color: var(--border-hi); }
-.attr-icon { font-size: 16px; }
-.attr-val { font-family: var(--ff-brand); font-size: 22px; font-weight: 800; }
-.attr-name { font-family: var(--ff-mono); font-size: 9px; color: var(--text3); letter-spacing: .1em; }
-.str .attr-icon, .str .attr-val { color: #f97316; }
-.int .attr-icon, .int .attr-val { color: var(--blue); }
-.agi .attr-icon, .agi .attr-val { color: var(--green); }
-.wil .attr-icon, .wil .attr-val { color: var(--purple); }
-.hrt .attr-icon, .hrt .attr-val { color: #ec4899; }
-.stc .attr-icon, .stc .attr-val { color: #94a3b8; }
-
-.quest-banner {
-  display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(59,130,246,.07));
-  border: 1px solid rgba(99,102,241,.25);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.quest-banner::before {
-  content: '';
-  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-  background: linear-gradient(180deg, var(--indigo), var(--blue));
-}
-.quest-icon { font-size: 22px; color: #a5b4fc; }
-.quest-tag { font-family: var(--ff-mono); font-size: 9px; color: var(--cyan); letter-spacing: .14em; display: block; margin-bottom: 3px; }
-.quest-text { font-family: var(--ff-brand); font-weight: 700; font-size: 14px; color: var(--text1); }
-.quest-pulse {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  margin-left: auto;
-  flex-shrink: 0;
-  animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
-
-.gate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.gate-row { display: grid; grid-template-columns: 140px 1fr 50px; align-items: center; gap: 10px; }
-.gate-label { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gate-pct { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); text-align: right; }
-
-.hdr-stats {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-}
-.hdr-stat {
-  font-family: var(--ff-mono); font-size: 11px;
-  background: #0a0d1e; border: 1px solid var(--border);
-  border-radius: 6px; padding: 3px 8px;
-  color: var(--text2);
-}
-.hdr-stat span { color: var(--cyan); }
-</style>
-</head>
-<body>
-
-<!-- SETTINGS MODAL -->
-<div id="settings-modal" class="modal-mask hidden">
-  <div class="modal">
-    <div class="modal-hd">
-      <span><i class="fa-solid fa-key" style="color:var(--amber);margin-right:6px"></i>Groq API Key</span>
-      <button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <p class="text-muted">Get a <strong style="color:var(--text1)">free</strong> key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--cyan)">console.groq.com/keys</a>.</p>
-      <div class="field"><label>API Key</label><input type="password" id="api-key-inp" placeholder="gsk_..."></div>
-      <button class="btn btn-primary btn-full" onclick="saveApiKey()"><i class="fa-solid fa-floppy-disk"></i> Save Key</button>
-    </div>
-  </div>
-</div>
-
-<div class="app">
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="brand">
-      <div class="brand-logo"><i class="fa-solid fa-microchip"></i></div>
-      <div class="brand-name">ANTIGRAVITY</div>
-    </div>
-    <div class="brand-sub">GATE 2028 · ML ENGINEER</div>
-    <ul class="nav">
-      <li><a href="/" class="active"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
-      <li><a href="/finance"><i class="fa-solid fa-sack-dollar" style="color:var(--amber)"></i><span>Finance Advisor</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">AI</span></a></li>
-      <li><a href="/canvas"><i class="fa-solid fa-graduation-cap" style="color:var(--cyan)"></i><span>Canvas LMS</span></a></li>
-      <li><a href="/work-tracker"><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i><span>Work Tracker</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">XP</span></a></li>
-      <li><a href="/syllabus"><i class="fa-solid fa-book-open"></i><span>Study Path</span></a></li>
-      <li><a href="/gym-pro"><i class="fa-solid fa-bolt" style="color:var(--amber)"></i><span>Gym Pro</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">PRO</span></a></li>
-      <li><a href="/ai"><i class="fa-solid fa-robot"></i><span>AI Coach</span><span class="nav-badge">FREE</span></a></li>
-      <li><a href="/journal"><i class="fa-solid fa-pen-to-square"></i><span>Study Journal</span></a></li>
-      <li><a href="/logs"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a></li>
-      <li><a href="/gym"><i class="fa-solid fa-dumbbell"></i><span>Gym Tracker</span></a></li>
-      <li><a href="/badlog"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span><span class="nav-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.3)">NEW</span></a></li>
-      <li><a href="/exam"><i class="fa-solid fa-square-root-variable"></i><span>Exam Editor</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">PRO</span></a></li>
-      <li><a href="/news"><i class="fa-solid fa-newspaper"></i><span>Tech Affairs</span><span class="nav-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.3)">AI</span></a></li>
-      <li><a href="/human"><i class="fa-solid fa-heart" style="color:var(--rose)"></i><span>Human Journal</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">+1 HRT</span></a></li>
-      <li><a href="/teach"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span><span class="nav-badge" style="background:rgba(99,102,241,0.2);color:#818cf8;border-color:rgba(99,102,241,0.3)">+INT</span></a></li>
-      <li><a href="/teacher"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span><span class="nav-badge" style="background:rgba(16,185,129,0.2);color:#a7f3d0;border-color:rgba(16,185,129,0.3)">NEW</span></a></li>
-      <li><a href="/stoic"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">+STC</span></a></li>
-      <li><a href="/english"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span><span class="nav-badge" style="background:rgba(6,182,212,0.2);color:#06b6d4;border-color:rgba(6,182,212,0.3)">NEW</span></a></li>
-      <li><a href="/mind-os"><i class="fa-solid fa-brain" style="color:var(--purple)"></i><span>Mind OS</span><span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">CBT</span></a></li>
-      <li><a href="/system"><i class="fa-solid fa-gamepad" style="color:var(--rose)"></i><span>System OS</span><span class="nav-badge" style="background:rgba(244,63,94,0.2);color:#fda4af;border-color:rgba(244,63,94,0.3)">SOLO</span></a></li>
-      <li><a href="/task-streaks"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span>Task Streaks</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d;border-color:rgba(245,158,11,0.3)">🔥</span></a></li>
-      <li><a href="/streak-monitor"><i class="fa-solid fa-chart-line" style="color:#f59e0b"></i><span>Streak AI</span><span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">AI</span></a></li>
-      <li><a href="/semester"><i class="fa-solid fa-graduation-cap" style="color:#7c3aed"></i><span>Semester</span><span class="nav-badge" style="background:rgba(124,58,237,0.2);color:#a78bfa;border-color:rgba(124,58,237,0.3)">12W</span></a></li>
-    </ul>
-    <div class="sidebar-footer">
-      <button class="btn-ico" onclick="openSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
-    </div>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="page-head">
-      <div>
-        <div class="page-title">Mission Control</div>
-        <div class="page-sub">GATE 2028 DA · Machine Learning Engineer Track</div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#ef4444); color:#fff; border:none; font-weight:700;" onclick="syncLeetCodeManual()">
-          <i class="fa-solid fa-code"></i> Sync LeetCode
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="gymComplete()">
-          <i class="fa-solid fa-dumbbell"></i> Gym Complete
-        </button>
-      </div>
-    </div>
-
-    <!-- ACTIVE QUEST -->
-    <div class="quest-banner">
-      <div class="quest-icon"><i class="fa-solid fa-crosshairs"></i></div>
-      <div>
-        <span class="quest-tag">ACTIVE TARGET</span>
-        <div id="quest-text" class="quest-text">Loading active mission...</div>
-      </div>
-      <div class="quest-pulse"></div>
-    </div>
-
-    <!-- STATS ROW -->
-    <div class="stats-grid">
-      <!-- Level & XP -->
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-trophy"></i> System Level</div>
-        <div class="level-wrap">
-          <div class="level-ring">
-            <svg viewBox="0 0 130 130">
-              <defs>
-                <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#6366f1"/>
-                  <stop offset="100%" stop-color="#3b82f6"/>
-                </linearGradient>
-              </defs>
-              <circle class="ring-track" cx="65" cy="65" r="56"/>
-              <circle class="ring-prog" id="xp-ring" cx="65" cy="65" r="56" stroke-dasharray="351.86" stroke-dashoffset="351.86"/>
-            </svg>
-            <div class="ring-center">
-              <span class="ring-lbl">LEVEL</span>
-              <span class="ring-val" id="stat-level">1</span>
-            </div>
-          </div>
-          <div class="xp-label" id="xp-text">XP: 0 / 100</div>
-          <div class="progress-track" style="width:100%"><div class="progress-fill" id="xp-bar" style="width:0%"></div></div>
-          <div class="streak-label"><i class="fa-solid fa-fire"></i> <span id="stat-streak">0</span> day streak</div>
-        </div>
-      </div>
-
-      <!-- Energy -->
-      <div class="card">
-        <div class="card-title flex-between">
-          <span><i class="fa-solid fa-bolt"></i> Cognitive Energy</span>
-          <span class="text-mono" id="energy-pct" style="font-size:18px;font-weight:800;color:var(--green)">100%</span>
-        </div>
-        <div class="energy-ring-wrap">
-          <svg viewBox="0 0 90 90">
-            <circle class="ring-track" cx="45" cy="45" r="37"/>
-            <circle id="e-ring" cx="45" cy="45" r="37" fill="none" stroke="var(--green)" stroke-width="8" stroke-linecap="round"
-              stroke-dasharray="232.48" stroke-dashoffset="0" style="transition:all .8s ease"/>
-          </svg>
-          <div class="energy-icon" id="e-icon"><i class="fa-solid fa-brain" style="color:var(--green)"></i></div>
-        </div>
-        <div id="circuit-alert" class="circuit-bar hidden">
-          <i class="fa-solid fa-triangle-exclamation"></i> CIRCUIT BREAKER — Rest or gym required
-        </div>
-        <div class="divider"></div>
-        <!-- Attributes -->
-        <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Attributes</div>
-        <div class="attrs">
-          <div class="attr str"><i class="fa-solid fa-hand-fist attr-icon"></i><div class="attr-val" id="attr-str">10</div><div class="attr-name">STR</div></div>
-          <div class="attr int"><i class="fa-solid fa-brain attr-icon"></i><div class="attr-val" id="attr-int">10</div><div class="attr-name">INT</div></div>
-          <div class="attr agi"><i class="fa-solid fa-person-running attr-icon"></i><div class="attr-val" id="attr-agi">10</div><div class="attr-name">AGI</div></div>
-          <div class="attr wil"><i class="fa-solid fa-shield-halved attr-icon"></i><div class="attr-val" id="attr-wil">10</div><div class="attr-name">WIL</div></div>
-          <div class="attr hrt" title="Heart/Humanity"><i class="fa-solid fa-heart attr-icon"></i><div class="attr-val" id="attr-hrt">10</div><div class="attr-name">HRT</div></div>
-          <div class="attr stc" title="Stoicism/Mental Strength"><i class="fa-solid fa-mountain attr-icon"></i><div class="attr-val" id="attr-stc">10</div><div class="attr-name">STC</div></div>
-        </div>
-      </div>
-
-      <!-- Mind OS Radar & Quick Actions -->
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-brain" style="color:var(--purple)"></i> Mind OS Radar</div>
-        
-        <!-- Flashing Alert container for relationship cutoff triggers -->
-        <div id="mind-alert-box" class="circuit-bar hidden" style="background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#fca5a5; font-size:11px; margin-bottom:12px; border-radius:8px;">
-          <i class="fa-solid fa-triangle-exclamation" style="color:var(--red);"></i> PREEMPTIVE CUTOFF RISK DETECTED
-        </div>
-        
-        <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px;">
-            <span style="color:var(--text2);">Reality Checks</span>
-            <span id="home-rc-stats" style="font-family:var(--ff-mono); color:var(--purple); font-weight:700;">0 (0 pending)</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px;">
-            <span style="color:var(--text2);">Avg Rumination Distress</span>
-            <span id="home-rum-distress" style="font-family:var(--ff-mono); color:var(--amber); font-weight:700;">0.0/10</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px;">
-            <span style="color:var(--text2);">Tracked Connections</span>
-            <span id="home-connections-count" style="font-family:var(--ff-mono); color:var(--cyan); font-weight:700;">0 active</span>
-          </div>
-        </div>
-
-        <a href="/mind-os" class="btn btn-primary btn-sm btn-full" style="background:linear-gradient(135deg,var(--purple),var(--indigo)); font-weight:bold; margin-bottom:14px; text-align:center; display:block;"><i class="fa-solid fa-brain"></i> Open Mind OS</a>
-
-        <div class="divider" style="margin:10px 0;"></div>
-        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-bolt"></i> Quick Actions</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-          <a href="/gym" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-dumbbell"></i> Gym</a>
-          <a href="/syllabus" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-book-open"></i> Path</a>
-          <a href="/ai" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-robot"></i> Coach</a>
-          <button class="btn btn-secondary btn-sm" onclick="openHumanModal()" style="font-size:11px; padding:6px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-handshake" style="color:var(--rose)"></i> Log HRT</button>
-          <a href="/logs" class="btn btn-secondary btn-sm" style="font-size:11px; padding:6px; grid-column:1/-1; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-list-check"></i> Activity Logs</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- UNIVERSAL SANCTUARY HOLIDAY ACTIVE BANNER -->
-    <div id="sanctuary-active-banner" class="hidden" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(245, 158, 11, 0.2)); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: space-between; gap: 14px;">
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; flex-shrink: 0; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);">🛡️</div>
-        <div>
-          <div style="font-family: var(--ff-brand); font-size: 14.5px; font-weight: 800; color: #fef08a; display: flex; align-items: center; gap: 8px;">
-            <span>UNIVERSAL SANCTUARY HOLIDAY ACTIVE</span>
-            <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; font-family: var(--ff-mono);">100% IMMUNITY</span>
-          </div>
-          <div style="font-size: 11.5px; color: var(--text2); margin-top: 3px;">
-            All 12 daily task streaks protected • Cognitive Energy 100% • Semester Audit Exempt (+100 XP)
-          </div>
-        </div>
-      </div>
-      <button class="btn btn-secondary btn-sm" onclick="cancelSanctuaryPass()" style="font-size: 11px; font-family: var(--ff-mono); background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; flex-shrink: 0;">
-        Cancel Pass
-      </button>
-    </div>
-
-    <!-- SANCTUARY PASS CONTROL CARD -->
-    <div class="card" style="margin-bottom: 16px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(245, 158, 11, 0.25);">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #f59e0b;">🛡️</div>
-          <div>
-            <div style="font-family: var(--ff-brand); font-size: 13.5px; font-weight: 700; color: #e2e8f0;">Universal Monthly Sanctuary Passes</div>
-            <div style="font-size: 11px; color: var(--text3);" id="sanctuary-pass-subtitle">2 passes per calendar month • Freeze streaks & avoid burnout</div>
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-family: var(--ff-mono); font-size: 13px; font-weight: 800; color: #f59e0b; background: rgba(245, 158, 11, 0.12); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);" id="sanctuary-pass-count">2 / 2 Available</span>
-          <button class="btn btn-primary btn-sm" id="sanctuary-act-btn" onclick="activateSanctuaryPass()" style="font-size: 11.5px; background: linear-gradient(135deg, #f59e0b, #7c3aed); border: none; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 6px 14px;">
-            <i class="fa-solid fa-shield-halved"></i> Activate Sanctuary Day
-          </button>
-        </div>
-      </div>
-    <!-- DAILY CHECKLIST -->
-    <div class="card" style="margin-bottom: 16px;">
-      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span><i class="fa-solid fa-list-check"></i> Daily Accountability Checklist</span>
-        <a href="/task-streaks" style="font-size:11px;color:var(--amber);text-decoration:none;font-family:var(--ff-mono);font-weight:700">🔥 View Streaks →</a>
-      </div>
-      <div class="checklist-card">
-        <div class="checklist-item auto-checked" id="chk-study">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">Daily Study Target</div>
-          <div class="checklist-meta">Auto: Complete Syllabus Item</div>
-        </div>
-        <div class="checklist-item auto-checked" id="chk-leetcode">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">Daily LeetCode Problem</div>
-          <div class="checklist-meta">Auto: Sync solved count</div>
-        </div>
-        <div class="checklist-item auto-checked" id="chk-gym">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">Daily Gym/Physical Target</div>
-          <div class="checklist-meta">Auto: Log Workout or Gym Check-in</div>
-        </div>
-        <div class="checklist-item auto-checked" id="chk-english">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">Daily English & Translation Booster</div>
-          <div class="checklist-meta">Auto: Spend 5 min on English page under AI Surveillance</div>
-        </div>
-        <div class="checklist-item" id="chk-cooking" onclick="toggleChecklistItem('cooking')">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">Home Cooking / Meal Prep</div>
-          <div class="checklist-meta">Manual: +10 XP</div>
-        </div>
-        <div class="checklist-item" id="chk-nopmo" onclick="toggleChecklistItem('nopmo')">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">NoPMO Discipline</div>
-          <div class="checklist-meta">Manual: +15 XP, +1 WIL</div>
-        </div>
-        <div class="checklist-item" id="chk-reading" onclick="openReadingModal()">
-          <div class="checklist-check"><i class="fa-solid fa-check"></i></div>
-          <div class="checklist-lbl">Daily Reading</div>
-          <div class="checklist-meta">Manual: +10 XP, +1 INT (Click to Log Pages)</div>
-        </div>
-        <div class="checklist-item" id="chk-health" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0; cursor:pointer;" onclick="openHealthSyncModal()">
-            <div class="checklist-check"><i class="fa-solid fa-person-walking" style="color:var(--green)"></i></div>
-            <div style="flex:1; min-width:0;">
-              <div class="checklist-lbl">Google Health & Walking Sync</div>
-              <div class="checklist-meta">Auto/Cloud: Steps, Sleep, Active Mins & HR</div>
-            </div>
-          </div>
-          <button id="googlefit-sync-btn" onclick="event.stopPropagation(); syncGoogleFitCloudManual(this)" title="Sync Google Fit Cloud API Now" style="background:linear-gradient(135deg,#3b82f6,#10b981); border:none; color:#fff; font-size:11px; font-weight:600; padding:6px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0; transition:all 0.2s;">
-            <i class="fa-solid fa-rotate"></i> <span>Sync Fit</span>
-          </button>
-        </div>
-        <div class="checklist-item" id="chk-walk" onclick="toggleChecklistItem('walk')">
-          <div class="checklist-check"><i class="fa-solid fa-person-walking" style="color:var(--green)"></i></div>
-          <div class="checklist-lbl">Daily Road / Park Walk (1,000+ Steps)</div>
-          <div class="checklist-meta">Auto/Manual: Log 1,000+ Steps (+15 XP, +1 WIL)</div>
-        </div>
-        <div class="checklist-item" id="chk-meditation" onclick="toggleChecklistItem('meditation')">
-          <div class="checklist-check"><i class="fa-solid fa-spa" style="color:var(--cyan)"></i></div>
-          <div class="checklist-lbl">Daily 5-Min Focused Meditation</div>
-          <div class="checklist-meta">Manual/Audio: Log 5+ Min Meditation (+20 XP, +2 STC, +1 WIL)</div>
-        </div>
-        <div class="checklist-item" id="chk-mindos" onclick="toggleChecklistItem('mindos')">
-          <div class="checklist-check"><i class="fa-solid fa-brain" style="color:var(--purple)"></i></div>
-          <div class="checklist-lbl">Daily Mind OS Reality Check</div>
-          <div class="checklist-meta">Manual: CBT Reality Check or Grounding (+15 XP, +1 STC)</div>
-        </div>
-        <!-- Canvas Semester Task -->
-        <div class="checklist-item" id="chk-canvas-semester" onclick="toggleSemesterTask()" style="border-left:3px solid #7c3aed">
-          <div class="checklist-check"><i class="fa-solid fa-graduation-cap" style="color:#a78bfa"></i></div>
-          <div style="flex:1;min-width:0">
-            <div class="checklist-lbl" id="semester-task-lbl">📚 Today's Canvas Subject</div>
-            <div class="checklist-meta" id="semester-task-meta">Loading today's subject... (+150 XP on-time)</div>
-          </div>
-          <div id="semester-streak-badge" style="font-size:10px;font-family:var(--ff-mono);color:#f59e0b;font-weight:700;flex-shrink:0">🔥 0d</div>
-      </div>
-    </div>
-
-
-
-
-  </main>
-</div>
-
-<script src="/static/shared.js?v=nav_v3"></script>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Antigravity — Mission Control</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
-const COURSE_COLORS = {
-  Calculus_Optimization:'#f97316', Python_Data_Science:'#3b82f6',
-  Linear_Algebra:'#8b5cf6', Probability_Stats:'#ec4899',
-  Statistical_Inference:'#f59e0b', EDA:'#10b981',
-  Database_Systems:'#6366f1', Data_Mining_Forecasting:'#14b8a6',
-  Advanced_Forecasting:'#f97316', DSA_LeetCode:'#ef4444',
-  AI_Agents:'#a855f7', Machine_Learning:'#06b6d4'
-};
-
-async function loadDashboard() {
-  // Stats
-  try {
-    const r = await fetch('/stats');
-    const d = await r.json();
-    const s = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
-    s('stat-level', d.level);
-    s('stat-streak', d.streak_days || 0);
-    document.getElementById('quest-text').textContent = d.active_quest || 'Study course materials';
-
-    const xpPct = Math.min(100, d.xp / d.xp_required * 100);
-    document.getElementById('xp-text').textContent = `XP: ${d.xp} / ${d.xp_required}`;
-    document.getElementById('xp-bar').style.width = xpPct + '%';
-    const circ = 2 * Math.PI * 56;
-    const ring = document.getElementById('xp-ring');
-    ring.style.strokeDasharray = circ;
-    ring.style.strokeDashoffset = circ - xpPct / 100 * circ;
-
-    const en = d.energy;
-    document.getElementById('energy-pct').textContent = Math.round(en) + '%';
-    const eColor = en > 50 ? 'var(--green)' : en > 20 ? 'var(--amber)' : 'var(--red)';
-    const eRing = document.getElementById('e-ring');
-    const eCirc = 2 * Math.PI * 37;
-    eRing.style.strokeDasharray = eCirc;
-    eRing.style.strokeDashoffset = eCirc - en / 100 * eCirc;
-    eRing.style.stroke = eColor;
-    document.getElementById('energy-pct').style.color = eColor;
-    document.getElementById('e-icon').innerHTML = `<i class="fa-solid fa-brain" style="color:${eColor}"></i>`;
-    document.getElementById('circuit-alert')[d.lockout_active ? 'classList' : 'classList'][d.lockout_active ? 'remove' : 'add']('hidden');
-
-    const a = d.attributes || {};
-    s('attr-str', a.STR); s('attr-int', a.INT); s('attr-agi', a.AGI); s('attr-wil', a.WIL); s('attr-hrt', a.HRT); s('attr-stc', a.STC);
-    
-    // Update daily checklist items
-    const toggleDone = (id, isDone) => {
-      const el = document.getElementById(id);
-      if (el) {
-        if (isDone) el.classList.add('done');
-        else el.classList.remove('done');
-      }
-    };
-    toggleDone('chk-study', d.study_completed);
-    toggleDone('chk-leetcode', d.leetcode_completed);
-    toggleDone('chk-gym', d.gym_completed);
-    toggleDone('chk-english', d.english_completed);
-    toggleDone('chk-cooking', d.cooking_completed);
-    toggleDone('chk-nopmo', d.nopmo_completed);
-    toggleDone('chk-reading', d.reading_completed);
-    toggleDone('chk-walk', d.walk_completed);
-    toggleDone('chk-meditation', d.meditation_completed);
-    toggleDone('chk-mindos', d.mindos_completed);
-    toggleDone('chk-health', d.health_completed);
-
-    // Semester task card state (from task_daily_log via /stats)
-    const semCard = document.getElementById('chk-canvas-semester');
-    if (semCard) {
-      if (d.canvas_semester_completed) semCard.classList.add('done');
-      else semCard.classList.remove('done');
-    }
-
-    // Update mini streak badges directly from stats (no extra fetch needed)
-    if (d.task_streaks) {
-      const BADGE_MAP = {
-        study:'chk-study', leetcode:'chk-leetcode', gym:'chk-gym',
-        english:'chk-english', cooking:'chk-cooking', nopmo:'chk-nopmo',
-        reading:'chk-reading', walk:'chk-walk', meditation:'chk-meditation',
-        mindos:'chk-mindos',
-      };
-      Object.entries(BADGE_MAP).forEach(([tk, elId]) => {
-        const el = document.getElementById(elId);
-        if (!el) return;
-        const streak = d.task_streaks[tk] || 0;
-        let badge = el.querySelector('.streak-mini-badge');
-        if (!badge && streak > 0) {
-          badge = document.createElement('div');
-          badge.className = 'streak-mini-badge';
-          badge.style.cssText = 'font-size:10px;font-family:monospace;font-weight:700;flex-shrink:0;margin-left:auto;padding-left:8px;';
-          el.appendChild(badge);
-        }
-        if (badge) {
-          badge.textContent = streak > 0 ? `🔥${streak}` : '';
-          badge.style.color = '#f59e0b';
-        }
-      });
-      // Semester badge
-      const semBadge = document.getElementById('semester-streak-badge');
-      if (semBadge) {
-        const s = d.task_streaks.canvas_semester || 0;
-        semBadge.textContent = `🔥 ${s}d`;
-        semBadge.style.color = s > 0 ? '#f59e0b' : '#64748b';
-      }
-    }
-
-    
-    // Universal Sanctuary Pass UI State
-    const sanctBanner = document.getElementById('sanctuary-active-banner');
-    const sanctCount = document.getElementById('sanctuary-pass-count');
-    const sanctBtn = document.getElementById('sanctuary-act-btn');
-    if (d.is_today_holiday) {
-      if (sanctBanner) sanctBanner.classList.remove('hidden');
-      if (sanctCount) { sanctCount.textContent = '🛡️ Active Today'; sanctCount.style.borderColor = '#10b981'; sanctCount.style.color = '#10b981'; }
-      if (sanctBtn) { sanctBtn.disabled = true; sanctBtn.innerHTML = '<i class="fa-solid fa-check"></i> Sanctuary Active'; }
-    } else {
-      if (sanctBanner) sanctBanner.classList.add('hidden');
-      const passesLeft = d.holiday_passes_left !== undefined ? d.holiday_passes_left : 2;
-      if (sanctCount) { sanctCount.textContent = `${passesLeft} / 2 Available`; sanctCount.style.borderColor = 'rgba(245,158,11,0.3)'; sanctCount.style.color = '#f59e0b'; }
-      if (sanctBtn) {
-        sanctBtn.disabled = passesLeft <= 0;
-        sanctBtn.innerHTML = passesLeft > 0 ? '<i class="fa-solid fa-shield-halved"></i> Activate Sanctuary Day' : '<i class="fa-solid fa-lock"></i> 0/2 Passes Used';
-      }
-    }
-
-    const bookLbl = document.getElementById('reading-book-lbl');
-    if (bookLbl) bookLbl.textContent = d.reading_book || 'None';
-    const bookInp = document.getElementById('reading-book-inp');
-    if (bookInp && !bookInp.value && d.reading_book && d.reading_book !== 'None') {
-      bookInp.value = d.reading_book;
-    }
-
-  } catch(e) { console.error(e); }
-
-  // Mind OS Summary & Alerts
-  try {
-    const rSummary = await fetch('/api/mind_os/summary');
-    if (rSummary.ok) {
-      const summary = await rSummary.json();
-      const rcStatsEl = document.getElementById('home-rc-stats');
-      if (rcStatsEl) rcStatsEl.textContent = `${summary.total_reality_checks} (${summary.pending_reality_checks} pending)`;
-      const rumDistEl = document.getElementById('home-rum-distress');
-      if (rumDistEl) rumDistEl.textContent = `${summary.avg_rumination_distress}/10`;
-      const connCountEl = document.getElementById('home-connections-count');
-      if (connCountEl) connCountEl.textContent = `${summary.total_relationships} active`;
-
-      const alertBox = document.getElementById('mind-alert-box');
-      if (alertBox) {
-        if (summary.warning_relationships > 0) {
-          // Fetch relationships to find the exact warning person
-          const rRels = await fetch('/api/mind_os/relationships');
-          if (rRels.ok) {
-            const rels = await rRels.json();
-            const warningPerson = rels.find(r => r.leave_urge >= r.trust_score && r.status === 'Active');
-            if (warningPerson) {
-              const nameSafe = typeof escHTML === 'function' ? escHTML(warningPerson.person_name) : warningPerson.person_name;
-              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i> PREEMPTIVE CUTOFF WARNING: Urge to leave <strong>${nameSafe}</strong> detected!`;
-              alertBox.classList.remove('hidden');
-            } else {
-              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i> PREEMPTIVE CUTOFF WARNING: Active trigger detected!`;
-              alertBox.classList.remove('hidden');
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#070a11',
+              card: '#0e1320',
+              cardLight: '#141b2c',
+              border: '#1d273f',
+              accentCyan: '#00e5ff',
+              accentGreen: '#10b981',
+              accentAmber: '#f59e0b',
+              accentPurple: '#6366f1',
+              accentBlue: '#3b82f6',
+              accentPink: '#ec4899',
             }
-          } else {
-            alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i> PREEMPTIVE CUTOFF RISK DETECTED`;
-            alertBox.classList.remove('hidden');
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
           }
-        } else {
-          alertBox.classList.add('hidden');
         }
       }
-    }
-  } catch (e) {
-    console.error("Error loading Mind OS summary on home:", e);
-  }
-
-  // Syllabus progress
-  try {
-    const r2 = await fetch('/api/syllabus');
-    const syl = await r2.json();
-    const container = document.getElementById('gate-progress');
-    container.innerHTML = '';
-    Object.entries(syl.courses || {}).forEach(([cid, course]) => {
-      let total = 0, done = 0;
-      (course.weeks || []).forEach(w => w.items.forEach(item => { total++; if(item.completed) done++; }));
-      const pct = total > 0 ? Math.round(done / total * 100) : 0;
-      const color = COURSE_COLORS[cid] || '#6366f1';
-      const row = document.createElement('div');
-      row.className = 'gate-row';
-      row.innerHTML = `
-        <div class="gate-label" title="${course.name}">${course.name}</div>
-        <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div class="gate-pct">${done}/${total}</div>`;
-      container.appendChild(row);
-    });
-  } catch(e) { console.error(e); }
-}
-
-async function toggleChecklistItem(item) {
-  const el = document.getElementById(`chk-${item}`);
-  if (!el) return;
-  const isDoneNow = !el.classList.contains('done');
-  
-  try {
-    const r = await fetch('/api/checklist/toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ item: item, value: isDoneNow })
-    });
-    if (r.ok) {
-      toast(`${item.toUpperCase()} updated!`, 'ok');
-      if (isDoneNow && typeof speakVoice === 'function') {
-        speakVoice(`${item} target completed, Boopathi. Discipline reinforced.`, true);
-      }
-      loadDashboard();
-      loadTaskStreakBadges();
-    } else {
-      const err = await r.json();
-      toast(`Error: ${err.detail}`, 'err');
-    }
-  } catch (e) {
-    toast("Connection error", "err");
-  }
-}
-
-// ── Semester Task: load today's subject into checklist ────────────────────────
-let _semesterCountdownInterval = null;
-
-async function loadSemesterTask() {
-  try {
-    const r = await fetch('/api/semester/today');
-    if (!r.ok) return;
-    const d = await r.json();
-    const lbl  = document.getElementById('semester-task-lbl');
-    const meta = document.getElementById('semester-task-meta');
-    const card = document.getElementById('chk-canvas-semester');
-    if (lbl)  lbl.textContent  = `${d.course_emoji || '📚'} ${d.course_name} (Wk ${d.week_number}/12)`;
-    
-    if (_semesterCountdownInterval) clearInterval(_semesterCountdownInterval);
-
-    function updateTimeLeft() {
-      if (!meta) return;
-      if (d.is_weekend) {
-        meta.textContent = '🏖️ Weekend — DSA & System Audit mode';
-        return;
-      }
-      const now = new Date();
-      const midnight = new Date();
-      midnight.setHours(23, 59, 0, 0);
-      const diffMs = Math.max(0, midnight - now);
-      const hrs = Math.floor(diffMs / 3600000);
-      const mins = Math.floor((diffMs % 3600000) / 60000);
-      meta.textContent = `Canvas LMS: Videos + Quiz before 23:59  (+150 XP)  ${hrs}h ${mins}m left`;
-    }
-
-    updateTimeLeft();
-    _semesterCountdownInterval = setInterval(updateTimeLeft, 30000);
-
-    if (card) {
-      if (d.audit_status === 'CLEARED') card.classList.add('done');
-      else card.classList.remove('done');
-      card.style.borderLeftColor = d.course_color || '#7c3aed';
-    }
-  } catch (e) { /* silent */ }
-}
-
-// ── Toggle Semester Task manually ─────────────────────────────────────────────
-async function toggleSemesterTask() {
-  const card = document.getElementById('chk-canvas-semester');
-  const isDoneNow = !card.classList.contains('done');
-  try {
-    const r = await fetch('/api/tasks/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ task_key: 'canvas_semester', completed: isDoneNow })
-    });
-    if (r.ok) {
-      toast(isDoneNow ? '📚 Canvas Semester marked done! Audit running...' : 'Canvas task unchecked', isDoneNow ? 'ok' : 'info');
-      if (isDoneNow) card.classList.add('done'); else card.classList.remove('done');
-      loadTaskStreakBadges();
-      if (isDoneNow) setTimeout(loadSemesterTask, 1200);
-    }
-  } catch (e) { toast('Connection error', 'err'); }
-}
-
-// ── Load per-task streak badges on checklist ──────────────────────────────────
-async function loadTaskStreakBadges() {
-  try {
-    const r = await fetch('/api/tasks/streaks');
-    if (!r.ok) return;
-    const d = await r.json();
-    const s = d.streaks || {};
-    // Map task_key → element id prefix
-    const MAP = {
-      study: 'chk-study', leetcode: 'chk-leetcode', gym: 'chk-gym',
-      english: 'chk-english', cooking: 'chk-cooking', nopmo: 'chk-nopmo',
-      reading: 'chk-reading', walk: 'chk-walk', meditation: 'chk-meditation',
-      mindos: 'chk-mindos', canvas_semester: 'chk-canvas-semester',
     };
-    // Update semester badge
-    const semBadge = document.getElementById('semester-streak-badge');
-    if (semBadge && s.canvas_semester) {
-      const streak = s.canvas_semester.current_streak || 0;
-      semBadge.textContent = `🔥 ${streak}d`;
-      semBadge.style.color = streak > 0 ? '#f59e0b' : '#64748b';
+  </script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<style data-purpose="custom-scroll-and-glass">
+    /* Custom subtle glass and edge animations */
+    body {
+      background-color: #06090f;
+      color: #e2e8f0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    // Add micro streak badges to all checklist items (insert if missing)
-    Object.entries(MAP).forEach(([tk, elId]) => {
-      if (tk === 'canvas_semester') return; // handled above
-      const el = document.getElementById(elId);
-      if (!el) return;
-      const info = s[tk];
-      if (!info) return;
-      const streak = info.current_streak || 0;
-      let badge = el.querySelector('.streak-mini-badge');
-      if (!badge) {
-        badge = document.createElement('div');
-        badge.className = 'streak-mini-badge';
-        badge.style.cssText = 'font-size:10px;font-family:monospace;font-weight:700;flex-shrink:0;margin-left:auto;padding-left:8px;';
-        el.appendChild(badge);
-      }
-      badge.textContent = streak > 0 ? `🔥${streak}` : info.missed_yesterday ? '💀0' : '';
-      badge.style.color = streak > 0 ? '#f59e0b' : '#ef4444';
-      // Red border if missed yesterday and not done today
-      if (info.missed_yesterday && !info.done_today) {
-        el.style.borderLeft = '3px solid #ef4444';
-      }
-    });
-  } catch (e) { /* silent */ }
-}
-
-
-
-async function gymComplete() {
-  try {
-    const r = await fetch('/gym_check', {method:'POST',headers:{'Content-Type':'application/json'},body:'{"completed":true}'});
-    const d = await r.json();
-    toast(d.message, 'ok');
-    loadDashboard();
-  } catch(e) { toast("Connection error", "err"); }
-}
-
-async function loadSavedBooks() {
-  try {
-    const r = await fetch('/api/reading/books');
-    const d = await r.json();
-    const sel = document.getElementById('reading-book-sel');
-    if (!sel) return;
-    const currentVal = sel.value;
-    sel.innerHTML = '<option value="">— Pick Book —</option>';
-    if (d.status === 'success' && d.books) {
-      d.books.forEach(b => {
-        const opt = document.createElement('option');
-        opt.value = b.title;
-        opt.textContent = b.title;
-        sel.appendChild(opt);
-      });
-      // Restore previous selection if still exists
-      sel.value = currentVal;
+    ::-webkit-scrollbar {
+      width: 4px;
     }
-  } catch(e) { console.error(e); }
-}
-
-async function addSavedBook() {
-  const inp = document.getElementById('new-book-inp');
-  if (!inp) return;
-  const title = inp.value.trim();
-  if (!title) { toast("Enter a book title first!", "err"); return; }
-  try {
-    const r = await fetch('/api/reading/books', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title })
-    });
-    const d = await r.json();
-    if (d.status === 'success') {
-      toast("Book added to saved list!", "ok");
-      inp.value = '';
-      await loadSavedBooks();
-      document.getElementById('reading-book-sel').value = title;
-    } else {
-      toast("Failed to add book", "err");
+    ::-webkit-scrollbar-track {
+      background: #090e17;
     }
-  } catch(e) { toast("Connection error", "err"); }
-}
-
-async function logReadingSession() {
-  const sel = document.getElementById('reading-book-sel');
-  const fromInp = document.getElementById('reading-page-from');
-  const toInp = document.getElementById('reading-page-to');
-  
-  if (!sel || !fromInp || !toInp) return;
-  const bookTitle = sel.value;
-  const pageFrom = parseInt(fromInp.value);
-  const pageTo = parseInt(toInp.value);
-  
-  if (!bookTitle) { toast("Select a book first!", "err"); return; }
-  if (isNaN(pageFrom) || isNaN(pageTo)) { toast("Enter valid page numbers!", "err"); return; }
-  if (pageTo <= pageFrom) { toast("Page To must be greater than Page From!", "err"); return; }
-  
-  try {
-    const r = await fetch('/api/reading/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ book_title: bookTitle, page_from: pageFrom, page_to: pageTo })
-    });
-    const d = await r.json();
-    if (d.status === 'success') {
-      toast(`Logged! Read ${d.pages_read} pages.`, "ok");
-      if (typeof speakVoice === 'function') {
-        speakVoice(`Reading session logged! ${d.pages_read} pages completed, Boopathi. Knowledge is power.`, true);
-      }
-      fromInp.value = '';
-      toInp.value = '';
-      closeReadingModal();
-      loadDashboard();
-    } else {
-      toast(`Error: ${d.detail || 'Failed to log'}`, "err");
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
     }
-  } catch(e) { toast("Connection error", "err"); }
-}
-
-async function triggerCheckin() {
-  try {
-    const r = await fetch('/api/trigger_checkin', {method:'POST'});
-    const d = await r.json();
-    toast(d.status === 'success' ? 'Check-in logged!' : 'Cancelled.', d.status === 'success' ? 'ok' : 'info');
-  } catch(e) { toast('Error', 'err'); }
-}
-
-function openReadingModal() {
-  document.getElementById('reading-modal').classList.remove('hidden');
-  loadSavedBooks();
-}
-
-function closeReadingModal() {
-  document.getElementById('reading-modal').classList.add('hidden');
-}
-
-function openHumanModal() {
-  document.getElementById('human-modal').classList.remove('hidden');
-}
-
-function closeHumanModal() {
-  document.getElementById('human-modal').classList.add('hidden');
-}
-
-function openHumanHistoryModal() {
-  closeHumanModal();
-  document.getElementById('human-history-modal').classList.remove('hidden');
-  loadHumanHistory();
-}
-
-function closeHumanHistoryModal() {
-  document.getElementById('human-history-modal').classList.add('hidden');
-}
-
-async function saveHumanConnection() {
-  const name = (document.getElementById('hc-name')?.value || '').trim();
-  const context = (document.getElementById('hc-context')?.value || '').trim();
-  const story = (document.getElementById('hc-story')?.value || '').trim();
-  const felt = (document.getElementById('hc-felt')?.value || '').trim();
-  const emoji = document.getElementById('hc-emoji')?.value || '🤝';
-
-  if (!name || !story) {
-    toast('Please enter person name and story/interaction.', 'err');
-    return;
-  }
-
-  try {
-    const r = await fetch('/api/human-connection', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ person_name: name, context_meeting: context, what_happened: story, what_i_felt: felt, emoji: emoji })
-    });
-    const d = await r.json();
-    if (d.status === 'success') {
-      toast(`Logged encounter with ${name}! ❤️ +1 HRT Awarded!`, 'ok');
-      closeHumanModal();
-      document.getElementById('hc-name').value = '';
-      document.getElementById('hc-context').value = '';
-      document.getElementById('hc-story').value = '';
-      document.getElementById('hc-felt').value = '';
-      loadDashboard();
-    } else {
-      toast('Failed to save log', 'err');
+    .neon-glow-cyan {
+      box-shadow: 0 0 16px -2px rgba(0, 229, 255, 0.35);
     }
-  } catch(e) {
-    toast('Server Error', 'err');
-  }
-}
-
-async function loadHumanHistory() {
-  const container = document.getElementById('hc-history-list');
-  if (!container) return;
-  container.innerHTML = '<div style="color:var(--muted); font-size:12px;">Loading past human connections...</div>';
-  try {
-    const r = await fetch('/api/human-connection?limit=50');
-    const d = await r.json();
-    if (!d.connections || d.connections.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted); font-size:12px;">No human connection logs recorded yet.</div>';
-      return;
+    .neon-glow-emerald {
+      box-shadow: 0 0 16px -2px rgba(16, 185, 129, 0.4);
     }
-    container.innerHTML = d.connections.map(c => `
-      <div style="background:#0a0d1e; border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <strong style="color:var(--rose); font-size:13px;">${c.emoji} ${c.person_name}</strong>
-          <span style="font-size:10px; color:var(--muted);">${c.date} ${c.timestamp.split(' ')[1] || ''}</span>
-        </div>
-        <div style="font-size:11px; color:var(--cyan); margin-bottom:4px;">📍 Context: ${c.context_meeting || 'Meeting Encounter'}</div>
-        <div style="font-size:12px; color:var(--text1); line-height:1.4; margin-bottom:4px;"><strong>What Happened:</strong> ${c.what_happened}</div>
-        <div style="font-size:12px; color:var(--amber); line-height:1.4; font-style:italic;"><strong>Reflected Feeling:</strong> ${c.what_i_felt || 'Warm human connection.'}</div>
-      </div>
-    `).join('');
-  } catch(e) {
-    container.innerHTML = '<div style="color:var(--red); font-size:12px;">Error loading reflection logs.</div>';
-  }
-}
+    .neon-glow-amber {
+      box-shadow: 0 0 18px -3px rgba(245, 158, 11, 0.45);
+    }
+    .sidebar-blur {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(18, 24, 38, 0.92);
+    }
+  </style>
+<script src="/static/shared.js"></script>
+</head>
+<body class="font-sans antialiased text-slate-100 min-h-screen bg-[#07090e] pb-24 overflow-x-hidden relative">
 
-// Initial load
-loadDashboard();
-loadSavedBooks();
-loadSemesterTask();
-loadTaskStreakBadges();
-setInterval(loadDashboard, 30000);
-setInterval(loadSemesterTask, 60000);   // refresh semester countdown every minute
-setInterval(loadTaskStreakBadges, 120000); // refresh streak badges every 2 min
-</script>
+<!-- BEGIN: MobileStatusBar -->
+<header class="sticky top-0 z-40 bg-[#07090e]/95 backdrop-blur-md px-5 pt-3 pb-2 flex justify-between items-center text-xs text-slate-400 border-b border-slate-900/80">
+<div class="flex items-center space-x-2 font-mono font-medium tracking-tight text-slate-200">
+<span id="current-clock">14:24</span>
+<i class="fa-solid fa-cloud text-[10px] text-cyan-400/80"></i>
+<i class="fa-solid fa-bell text-[10px] text-slate-400"></i>
+</div>
+<div class="flex items-center space-x-2 text-[11px]">
+<span class="text-[10px] font-mono text-cyan-400" id="live-net-speed">18.9 KB/s</span>
+<span class="text-[9px] font-semibold text-slate-300 border border-slate-700 px-1 rounded">5G+</span>
+<i class="fa-solid fa-signal text-xs text-slate-200"></i>
+<i class="fa-solid fa-wifi text-xs text-slate-200"></i>
+<div class="flex items-center text-emerald-400 text-xs font-mono">
+<i class="fa-solid fa-battery-three-quarters text-sm"></i>
+</div>
+</div>
+</header>
+<!-- END: MobileStatusBar -->
 
-<!-- READING MODAL -->
-<div id="reading-modal" class="modal-mask hidden">
-  <div class="modal" style="max-width: 400px;">
-    <div class="modal-hd">
-      <span>Log Daily Reading</span>
-      <button class="modal-close" onclick="closeReadingModal()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
-      <div class="field">
-        <label>Select Book</label>
-        <select id="reading-book-sel" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
-          <option value="">— Pick Book —</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Or Add New Book Title</label>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="new-book-inp" placeholder="New book title..." style="flex:1; background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body);">
-          <button class="btn btn-secondary" style="padding:6px 14px;" onclick="addSavedBook()">Add</button>
-        </div>
-      </div>
-      <div class="row-2 gap-md">
-        <div class="field">
-          <label>From Page</label>
-          <input type="number" id="reading-page-from" placeholder="0" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
-        </div>
-        <div class="field">
-          <label>To Page</label>
-          <input type="number" id="reading-page-to" placeholder="0" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
-        </div>
-      </div>
-      <button class="btn btn-primary btn-full mt-1" onclick="logReadingSession()">
-        <i class="fa-solid fa-book-open"></i> Log Session &amp; Earn XP
-      </button>
-    </div>
-  </div>
+<!-- BEGIN: MainContent -->
+<main class="px-4 pt-3 space-y-4 max-w-md mx-auto relative">
+<!-- BEGIN: HeaderAndQuickTriggers -->
+<section class="space-y-3" data-purpose="mission-control-header">
+<div>
+<h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+<span>Mission Control</span>
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+</h1>
+<p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">
+          GATE 2028 DA • Machine Learning Engineer Track
+        </p>
+</div>
+<!-- Quick Action Buttons -->
+<div class="grid grid-cols-2 gap-2.5">
+<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95" id="sync-leetcode-btn" type="button">
+<i class="fa-solid fa-code text-[11px]"></i>
+<span id="leetcode-btn-label">Sync LeetCode</span>
+</button>
+<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95" id="gym-complete-btn" type="button">
+<i class="fa-solid fa-dumbbell text-[11px]"></i>
+<span id="gym-btn-label">Gym Complete</span>
+</button>
+</div>
+</section>
+<!-- END: HeaderAndQuickTriggers -->
+
+<!-- BEGIN: ActiveTargetProtocol -->
+<section class="relative rounded-2xl p-4 bg-gradient-to-br from-[#0c1424] via-[#0f172a] to-[#0a101d] border border-cyan-500/30 shadow-lg" data-purpose="active-target-banner">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-cyan-400 mt-0.5 shadow-inner">
+<i class="fa-solid fa-crosshairs text-base animate-spin-slow"></i>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] tracking-wider uppercase font-mono font-bold text-cyan-400">ACTIVE TARGET PROTOCOL</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 ring-2 ring-emerald-500/40"></span>
+</div>
+<h2 class="text-xs font-semibold text-slate-100 mt-1 leading-snug" id="target-title">
+              Study Calculus_Optimization: Calculus_Optimization_w1_v1 - L02: Differentiability Rules
+            </h2>
+<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1" id="target-desc">
+              Product, Quotient, and Chain Rule Derivations from First Principles
+            </p>
+</div>
+</div>
+</div>
+<!-- Telemetry Meta Badges -->
+<div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-800/80 text-center font-mono">
+<div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
+<span class="block text-[9px] text-rose-400 uppercase">Drain Cost</span>
+<span class="text-xs font-bold text-slate-200" id="target-cost-val">-22 ENG</span>
+</div>
+<div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
+<span class="block text-[9px] text-emerald-400 uppercase">Target Gain</span>
+<span class="text-xs font-bold text-slate-200" id="target-gain-val">+65 XP</span>
+</div>
+<div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
+<span class="block text-[9px] text-amber-400 uppercase">Est. Clock</span>
+<span class="text-xs font-bold text-slate-200" id="target-clock-val">55 MIN</span>
+</div>
+</div>
+<!-- Engage Button -->
+<div class="mt-3 flex gap-2">
+<button class="flex-1 py-2 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" id="engageProtocolBtn" type="button">
+<i class="fa-solid fa-bolt-lightning text-xs text-cyan-400"></i>
+<span>Engage Protocol Now</span>
+<i class="fa-solid fa-chevron-right text-[10px] ml-auto"></i>
+</button>
+</div>
+</section>
+<!-- END: ActiveTargetProtocol -->
+
+<!-- BEGIN: PrimaryTabs -->
+<nav class="flex bg-[#0c121e] p-1 rounded-xl border border-slate-800/80 text-xs font-medium">
+<button class="flex-1 py-2 rounded-lg bg-[#141e33] text-cyan-400 shadow-sm flex items-center justify-center gap-2 font-semibold" id="tab-stats-btn" type="button">
+<i class="fa-solid fa-chart-simple text-xs"></i>
+<span>Stats</span>
+</button>
+<button class="flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2" id="tab-tasks-btn" type="button">
+<i class="fa-solid fa-list-check text-xs"></i>
+<span>Tasks</span>
+</button>
+</nav>
+<!-- END: PrimaryTabs -->
+
+<!-- BEGIN: DualEngineCards -->
+<section class="space-y-4" data-purpose="telemetry-cards">
+<!-- System Level Card -->
+<div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
+<span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">SYSTEM LEVEL</span>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30" id="tier-badge">Tier II Prodigy</span>
+</div>
+<!-- Radial Gauge for System Level 38 -->
+<div class="flex flex-col items-center justify-center py-2 relative">
+<div class="relative w-36 h-36 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+<circle cx="60" cy="60" fill="none" r="48" stroke="#172238" stroke-width="9"></circle>
+<circle class="transition-all duration-1000" id="level-ring-circle" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="135" stroke-linecap="round" stroke-width="9"></circle>
+<defs>
+<linearGradient id="levelGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#3b82f6"></stop>
+<stop offset="100%" stop-color="#8b5cf6"></stop>
+</linearGradient>
+</defs>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="text-[10px] font-mono uppercase tracking-widest text-slate-400">LEVEL</span>
+<span class="text-4xl font-black text-white tracking-tight" id="level-val">38</span>
+</div>
+</div>
+<!-- XP Details & Sub-bar -->
+<div class="w-full mt-3 space-y-2">
+<div class="flex justify-between items-center text-xs font-mono">
+<span class="text-cyan-400">XP: <span class="font-bold" id="xp-val">9832</span></span>
+<span class="text-slate-500" id="xp-max">/ 23424</span>
+</div>
+<div class="w-full bg-slate-800/90 h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-500" id="xp-progress-bar" style="width: 42%"></div>
+</div>
+<div class="flex justify-center items-center gap-1.5 pt-1 text-amber-400 text-xs font-semibold">
+<i class="fa-solid fa-fire text-amber-500"></i>
+<span id="streak-val">37 day streak</span>
+</div>
+</div>
+</div>
 </div>
 
-<!-- HUMAN CONNECTION MODAL (+1 HRT) -->
-<div id="human-modal" class="modal-mask hidden">
-  <div class="modal" style="max-width: 480px;">
-    <div class="modal-hd">
-      <span><i class="fa-solid fa-handshake" style="color:var(--rose); margin-right:6px;"></i>Human Connection &amp; Stranger Encounter</span>
-      <button class="modal-close" onclick="closeHumanModal()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
-      <div class="field">
-        <label>Person / Stranger Name</label>
-        <input type="text" id="hc-name" placeholder="e.g. Alex (Barista), Unknown Stranger on Bus, New Teammate..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
-      </div>
-      <div class="field">
-        <label>Context / Where You Met</label>
-        <input type="text" id="hc-context" placeholder="e.g. Morning Coffee Shop, Gym, Office Hallway..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
-      </div>
-      <div class="field">
-        <label>Emotional Mood Emoji</label>
-        <select id="hc-emoji" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%;">
-          <option value="🤝">🤝 Connection / Friendly Interaction</option>
-          <option value="😊">😊 Warmth &amp; Kindness</option>
-          <option value="💡">💡 Inspiration / Learning</option>
-          <option value="🥺">🥺 Empathy &amp; Compassion</option>
-          <option value="🧘‍♂️">🧘‍♂️ Calm &amp; Stoic Conversation</option>
-          <option value="💬">💬 Deep Meaningful Discussion</option>
-          <option value="⚡">⚡ High Energy Motivation</option>
-          <option value="🌟">🌟 Joy &amp; Laughter</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>What Happened (Interaction Story)</label>
-        <textarea id="hc-story" rows="2" placeholder="Describe what happened or what you discussed..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
-      </div>
-      <div class="field">
-        <label>What I Felt (Personal Emotional Reflection)</label>
-        <textarea id="hc-felt" rows="2" placeholder="Reflect on your emotions, empathy, or what this encounter taught you..." style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:var(--text1); padding:8px 12px; outline:none; font-size:13px; font-family:var(--ff-body); width:100%; resize:vertical;"></textarea>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:4px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="saveHumanConnection()">
-          <i class="fa-solid fa-heart" style="color:#f43f5e;"></i> Save Log (+1 HRT)
-        </button>
-        <button class="btn btn-secondary" onclick="openHumanHistoryModal()">
-          <i class="fa-solid fa-clock-rotate-left"></i> Reflections
-        </button>
-      </div>
-    </div>
-  </div>
+<!-- Cognitive Energy Card -->
+<div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
+<span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">COGNITIVE ENERGY</span>
+</div>
+<span class="text-xs font-mono font-bold text-emerald-400" id="energy-pct-val">80%</span>
+</div>
+<div class="flex flex-col items-center justify-center py-2 relative">
+<div class="relative w-32 h-32 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="#162335" stroke-width="8"></circle>
+<circle class="neon-glow-emerald transition-all duration-1000" id="energy-ring-circle" cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="50" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<div class="w-11 h-11 rounded-full bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md">
+<i class="fa-solid fa-brain text-xl"></i>
+</div>
+<span class="text-[10px] font-mono text-emerald-400 font-bold mt-1" id="energy-mode-name">POWER MODE</span>
+</div>
+</div>
+<div class="w-full mt-3 flex items-center justify-between text-xs px-2 pt-1 border-t border-slate-800/70">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+<span class="text-slate-300 font-mono text-[11px]" id="energy-capacity-tag">85 min Max Cap</span>
+</div>
+<div class="text-[10px] font-mono text-slate-400">
+              Blocks: <span class="text-emerald-400 font-bold" id="deep-blocks-tag">0 / 3</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: DualEngineCards -->
+
+<!-- BEGIN: AttributesGrid -->
+<section class="space-y-2" data-purpose="bio-attributes">
+<div class="flex items-center justify-between">
+<h3 class="text-xs font-mono font-bold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+<i class="fa-solid fa-dna text-cyan-400 text-xs"></i>
+<span>BIO-TELEMETRY ATTRIBUTES</span>
+</h3>
+<span class="text-[10px] font-mono text-slate-500">Sync: Real-time</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-xs font-mono">
+<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+<div class="text-[10px] text-rose-400 flex justify-between items-center">
+<span>STR</span>
+<i class="fa-solid fa-hand-fist text-[10px]"></i>
+</div>
+<div class="text-base font-bold text-white mt-1" id="attr-str">2,811</div>
+<div class="text-[9px] text-emerald-400 flex items-center gap-0.5 mt-0.5">
+<i class="fa-solid fa-arrow-trend-up text-[8px]"></i> +14 today
+</div>
+</div>
+<div class="bg-[#0b101d] border border-cyan-500/30 rounded-xl p-2.5 relative">
+<div class="text-[10px] text-cyan-400 flex justify-between items-center">
+<span>INT</span>
+<i class="fa-solid fa-microchip text-[10px]"></i>
+</div>
+<div class="text-base font-bold text-cyan-200 mt-1" id="attr-int">7,265</div>
+<div class="text-[9px] text-cyan-400 flex items-center gap-0.5 mt-0.5">
+<i class="fa-solid fa-arrow-trend-up text-[8px]"></i> Core Stat
+</div>
+</div>
+<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+<div class="text-[10px] text-amber-400 flex justify-between items-center">
+<span>AGI</span>
+<i class="fa-solid fa-person-running text-[10px]"></i>
+</div>
+<div class="text-base font-bold text-white mt-1" id="attr-agi">3,022</div>
+<div class="text-[9px] text-slate-400 flex items-center gap-0.5 mt-0.5">Stable</div>
+</div>
+<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+<div class="text-[10px] text-purple-400 flex justify-between items-center">
+<span>WIL</span>
+<i class="fa-solid fa-shield-halved text-[10px]"></i>
+</div>
+<div class="text-base font-bold text-white mt-1" id="attr-wil">1,687</div>
+<div class="text-[9px] text-purple-400 flex items-center gap-0.5 mt-0.5">
+<i class="fa-solid fa-arrow-trend-up text-[8px]"></i> +2 streak
+</div>
+</div>
+<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+<div class="text-[10px] text-rose-500 flex justify-between items-center">
+<span>HRT</span>
+<i class="fa-solid fa-heart-pulse text-[10px]"></i>
+</div>
+<div class="text-base font-bold text-white mt-1" id="attr-hrt">76 <span class="text-[10px] font-normal text-slate-400">bpm</span></div>
+<div class="text-[9px] text-emerald-400 mt-0.5">Resting</div>
+</div>
+<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+<div class="text-[10px] text-blue-400 flex justify-between items-center">
+<span>STC</span>
+<i class="fa-solid fa-battery-half text-[10px]"></i>
+</div>
+<div class="text-base font-bold text-white mt-1" id="attr-stc">136</div>
+<div class="text-[9px] text-blue-400 mt-0.5">Ready</div>
+</div>
+</div>
+</section>
+<!-- END: AttributesGrid -->
+
+<!-- BEGIN: UniversalSanctuaryPass -->
+<section class="bg-[#0b111e] border border-slate-800/90 rounded-2xl p-4 shadow-sm relative" data-purpose="sanctuary-pass-card">
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0">
+<i class="fa-solid fa-shield-halved text-lg"></i>
+</div>
+<div>
+<h3 class="text-xs font-semibold text-white">Universal Monthly Sanctuary Passes</h3>
+<p class="text-[10px] text-slate-400 leading-tight mt-0.5">
+            2 passes per calendar month • Freeze streaks &amp; avoid burnout
+          </p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-3.5 items-center">
+<div class="bg-[#121a2d] border border-amber-500/40 rounded-xl py-2 px-3 text-center">
+<span class="text-xs font-mono font-bold text-amber-400" id="sanctuary-count">2 / 2 Available</span>
+</div>
+<button class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all" id="activate-sanctuary-btn" type="button">
+<i class="fa-solid fa-shield text-[10px]"></i>
+<span>Activate Sanctuary</span>
+</button>
+</div>
+</section>
+<!-- END: UniversalSanctuaryPass -->
+
+<!-- BEGIN: DailyChecklist -->
+<section class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 space-y-3" data-purpose="daily-accountability">
+<div class="flex justify-between items-center pb-1 border-b border-slate-800/80">
+<div class="flex items-center gap-2">
+<i class="fa-solid fa-list-check text-indigo-400 text-xs"></i>
+<h3 class="text-xs font-mono font-bold tracking-wide text-slate-200 uppercase">
+            DAILY ACCOUNTABILITY CHECKLIST
+          </h3>
+</div>
+<a class="text-[11px] font-semibold text-amber-400 flex items-center gap-1 hover:text-amber-300" href="/task-streaks">
+<i class="fa-solid fa-fire text-xs"></i>
+<span>VIEW STREAKS</span>
+<i class="fa-solid fa-arrow-right text-[9px]"></i>
+</a>
 </div>
 
-<!-- PAST HUMAN CONNECTIONS TIMELINE MODAL -->
-<div id="human-history-modal" class="modal-mask hidden">
-  <div class="modal" style="max-width: 550px;">
-    <div class="modal-hd">
-      <span><i class="fa-solid fa-heart" style="color:var(--rose); margin-right:6px;"></i>Past Human Encounter Reflections</span>
-      <button class="modal-close" onclick="closeHumanHistoryModal()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body" style="max-height: 450px; overflow-y: auto;">
-      <div id="hc-history-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-    </div>
-<!-- HEALTH & FITNESS SYNC MODAL -->
-<div id="health-sync-modal" class="modal-mask hidden">
-  <div class="modal" style="max-width: 500px;">
-    <div class="modal-hd">
-      <span><i class="fa-solid fa-heart-pulse" style="color:var(--rose); margin-right:6px;"></i>Google Health &amp; Fitness Sync</span>
-      <button class="modal-close" onclick="closeHealthSyncModal()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
-      <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.25); border-radius:10px; padding:12px; font-size:12px; color:var(--text2); line-height:1.5;">
-        <strong style="color:#fff;"><i class="fa-solid fa-bolt" style="color:var(--amber);"></i> Health Data Impact:</strong>
-        <ul style="margin:4px 0 0 16px; padding:0; color:var(--text3);">
-          <li><strong>1,000 Steps:</strong> +10 XP, +1 WIL</li>
-          <li><strong>7.0+ Hours Sleep:</strong> +35% Cognitive Energy Recovery</li>
-          <li><strong>10 Active Minutes:</strong> +2 STR, +20 XP</li>
-          <li><strong>Resting HR (50-70 bpm):</strong> +1 HRT (Heart)</li>
-        </ul>
-      </div>
-      <div class="field">
-        <label>Daily Step Count</label>
-        <input type="number" id="hs-steps" placeholder="e.g. 8500" value="8000" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
-      </div>
-      <div class="grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="field">
-          <label>Distance (km)</label>
-          <input type="number" step="0.1" id="hs-dist" placeholder="e.g. 6.2" value="6.0" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
-        </div>
-        <div class="field">
-          <label>Active Minutes</label>
-          <input type="number" id="hs-active" placeholder="e.g. 45" value="40" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
-        </div>
-      </div>
-      <div class="grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="field">
-          <label>Sleep Duration (hours)</label>
-          <input type="number" step="0.1" id="hs-sleep" placeholder="e.g. 7.5" value="7.5" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
-        </div>
-        <div class="field">
-          <label>Resting HR (bpm)</label>
-          <input type="number" id="hs-hr" placeholder="e.g. 62" value="65" style="background:#0a0d1e; border:1px solid var(--border); border-radius:6px; color:#fff; padding:8px 12px; width:100%; outline:none; font-size:13px;" />
-        </div>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:6px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="submitHealthSync()">
-          <i class="fa-solid fa-sync"></i> Sync Manual Metrics
-        </button>
-        <button class="btn btn-secondary" style="flex:1; background:linear-gradient(135deg,#3b82f6,#10b981); color:#fff; border:none;" onclick="syncViaGoogleFitCloud()">
-          <i class="fa-solid fa-cloud-arrow-down"></i> Google Fit Cloud API
-        </button>
-      </div>
-      <div style="font-size:11px; color:var(--text3); margin-top:4px;">
-        💡 <strong>Automation Options:</strong> MacroDroid/Tasker POST to <code>/api/health_sync</code> or Google Fit OAuth via <code>credentials.json</code>.
-      </div>
-    </div>
-  </div>
+<div class="space-y-2" id="checklist-container">
+<!-- Item 1 (Auto-checked Study Target) -->
+<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+<i class="fa-solid fa-check text-xs"></i>
 </div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Daily Study Target</h4>
+<p class="text-[10px] font-mono text-slate-400">Auto: Complete Syllabus Item</p>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">
+          +65 XP
+        </span>
+</div>
+<!-- Item 2 (Auto-checked LeetCode) -->
+<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+<i class="fa-solid fa-check text-xs"></i>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Daily LeetCode Problem</h4>
+<p class="text-[10px] font-mono text-slate-400">Auto: Sync solved count</p>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">
+          +30 XP
+        </span>
+</div>
+<!-- Item 3 (Auto-checked Gym) -->
+<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+<i class="fa-solid fa-check text-xs"></i>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Daily Gym/Physical Target</h4>
+<p class="text-[10px] font-mono text-slate-400">Auto: Log Workout or Gym Check-in</p>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">
+          +80 XP
+        </span>
+</div>
+<!-- Item 4 (Daily English) -->
+<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+<i class="fa-solid fa-check text-xs"></i>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Daily English &amp; Translation Booster</h4>
+<p class="text-[10px] font-mono text-slate-400">Auto: Spend 5 min on English page under AI Surveillance</p>
+</div>
+</div>
+</div>
+<!-- Item 5 (Manual Meal Prep) -->
+<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center text-transparent shrink-0">
+<i class="fa-solid fa-check text-xs"></i>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Home Cooking / Meal Prep</h4>
+<p class="text-[10px] font-mono text-slate-400">Manual: +10 XP</p>
+</div>
+</div>
+<div class="flex items-center text-amber-400 text-xs font-bold gap-1">
+<i class="fa-solid fa-fire text-xs"></i>
+<span>3</span>
+</div>
+</div>
+<!-- Item 6 (NoPMO Discipline) -->
+<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center text-transparent shrink-0">
+<i class="fa-solid fa-check text-xs"></i>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">NoPMO Discipline</h4>
+<p class="text-[10px] font-mono text-slate-400">Manual: +15 XP, +1 WIL</p>
+</div>
+</div>
+<div class="flex items-center text-amber-400 text-xs font-bold gap-1">
+<i class="fa-solid fa-fire text-xs"></i>
+<span>3</span>
+</div>
+</div>
+<!-- Item 7 (Daily Reading) -->
+<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Daily Reading</h4>
+<p class="text-[10px] font-mono text-slate-400">Manual: +10 XP, +1 INT (Click to Log Pages)</p>
+</div>
+</div>
+</div>
+<!-- Item 8: Google Health & Walking Sync -->
+<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-teal-950/60 border border-teal-600/40 flex items-center justify-center text-teal-400">
+<i class="fa-solid fa-person-walking text-base"></i>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Google Health &amp; Walking Sync</h4>
+<p class="text-[10px] font-mono text-slate-400">Auto/Cloud: Steps, Sleep, Active Mins &amp; HR</p>
+</div>
+</div>
+<button class="px-2.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[11px] font-semibold rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition-transform" id="sync-fit-btn" type="button">
+<i class="fa-solid fa-rotate text-[10px]"></i>
+<span>Sync Fit</span>
+</button>
+</div>
+<!-- Item 9: 5-Min Focused Meditation -->
+<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">5-Min Focused Meditation</h4>
+<p class="text-[10px] font-mono text-slate-400">Daily Protocol: +20 XP, +2 STC, +1 WIL</p>
+</div>
+</div>
+<span class="text-[9px] font-mono text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">Mind</span>
+</div>
+<!-- Item 10: Semester ML Track -->
+<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
+<div>
+<h4 class="text-xs font-semibold text-slate-200">Semester ML Track</h4>
+<p class="text-[10px] font-mono text-slate-400">Wk 4/12 Assignment • Due 23:59</p>
+</div>
+</div>
+<span class="text-[9px] font-mono text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded">Priority</span>
+</div>
+</div>
+</section>
+<!-- END: DailyChecklist -->
+</main>
+<!-- END: MainContent -->
 
+<!-- BEGIN: SmartFloatingSidebar -->
+<aside class="fixed right-2 top-24 z-50 flex items-center select-none" data-purpose="smart-sidebar-dock">
+<div class="sidebar-blur rounded-2xl border border-slate-700/60 shadow-2xl p-2 flex flex-col items-center gap-3 w-12 py-3.5 transition-all transform duration-200">
+<button class="w-8 h-8 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center shadow hover:scale-105 active:scale-95 transition-transform" title="Select Cursor">
+<i class="fa-solid fa-arrow-pointer text-xs"></i>
+</button>
+<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Focus Target Region">
+<i class="fa-regular fa-square text-xs"></i>
+</button>
+<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Quick Notes">
+<i class="fa-solid fa-pencil text-xs text-amber-300"></i>
+</button>
+<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Canvas Pan">
+<i class="fa-regular fa-hand text-xs"></i>
+</button>
+<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Snapshot Canvas">
+<i class="fa-regular fa-image text-xs"></i>
+</button>
+<div class="w-6 h-[1px] bg-slate-700/80 my-0.5"></div>
+<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Color Palette">
+<i class="fa-solid fa-palette text-xs text-cyan-400"></i>
+</button>
+<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-amber-400 hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Sanctuary Star">
+<i class="fa-regular fa-star text-xs"></i>
+</button>
+<button class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/70 text-slate-300 hover:text-white flex items-center justify-center mt-1 active:scale-90 transition-all" title="Toggle Dock">
+<i class="fa-solid fa-chevron-left text-[11px]"></i>
+</button>
+</div>
+</aside>
+<!-- END: SmartFloatingSidebar -->
+
+<!-- BEGIN: BottomNavigation -->
+<footer class="fixed bottom-0 left-0 right-0 z-40 bg-[#070b14]/95 backdrop-blur-lg border-t border-slate-800/90 max-w-md mx-auto" data-purpose="mobile-bottom-navigation">
+<nav class="flex items-center justify-around py-2 px-1">
+<a class="flex flex-col items-center text-cyan-400 px-3 py-1 group" href="/">
+<div class="relative">
+<i class="fa-solid fa-gauge-high text-lg"></i>
+<span class="absolute -top-1 -right-1.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-sm"></span>
+</div>
+<span class="text-[10px] font-semibold tracking-tight mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/canvas">
+<i class="fa-solid fa-graduation-cap text-lg group-hover:scale-110 transition-transform"></i>
+<span class="text-[10px] font-medium tracking-tight mt-1">Canvas</span>
+</a>
+<a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-3 py-1 group transition-colors" href="/gym-pro">
+<i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
+<span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Gym Pro</span>
+</a>
+<a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-3 py-1 group transition-colors" href="/mind-os">
+<i class="fa-solid fa-brain text-lg group-hover:scale-110 transition-transform"></i>
+<span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Mind OS</span>
+</a>
+<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/system">
+<i class="fa-solid fa-bars text-lg group-hover:scale-110 transition-transform"></i>
+<span class="text-[10px] font-medium tracking-tight mt-1">More</span>
+</a>
+</nav>
+</footer>
+<!-- END: BottomNavigation -->
+
+<!-- Energy Engine Live Integration Script -->
 <script>
-function openHealthSyncModal() {
-  document.getElementById('health-sync-modal').classList.remove('hidden');
-}
-function closeHealthSyncModal() {
-  document.getElementById('health-sync-modal').classList.add('hidden');
-}
-async function syncViaGoogleFitCloud() {
-  try {
-    const r = await fetch('/api/health_sync/google_fit', { method: 'POST' });
-    const d = await r.json();
-    if (d.setup_required) {
-      alert('⚠️ Google Fit Setup Needed:\n\n' + d.message);
-    } else if (d.status === 'SUCCESS' || d.steps !== undefined) {
-      alert(`✅ Google Fit Synced!\n\n${(d.steps||0).toLocaleString()} steps (${d.distance_km||0} km)\n+${d.xp_awarded||0} XP awarded!`);
-      closeHealthSyncModal();
-      if (window.loadDashboard) loadDashboard();
-    } else {
-      alert('Google Fit Sync Result: ' + (d.message || JSON.stringify(d)));
-    }
-  } catch(e) {
-    alert('Google Fit Cloud API error: ' + e.message);
-  }
-}
-async function submitHealthSync() {
-  const steps = parseInt(document.getElementById('hs-steps').value) || 0;
-  const dist  = parseFloat(document.getElementById('hs-dist').value) || 0.0;
-  const active = parseInt(document.getElementById('hs-active').value) || 0;
-  const sleep  = parseFloat(document.getElementById('hs-sleep').value) || 0.0;
-  const hr     = parseInt(document.getElementById('hs-hr').value) || 0;
+  (function() {
+    async function syncEnergyTelemetry() {
+      try {
+        const resp = await fetch('/api/energy/state');
+        if (!resp.ok) return;
+        const data = await resp.json();
 
-  try {
-    const payload = { steps, distance_km: dist, active_minutes: active, sleep_hours: sleep, resting_hr: hr };
-    const r = await fetch('/api/health_sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+        // Update Cognitive Energy Card
+        const energyPctVal = document.getElementById('energy-pct-val');
+        const energyModeName = document.getElementById('energy-mode-name');
+        const energyCapTag = document.getElementById('energy-capacity-tag');
+        const deepBlocksTag = document.getElementById('deep-blocks-tag');
+        const energyRingCircle = document.getElementById('energy-ring-circle');
+
+        if (energyPctVal) energyPctVal.textContent = `${data.current_energy}%`;
+        if (energyModeName) energyModeName.textContent = `${data.tier} MODE`;
+        if (energyCapTag) energyCapTag.textContent = `${data.max_task_capacity_minutes} min Max Cap`;
+        if (deepBlocksTag) deepBlocksTag.textContent = `${data.deep_work_blocks_used} / 3`;
+
+        if (energyRingCircle) {
+          const strokeOffset = 251.2 - (251.2 * (data.current_energy / 100.0));
+          energyRingCircle.setAttribute('stroke-dashoffset', strokeOffset.toFixed(1));
+        }
+      } catch(e) {
+        console.log('Energy telemetry sync note:', e);
+      }
+    }
+
+    // Interactive Action Handlers
+    document.getElementById('engageProtocolBtn')?.addEventListener('click', async function() {
+      try {
+        const r = await fetch('/api/energy/consume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category: 'Machine_Learning', duration_minutes: 55, difficulty: 8 })
+        });
+        const d = await r.json();
+        if (r.ok && d.status === 'SUCCESS') {
+          syncEnergyTelemetry();
+          if (window.toast) window.toast(`Engaged Protocol! -${d.energy_cost} E | +${d.xp_minted} XP`, 'ok');
+          else alert(`Engaged Protocol! -${d.energy_cost} E | +${d.xp_minted} XP`);
+        } else if (d.detail) {
+          alert(d.detail);
+        }
+      } catch(e) { console.error(e); }
     });
-    const d = await r.json();
-    if (d.status === 'SUCCESS') {
-      alert(`✅ Health Data Synced!\n\n+${d.xp_awarded} XP\n+${d.wil_gained} WIL\n+${d.str_gained} STR\n+${d.energy_restored}% Energy Recovery`);
-      closeHealthSyncModal();
-      if (window.loadDashboard) loadDashboard();
-    } else {
-      alert('Error syncing health data: ' + (d.detail || 'Unknown error'));
-    }
-  } catch(e) {
-    alert('Sync request failed: ' + e.message);
-  }
-async function activateSanctuaryPass() {
-  if (!confirm('🛡️ Activate Universal Sanctuary Pass for Today?\n\n• Freezes & protects all 12 task streaks\n• Refills Cognitive Energy to 100%\n• Grants Semester Audit Exemption (+100 XP)\n• Awards +150 XP, +2 HRT, +2 STC Recovery Rewards\n\nAre you ready for your Sanctuary Rest Day?')) return;
-  try {
-    const r = await fetch('/api/holiday/activate', { method: 'POST' });
-    const d = await r.json();
-    if (!r.ok) {
-      alert(d.detail || 'Could not activate Sanctuary Pass');
-      return;
-    }
-    toast(d.message || 'Sanctuary Day Activated!', 'ok');
-    refreshState();
-  } catch(e) {
-    alert('Failed to activate: ' + e.message);
-  }
-}
 
-async function cancelSanctuaryPass() {
-  if (!confirm('Cancel today\'s Sanctuary Pass and return to normal accountability mode?')) return;
-  try {
-    const r = await fetch('/api/holiday/cancel', { method: 'POST' });
-    const d = await r.json();
-    toast(d.message || 'Sanctuary Pass cancelled', 'ok');
-    refreshState();
-  } catch(e) {
-    alert('Failed to cancel: ' + e.message);
-  }
-}
+    document.getElementById('sync-leetcode-btn')?.addEventListener('click', async function() {
+      const lbl = document.getElementById('leetcode-btn-label');
+      if (lbl) lbl.textContent = 'Syncing...';
+      try {
+        const r = await fetch('/api/energy/consume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category: 'DSA_LeetCode', duration_minutes: 30, difficulty: 7 })
+        });
+        const d = await r.json();
+        if (lbl) lbl.textContent = '+1 SOLVED!';
+        syncEnergyTelemetry();
+        setTimeout(() => { if (lbl) lbl.textContent = 'Sync LeetCode'; }, 1500);
+      } catch(e) {
+        if (lbl) lbl.textContent = 'Sync LeetCode';
+      }
+    });
+
+    document.getElementById('gym-complete-btn')?.addEventListener('click', async function() {
+      const lbl = document.getElementById('gym-btn-label');
+      if (lbl) lbl.textContent = 'Logging...';
+      try {
+        const r = await fetch('/api/energy/consume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category: 'Gym_Pro', duration_minutes: 45, difficulty: 8 })
+        });
+        const d = await r.json();
+        if (lbl) lbl.textContent = '+80 XP LOGGED!';
+        syncEnergyTelemetry();
+        setTimeout(() => { if (lbl) lbl.textContent = 'Gym Complete'; }, 1500);
+      } catch(e) {
+        if (lbl) lbl.textContent = 'Gym Complete';
+      }
+    });
+
+    syncEnergyTelemetry();
+  })();
 </script>
 </body>
 </html>

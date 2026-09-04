@@ -67,19 +67,18 @@
       background: rgba(18, 24, 38, 0.92);
     }
   </style>
-<script src="/static/shared.js"></script>
 </head>
 <body class="font-sans antialiased text-slate-100 min-h-screen bg-[#07090e] pb-24 overflow-x-hidden relative">
-
 <!-- BEGIN: MobileStatusBar -->
+<!-- Mimics mobile device status bar header -->
 <header class="sticky top-0 z-40 bg-[#07090e]/95 backdrop-blur-md px-5 pt-3 pb-2 flex justify-between items-center text-xs text-slate-400 border-b border-slate-900/80">
 <div class="flex items-center space-x-2 font-mono font-medium tracking-tight text-slate-200">
-<span id="current-clock">14:24</span>
+<span>2:17</span>
 <i class="fa-solid fa-cloud text-[10px] text-cyan-400/80"></i>
 <i class="fa-solid fa-bell text-[10px] text-slate-400"></i>
 </div>
 <div class="flex items-center space-x-2 text-[11px]">
-<span class="text-[10px] font-mono text-cyan-400" id="live-net-speed">18.9 KB/s</span>
+<span class="text-[10px] font-mono text-cyan-400">18.9 KB/s</span>
 <span class="text-[9px] font-semibold text-slate-300 border border-slate-700 px-1 rounded">5G+</span>
 <i class="fa-solid fa-signal text-xs text-slate-200"></i>
 <i class="fa-solid fa-wifi text-xs text-slate-200"></i>
@@ -89,7 +88,6 @@
 </div>
 </header>
 <!-- END: MobileStatusBar -->
-
 <!-- BEGIN: MainContent -->
 <main class="px-4 pt-3 space-y-4 max-w-md mx-auto relative">
 <!-- BEGIN: HeaderAndQuickTriggers -->
@@ -105,19 +103,19 @@
 </div>
 <!-- Quick Action Buttons -->
 <div class="grid grid-cols-2 gap-2.5">
-<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95" id="sync-leetcode-btn" type="button">
+<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95">
 <i class="fa-solid fa-code text-[11px]"></i>
-<span id="leetcode-btn-label">Sync LeetCode</span>
+<span>Sync LeetCode</span>
 </button>
-<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95" id="gym-complete-btn" type="button">
+<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95">
 <i class="fa-solid fa-dumbbell text-[11px]"></i>
-<span id="gym-btn-label">Gym Complete</span>
+<span>Gym Complete</span>
 </button>
 </div>
 </section>
 <!-- END: HeaderAndQuickTriggers -->
-
 <!-- BEGIN: ActiveTargetProtocol -->
+<!-- Active Objective Card with Status Pulse -->
 <section class="relative rounded-2xl p-4 bg-gradient-to-br from-[#0c1424] via-[#0f172a] to-[#0a101d] border border-cyan-500/30 shadow-lg" data-purpose="active-target-banner">
 <div class="flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
@@ -129,10 +127,10 @@
 <span class="text-[10px] tracking-wider uppercase font-mono font-bold text-cyan-400">ACTIVE TARGET PROTOCOL</span>
 <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 ring-2 ring-emerald-500/40"></span>
 </div>
-<h2 class="text-xs font-semibold text-slate-100 mt-1 leading-snug" id="target-title">
+<h2 class="text-xs font-semibold text-slate-100 mt-1 leading-snug">
               Study Calculus_Optimization: Calculus_Optimization_w1_v1 - L02: Differentiability Rules
             </h2>
-<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1" id="target-desc">
+<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
               Product, Quotient, and Chain Rule Derivations from First Principles
             </p>
 </div>
@@ -142,20 +140,20 @@
 <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-800/80 text-center font-mono">
 <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
 <span class="block text-[9px] text-rose-400 uppercase">Drain Cost</span>
-<span class="text-xs font-bold text-slate-200" id="target-cost-val">-22 ENG</span>
+<span class="text-xs font-bold text-slate-200">-22 ENG</span>
 </div>
 <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
 <span class="block text-[9px] text-emerald-400 uppercase">Target Gain</span>
-<span class="text-xs font-bold text-slate-200" id="target-gain-val">+65 XP</span>
+<span class="text-xs font-bold text-slate-200">+65 XP</span>
 </div>
 <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
 <span class="block text-[9px] text-amber-400 uppercase">Est. Clock</span>
-<span class="text-xs font-bold text-slate-200" id="target-clock-val">55 MIN</span>
+<span class="text-xs font-bold text-slate-200">55 MIN</span>
 </div>
 </div>
 <!-- Engage Button -->
-<div class="mt-3 flex gap-2">
-<button class="flex-1 py-2 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" id="engageProtocolBtn" type="button">
+<div class="mt-3">
+<button class="w-full py-2 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-2 transition-all">
 <i class="fa-solid fa-bolt-lightning text-xs text-cyan-400"></i>
 <span>Engage Protocol Now</span>
 <i class="fa-solid fa-chevron-right text-[10px] ml-auto"></i>
@@ -163,21 +161,21 @@
 </div>
 </section>
 <!-- END: ActiveTargetProtocol -->
-
 <!-- BEGIN: PrimaryTabs -->
+<!-- Segmented Tab Switcher matching screenshots -->
 <nav class="flex bg-[#0c121e] p-1 rounded-xl border border-slate-800/80 text-xs font-medium">
-<button class="flex-1 py-2 rounded-lg bg-[#141e33] text-cyan-400 shadow-sm flex items-center justify-center gap-2 font-semibold" id="tab-stats-btn" type="button">
+<button class="flex-1 py-2 rounded-lg bg-[#141e33] text-cyan-400 shadow-sm flex items-center justify-center gap-2 font-semibold">
 <i class="fa-solid fa-chart-simple text-xs"></i>
 <span>Stats</span>
 </button>
-<button class="flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2" id="tab-tasks-btn" type="button">
+<button class="flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2">
 <i class="fa-solid fa-list-check text-xs"></i>
 <span>Tasks</span>
 </button>
 </nav>
 <!-- END: PrimaryTabs -->
-
 <!-- BEGIN: DualEngineCards -->
+<!-- System Level + Cognitive Energy Dual Radial Modules -->
 <section class="space-y-4" data-purpose="telemetry-cards">
 <!-- System Level Card -->
 <div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
@@ -186,43 +184,45 @@
 <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
 <span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">SYSTEM LEVEL</span>
 </div>
-<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30" id="tier-badge">Tier II Prodigy</span>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">Tier II Prodigy</span>
 </div>
 <!-- Radial Gauge for System Level 38 -->
 <div class="flex flex-col items-center justify-center py-2 relative">
 <div class="relative w-36 h-36 flex items-center justify-center">
-<svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 120 120">
+<!-- Background Circle -->
 <circle cx="60" cy="60" fill="none" r="48" stroke="#172238" stroke-width="9"></circle>
-<circle class="transition-all duration-1000" id="level-ring-circle" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="135" stroke-linecap="round" stroke-width="9"></circle>
+<!-- Progress Circle: 42% circumference strokeDashoffset -->
+<circle class="transition-all duration-1000" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="135" stroke-linecap="round" stroke-width="9"></circle>
 <defs>
-<linearGradient id="levelGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<lineargradient id="levelGradient" x1="0%" x2="100%" y1="0%" y2="100%">
 <stop offset="0%" stop-color="#3b82f6"></stop>
 <stop offset="100%" stop-color="#8b5cf6"></stop>
-</linearGradient>
+</lineargradient>
 </defs>
 </svg>
 <div class="absolute flex flex-col items-center justify-center text-center">
 <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400">LEVEL</span>
-<span class="text-4xl font-black text-white tracking-tight" id="level-val">38</span>
+<span class="text-4xl font-black text-white tracking-tight">38</span>
 </div>
 </div>
 <!-- XP Details & Sub-bar -->
 <div class="w-full mt-3 space-y-2">
 <div class="flex justify-between items-center text-xs font-mono">
-<span class="text-cyan-400">XP: <span class="font-bold" id="xp-val">9832</span></span>
-<span class="text-slate-500" id="xp-max">/ 23424</span>
+<span class="text-cyan-400">XP: <span class="font-bold">9832</span></span>
+<span class="text-slate-500">/ 23424</span>
 </div>
+<!-- Progress Track -->
 <div class="w-full bg-slate-800/90 h-1.5 rounded-full overflow-hidden">
-<div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-500" id="xp-progress-bar" style="width: 42%"></div>
+<div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full" style="width: 42%"></div>
 </div>
 <div class="flex justify-center items-center gap-1.5 pt-1 text-amber-400 text-xs font-semibold">
 <i class="fa-solid fa-fire text-amber-500"></i>
-<span id="streak-val">37 day streak</span>
+<span>37 day streak</span>
 </div>
 </div>
 </div>
 </div>
-
 <!-- Cognitive Energy Card -->
 <div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
 <div class="flex items-center justify-between mb-3">
@@ -230,36 +230,37 @@
 <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
 <span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">COGNITIVE ENERGY</span>
 </div>
-<span class="text-xs font-mono font-bold text-emerald-400" id="energy-pct-val">80%</span>
+<span class="text-xs font-mono font-bold text-emerald-400">100%</span>
 </div>
 <div class="flex flex-col items-center justify-center py-2 relative">
+<!-- Radial Battery Circle -->
 <div class="relative w-32 h-32 flex items-center justify-center">
-<svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
 <circle cx="50" cy="50" fill="none" r="40" stroke="#162335" stroke-width="8"></circle>
-<circle class="neon-glow-emerald transition-all duration-1000" id="energy-ring-circle" cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="50" stroke-linecap="round" stroke-width="8"></circle>
+<circle class="neon-glow-emerald" cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="0" stroke-linecap="round" stroke-width="8"></circle>
 </svg>
-<div class="absolute flex flex-col items-center justify-center text-center">
+<div class="absolute flex flex-col items-center justify-center">
 <div class="w-11 h-11 rounded-full bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md">
 <i class="fa-solid fa-brain text-xl"></i>
 </div>
-<span class="text-[10px] font-mono text-emerald-400 font-bold mt-1" id="energy-mode-name">POWER MODE</span>
 </div>
 </div>
+<!-- Status Indicators -->
 <div class="w-full mt-3 flex items-center justify-between text-xs px-2 pt-1 border-t border-slate-800/70">
 <div class="flex items-center gap-1.5">
 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-<span class="text-slate-300 font-mono text-[11px]" id="energy-capacity-tag">85 min Max Cap</span>
+<span class="text-slate-300 font-mono text-[11px]">OPTIMAL FLOW</span>
 </div>
 <div class="text-[10px] font-mono text-slate-400">
-              Blocks: <span class="text-emerald-400 font-bold" id="deep-blocks-tag">0 / 3</span>
+              Drain Threshold: <span class="text-emerald-400 font-bold">Nominal</span>
 </div>
 </div>
 </div>
 </div>
 </section>
 <!-- END: DualEngineCards -->
-
 <!-- BEGIN: AttributesGrid -->
+<!-- 6 Core Bio-Telemetry Attributes Grid -->
 <section class="space-y-2" data-purpose="bio-attributes">
 <div class="flex items-center justify-between">
 <h3 class="text-xs font-mono font-bold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
@@ -269,65 +270,73 @@
 <span class="text-[10px] font-mono text-slate-500">Sync: Real-time</span>
 </div>
 <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+<!-- STR -->
 <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
 <div class="text-[10px] text-rose-400 flex justify-between items-center">
 <span>STR</span>
 <i class="fa-solid fa-hand-fist text-[10px]"></i>
 </div>
-<div class="text-base font-bold text-white mt-1" id="attr-str">2,811</div>
+<div class="text-base font-bold text-white mt-1">2,811</div>
 <div class="text-[9px] text-emerald-400 flex items-center gap-0.5 mt-0.5">
 <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> +14 today
+          </div>
 </div>
-</div>
+<!-- INT -->
 <div class="bg-[#0b101d] border border-cyan-500/30 rounded-xl p-2.5 relative">
 <div class="text-[10px] text-cyan-400 flex justify-between items-center">
 <span>INT</span>
 <i class="fa-solid fa-microchip text-[10px]"></i>
 </div>
-<div class="text-base font-bold text-cyan-200 mt-1" id="attr-int">7,265</div>
+<div class="text-base font-bold text-cyan-200 mt-1">7,265</div>
 <div class="text-[9px] text-cyan-400 flex items-center gap-0.5 mt-0.5">
 <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> Core Stat
+          </div>
 </div>
-</div>
+<!-- AGI -->
 <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
 <div class="text-[10px] text-amber-400 flex justify-between items-center">
 <span>AGI</span>
 <i class="fa-solid fa-person-running text-[10px]"></i>
 </div>
-<div class="text-base font-bold text-white mt-1" id="attr-agi">3,022</div>
-<div class="text-[9px] text-slate-400 flex items-center gap-0.5 mt-0.5">Stable</div>
+<div class="text-base font-bold text-white mt-1">3,022</div>
+<div class="text-[9px] text-slate-400 flex items-center gap-0.5 mt-0.5">
+            Stable
+          </div>
 </div>
+<!-- WIL -->
 <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
 <div class="text-[10px] text-purple-400 flex justify-between items-center">
 <span>WIL</span>
 <i class="fa-solid fa-shield-halved text-[10px]"></i>
 </div>
-<div class="text-base font-bold text-white mt-1" id="attr-wil">1,687</div>
+<div class="text-base font-bold text-white mt-1">1,687</div>
 <div class="text-[9px] text-purple-400 flex items-center gap-0.5 mt-0.5">
 <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> +2 streak
+          </div>
 </div>
-</div>
+<!-- HRT -->
 <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
 <div class="text-[10px] text-rose-500 flex justify-between items-center">
 <span>HRT</span>
 <i class="fa-solid fa-heart-pulse text-[10px]"></i>
 </div>
-<div class="text-base font-bold text-white mt-1" id="attr-hrt">76 <span class="text-[10px] font-normal text-slate-400">bpm</span></div>
+<div class="text-base font-bold text-white mt-1">76 <span class="text-[10px] font-normal text-slate-400">bpm</span></div>
 <div class="text-[9px] text-emerald-400 mt-0.5">Resting</div>
 </div>
+<!-- STC -->
 <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
 <div class="text-[10px] text-blue-400 flex justify-between items-center">
 <span>STC</span>
 <i class="fa-solid fa-battery-half text-[10px]"></i>
 </div>
-<div class="text-base font-bold text-white mt-1" id="attr-stc">136</div>
+<div class="text-base font-bold text-white mt-1">136</div>
 <div class="text-[9px] text-blue-400 mt-0.5">Ready</div>
 </div>
 </div>
 </section>
 <!-- END: AttributesGrid -->
-
 <!-- BEGIN: UniversalSanctuaryPass -->
+<!-- Sanctuary Shield Pass Card (From Image 3/2) -->
 <section class="bg-[#0b111e] border border-slate-800/90 rounded-2xl p-4 shadow-sm relative" data-purpose="sanctuary-pass-card">
 <div class="flex items-start gap-3">
 <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0">
@@ -342,17 +351,17 @@
 </div>
 <div class="grid grid-cols-2 gap-2 mt-3.5 items-center">
 <div class="bg-[#121a2d] border border-amber-500/40 rounded-xl py-2 px-3 text-center">
-<span class="text-xs font-mono font-bold text-amber-400" id="sanctuary-count">2 / 2 Available</span>
+<span class="text-xs font-mono font-bold text-amber-400">2 / 2 Available</span>
 </div>
-<button class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all" id="activate-sanctuary-btn" type="button">
+<button class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all">
 <i class="fa-solid fa-shield text-[10px]"></i>
 <span>Activate Sanctuary</span>
 </button>
 </div>
 </section>
 <!-- END: UniversalSanctuaryPass -->
-
 <!-- BEGIN: DailyChecklist -->
+<!-- Daily Accountability Checklist matching screenshots -->
 <section class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 space-y-3" data-purpose="daily-accountability">
 <div class="flex justify-between items-center pb-1 border-b border-slate-800/80">
 <div class="flex items-center gap-2">
@@ -361,15 +370,13 @@
             DAILY ACCOUNTABILITY CHECKLIST
           </h3>
 </div>
-<a class="text-[11px] font-semibold text-amber-400 flex items-center gap-1 hover:text-amber-300" href="/task-streaks">
+<button class="text-[11px] font-semibold text-amber-400 flex items-center gap-1 hover:text-amber-300">
 <i class="fa-solid fa-fire text-xs"></i>
 <span>VIEW STREAKS</span>
 <i class="fa-solid fa-arrow-right text-[9px]"></i>
-</a>
+</button>
 </div>
-
-<div class="space-y-2" id="checklist-container">
-<!-- Item 1 (Auto-checked Study Target) -->
+<!-- Checklist Item 1 (Auto-checked Study Target) -->
 <div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
@@ -384,7 +391,7 @@
           +65 XP
         </span>
 </div>
-<!-- Item 2 (Auto-checked LeetCode) -->
+<!-- Checklist Item 2 (Auto-checked LeetCode) -->
 <div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
@@ -399,7 +406,7 @@
           +30 XP
         </span>
 </div>
-<!-- Item 3 (Auto-checked Gym) -->
+<!-- Checklist Item 3 (Auto-checked Gym) -->
 <div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
@@ -414,7 +421,7 @@
           +80 XP
         </span>
 </div>
-<!-- Item 4 (Daily English) -->
+<!-- Checklist Item 4 (Daily English) -->
 <div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
@@ -426,7 +433,7 @@
 </div>
 </div>
 </div>
-<!-- Item 5 (Manual Meal Prep) -->
+<!-- Checklist Item 5 (Manual Meal Prep) -->
 <div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center text-transparent shrink-0">
@@ -442,7 +449,7 @@
 <span>3</span>
 </div>
 </div>
-<!-- Item 6 (NoPMO Discipline) -->
+<!-- Checklist Item 6 (NoPMO Discipline) -->
 <div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center text-transparent shrink-0">
@@ -458,7 +465,7 @@
 <span>3</span>
 </div>
 </div>
-<!-- Item 7 (Daily Reading) -->
+<!-- Checklist Item 7 (Daily Reading) -->
 <div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
@@ -468,7 +475,7 @@
 </div>
 </div>
 </div>
-<!-- Item 8: Google Health & Walking Sync -->
+<!-- Checklist Item 8: Google Health & Walking Sync -->
 <div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
 <div class="flex items-center gap-3">
 <div class="w-8 h-8 rounded-lg bg-teal-950/60 border border-teal-600/40 flex items-center justify-center text-teal-400">
@@ -479,12 +486,12 @@
 <p class="text-[10px] font-mono text-slate-400">Auto/Cloud: Steps, Sleep, Active Mins &amp; HR</p>
 </div>
 </div>
-<button class="px-2.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[11px] font-semibold rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition-transform" id="sync-fit-btn" type="button">
+<button class="px-2.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[11px] font-semibold rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition-transform">
 <i class="fa-solid fa-rotate text-[10px]"></i>
 <span>Sync Fit</span>
 </button>
 </div>
-<!-- Item 9: 5-Min Focused Meditation -->
+<!-- Checklist Item 9: 5-Min Focused Meditation -->
 <div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
@@ -495,7 +502,7 @@
 </div>
 <span class="text-[9px] font-mono text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">Mind</span>
 </div>
-<!-- Item 10: Semester ML Track -->
+<!-- Checklist Item 10: Semester ML Track -->
 <div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
 <div class="flex items-start gap-3">
 <div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
@@ -506,161 +513,88 @@
 </div>
 <span class="text-[9px] font-mono text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded">Priority</span>
 </div>
-</div>
 </section>
 <!-- END: DailyChecklist -->
 </main>
 <!-- END: MainContent -->
-
 <!-- BEGIN: SmartFloatingSidebar -->
+<!-- Smart floating edge dock inspired directly by IMAGE_5 and IMAGE_9 -->
+<!-- Anchored to the right edge with collapse/expand toggle handle '<' -->
 <aside class="fixed right-2 top-24 z-50 flex items-center select-none" data-purpose="smart-sidebar-dock">
+<!-- Floating Panel Body -->
 <div class="sidebar-blur rounded-2xl border border-slate-700/60 shadow-2xl p-2 flex flex-col items-center gap-3 w-12 py-3.5 transition-all transform duration-200">
+<!-- Primary Cursor / Pointer Tool (White circle from Image 9) -->
 <button class="w-8 h-8 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center shadow hover:scale-105 active:scale-95 transition-transform" title="Select Cursor">
 <i class="fa-solid fa-arrow-pointer text-xs"></i>
 </button>
+<!-- Selection Bounding Box Tool -->
 <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Focus Target Region">
 <i class="fa-regular fa-square text-xs"></i>
 </button>
+<!-- Quick Notes / Pencil (from Image 5 & 9) -->
 <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Quick Notes">
 <i class="fa-solid fa-pencil text-xs text-amber-300"></i>
 </button>
+<!-- Hand Pan Canvas -->
 <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Canvas Pan">
 <i class="fa-regular fa-hand text-xs"></i>
 </button>
+<!-- Tactical Snapshot Camera/Media -->
 <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Snapshot Canvas">
 <i class="fa-regular fa-image text-xs"></i>
 </button>
+<!-- Separator Line -->
 <div class="w-6 h-[1px] bg-slate-700/80 my-0.5"></div>
+<!-- Color / Theme Palette (from Image 9) -->
 <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Color Palette">
 <i class="fa-solid fa-palette text-xs text-cyan-400"></i>
 </button>
+<!-- Star / Sanctuary Quick Shield -->
 <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-amber-400 hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Sanctuary Star">
 <i class="fa-regular fa-star text-xs"></i>
 </button>
+<!-- Edge Dock Collapse Toggle Handle (matching Image 5 '<' button) -->
 <button class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/70 text-slate-300 hover:text-white flex items-center justify-center mt-1 active:scale-90 transition-all" title="Toggle Dock">
 <i class="fa-solid fa-chevron-left text-[11px]"></i>
 </button>
 </div>
 </aside>
 <!-- END: SmartFloatingSidebar -->
-
 <!-- BEGIN: BottomNavigation -->
+<!-- STRICT REQUIREMENT: Preserves exactly the existing mobile navigation bar -->
+<!-- Bar items: Dashboard (Active), Canvas, Gym Pro, Mind OS, More -->
 <footer class="fixed bottom-0 left-0 right-0 z-40 bg-[#070b14]/95 backdrop-blur-lg border-t border-slate-800/90 max-w-md mx-auto" data-purpose="mobile-bottom-navigation">
 <nav class="flex items-center justify-around py-2 px-1">
-<a class="flex flex-col items-center text-cyan-400 px-3 py-1 group" href="/">
+<!-- Nav Item 1: Dashboard (Active) -->
+<a class="flex flex-col items-center text-cyan-400 px-3 py-1 group" href="#dashboard">
 <div class="relative">
 <i class="fa-solid fa-gauge-high text-lg"></i>
+<!-- Active Dot -->
 <span class="absolute -top-1 -right-1.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-sm"></span>
 </div>
 <span class="text-[10px] font-semibold tracking-tight mt-1">Dashboard</span>
 </a>
-<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/canvas">
+<!-- Nav Item 2: Canvas -->
+<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="#canvas">
 <i class="fa-solid fa-graduation-cap text-lg group-hover:scale-110 transition-transform"></i>
 <span class="text-[10px] font-medium tracking-tight mt-1">Canvas</span>
 </a>
-<a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-3 py-1 group transition-colors" href="/gym-pro">
+<!-- Nav Item 3: Gym Pro -->
+<a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-3 py-1 group transition-colors" href="#gym">
 <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
 <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Gym Pro</span>
 </a>
-<a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-3 py-1 group transition-colors" href="/mind-os">
+<!-- Nav Item 4: Mind OS -->
+<a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-3 py-1 group transition-colors" href="#mind-os">
 <i class="fa-solid fa-brain text-lg group-hover:scale-110 transition-transform"></i>
 <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Mind OS</span>
 </a>
-<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/system">
+<!-- Nav Item 5: More -->
+<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="#more">
 <i class="fa-solid fa-bars text-lg group-hover:scale-110 transition-transform"></i>
 <span class="text-[10px] font-medium tracking-tight mt-1">More</span>
 </a>
 </nav>
 </footer>
 <!-- END: BottomNavigation -->
-
-<!-- Energy Engine Live Integration Script -->
-<script>
-  (function() {
-    async function syncEnergyTelemetry() {
-      try {
-        const resp = await fetch('/api/energy/state');
-        if (!resp.ok) return;
-        const data = await resp.json();
-
-        // Update Cognitive Energy Card
-        const energyPctVal = document.getElementById('energy-pct-val');
-        const energyModeName = document.getElementById('energy-mode-name');
-        const energyCapTag = document.getElementById('energy-capacity-tag');
-        const deepBlocksTag = document.getElementById('deep-blocks-tag');
-        const energyRingCircle = document.getElementById('energy-ring-circle');
-
-        if (energyPctVal) energyPctVal.textContent = `${data.current_energy}%`;
-        if (energyModeName) energyModeName.textContent = `${data.tier} MODE`;
-        if (energyCapTag) energyCapTag.textContent = `${data.max_task_capacity_minutes} min Max Cap`;
-        if (deepBlocksTag) deepBlocksTag.textContent = `${data.deep_work_blocks_used} / 3`;
-
-        if (energyRingCircle) {
-          const strokeOffset = 251.2 - (251.2 * (data.current_energy / 100.0));
-          energyRingCircle.setAttribute('stroke-dashoffset', strokeOffset.toFixed(1));
-        }
-      } catch(e) {
-        console.log('Energy telemetry sync note:', e);
-      }
-    }
-
-    // Interactive Action Handlers
-    document.getElementById('engageProtocolBtn')?.addEventListener('click', async function() {
-      try {
-        const r = await fetch('/api/energy/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: 'Machine_Learning', duration_minutes: 55, difficulty: 8 })
-        });
-        const d = await r.json();
-        if (r.ok && d.status === 'SUCCESS') {
-          syncEnergyTelemetry();
-          if (window.toast) window.toast(`Engaged Protocol! -${d.energy_cost} E | +${d.xp_minted} XP`, 'ok');
-          else alert(`Engaged Protocol! -${d.energy_cost} E | +${d.xp_minted} XP`);
-        } else if (d.detail) {
-          alert(d.detail);
-        }
-      } catch(e) { console.error(e); }
-    });
-
-    document.getElementById('sync-leetcode-btn')?.addEventListener('click', async function() {
-      const lbl = document.getElementById('leetcode-btn-label');
-      if (lbl) lbl.textContent = 'Syncing...';
-      try {
-        const r = await fetch('/api/energy/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: 'DSA_LeetCode', duration_minutes: 30, difficulty: 7 })
-        });
-        const d = await r.json();
-        if (lbl) lbl.textContent = '+1 SOLVED!';
-        syncEnergyTelemetry();
-        setTimeout(() => { if (lbl) lbl.textContent = 'Sync LeetCode'; }, 1500);
-      } catch(e) {
-        if (lbl) lbl.textContent = 'Sync LeetCode';
-      }
-    });
-
-    document.getElementById('gym-complete-btn')?.addEventListener('click', async function() {
-      const lbl = document.getElementById('gym-btn-label');
-      if (lbl) lbl.textContent = 'Logging...';
-      try {
-        const r = await fetch('/api/energy/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: 'Gym_Pro', duration_minutes: 45, difficulty: 8 })
-        });
-        const d = await r.json();
-        if (lbl) lbl.textContent = '+80 XP LOGGED!';
-        syncEnergyTelemetry();
-        setTimeout(() => { if (lbl) lbl.textContent = 'Gym Complete'; }, 1500);
-      } catch(e) {
-        if (lbl) lbl.textContent = 'Gym Complete';
-      }
-    });
-
-    syncEnergyTelemetry();
-  })();
-</script>
-</body>
-</html>
+</body></html>
