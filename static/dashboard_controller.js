@@ -51,13 +51,18 @@
   }
 
   // ─── 1. Telemetry Hydration & Polling ──────────────────────────────────────
+  // Lock: after a live Google Fit sync, do NOT let background poll overwrite fitness for 5 minutes
+  let _lastLiveFitSyncAt = 0;
+
   async function hydrateTelemetry() {
     try {
-      const [statsRes, energyRes, fitRes] = await Promise.all([
+      const fitLocked = (Date.now() - _lastLiveFitSyncAt) < 5 * 60 * 1000;
+      const fetches = [
         fetch('/stats').catch(() => fetch('/api/status')),
         fetch('/api/energy/state'),
-        fetch('/api/fitness/summary')
-      ]);
+        fitLocked ? Promise.resolve(null) : fetch('/api/fitness/summary')
+      ];
+      const [statsRes, energyRes, fitRes] = await Promise.all(fetches);
 
       if (statsRes && statsRes.ok) {
         currentStats = await statsRes.json();
@@ -387,12 +392,15 @@
         const r = await fetch('/api/health_sync/google_fit', { method: 'POST' });
         const d = await r.json();
         if (r.ok && d.status !== 'ERROR') {
-          const stepsStr = d.steps !== undefined ? `Synced ${d.steps.toLocaleString()} steps (${d.distance_km || 0} km)!` : 'Google Fit Synced successfully!';
-          notify(d.message || stepsStr, 'ok');
+          const steps = d.steps || 0;
+          const km = d.distance_km || 0;
+          notify(`✅ Google Fit Live: ${steps.toLocaleString()} steps | ${km} km`, 'ok');
+          // Lock background poll from overwriting this for 5 minutes
+          _lastLiveFitSyncAt = Date.now();
           renderFitnessUI(d);
         } else {
           const errMsg = d.detail || d.message || d.error || (typeof d === 'string' ? d : 'Google Fit sync failed');
-          notify(`Google Fit Sync Error: ${errMsg}`, 'err');
+          notify(`⚠️ Google Fit Error: ${errMsg}`, 'err');
           console.error('[Google Fit Sync Error]', d);
         }
       } catch (e) {
