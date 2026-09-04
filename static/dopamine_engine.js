@@ -49,7 +49,8 @@
   }
 
   /**
-   * Synthesizes rich 8-bit / sci-fi level-up chime sound effects via Web Audio API.
+   * Synthesizes rich, highly satisfying sound chimes via Web Audio API.
+   * Includes a tactile sub-bass pop + harmonic arpeggiated chime.
    * @param {string} type - 'completion' | 'milestone' | 'levelup' | 'sync' | 'error'
    */
   function playDopamineSound(type = 'completion') {
@@ -59,37 +60,52 @@
 
       const now = ctx.currentTime;
 
+      // Layer 1: Satisfying Tactile Sub-Bass Pop (Thump)
+      const popOsc = ctx.createOscillator();
+      const popGain = ctx.createGain();
+      popOsc.type = 'sine';
+      popOsc.frequency.setValueAtTime(160, now);
+      popOsc.frequency.exponentialRampToValueAtTime(40, now + 0.06);
+
+      popGain.gain.setValueAtTime(0.35, now);
+      popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+      popOsc.connect(popGain);
+      popGain.connect(ctx.destination);
+      popOsc.start(now);
+      popOsc.stop(now + 0.06);
+
       if (type === 'milestone' || type === 'levelup') {
-        // Major Arpeggio Level Up Surge: C5 (523.25Hz) -> E5 (659.25Hz) -> G5 (783.99Hz) -> C6 (1046.50Hz) -> E6 (1318.51Hz)
+        // High Dopamine Major Surge Arpeggio: C5 (523Hz) -> E5 (659Hz) -> G5 (784Hz) -> C6 (1046Hz) -> E6 (1318Hz)
         const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
         notes.forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
 
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, now + i * 0.065);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.055);
 
-          gain.gain.setValueAtTime(0.01, now + i * 0.065);
-          gain.gain.exponentialRampToValueAtTime(0.25, now + i * 0.065 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.35);
+          gain.gain.setValueAtTime(0.01, now + i * 0.055);
+          gain.gain.linearRampToValueAtTime(0.3, now + i * 0.055 + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.055 + 0.35);
 
           osc.connect(gain);
           gain.connect(ctx.destination);
 
-          osc.start(now + i * 0.065);
-          osc.stop(now + i * 0.065 + 0.38);
+          osc.start(now + i * 0.055);
+          osc.stop(now + i * 0.055 + 0.38);
         });
       } else if (type === 'sync' || type === 'leetcode') {
-        // Digital Sci-Fi Chime Sweep: 440Hz -> 880Hz -> 1760Hz
+        // Digital Sci-Fi Chime Sweep: 523Hz -> 1046Hz -> 1568Hz
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-        osc.frequency.exponentialRampToValueAtTime(1760, now + 0.18);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(1567.98, now + 0.16);
 
-        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.setValueAtTime(0.25, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
         osc.connect(gain);
@@ -98,31 +114,25 @@
         osc.start(now);
         osc.stop(now + 0.32);
       } else {
-        // Standard Satisfying Task Completion Chime: D5 (587.33Hz) -> A5 (880.00Hz) -> D6 (1174.66Hz)
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
+        // Standard Super Satisfying Task Completion Chime: E5 (659Hz) -> A5 (880Hz) -> E6 (1318Hz)
+        const notes = [659.25, 880.00, 1318.51];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
 
-        osc1.type = 'sine';
-        osc2.type = 'triangle';
+          osc.type = i === 2 ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.06);
 
-        osc1.frequency.setValueAtTime(587.33, now);
-        osc1.frequency.exponentialRampToValueAtTime(880.00, now + 0.07);
+          gain.gain.setValueAtTime(0.01, now + i * 0.06);
+          gain.gain.linearRampToValueAtTime(0.3, now + i * 0.06 + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.3);
 
-        osc2.frequency.setValueAtTime(1174.66, now + 0.07);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
 
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.22, now + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc1.start(now);
-        osc2.start(now + 0.07);
-        osc1.stop(now + 0.28);
-        osc2.stop(now + 0.28);
+          osc.start(now + i * 0.06);
+          osc.stop(now + i * 0.06 + 0.32);
+        });
       }
     } catch (e) {
       console.warn('[Dopamine Sound Warning]', e);
@@ -143,7 +153,7 @@
   window.triggerHapticShake = triggerHapticShake;
   window.triggerDopamineSurge = triggerDopamineSurge;
 
-  // Global listener to unlock Web Audio context on user gesture
+  // Global listener to unlock Web Audio context and play sound on user gesture
   const unlockAudio = () => {
     getAudioContext();
     document.removeEventListener('click', unlockAudio);

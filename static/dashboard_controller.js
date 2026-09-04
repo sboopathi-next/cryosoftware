@@ -278,6 +278,7 @@
 
     // 5. Cooking / Meal Prep
     $('chk-cooking')?.addEventListener('click', async () => {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
       const nextVal = !(currentStats && currentStats.cooking_completed);
       updateChecklistItem('chk-cooking', nextVal);
       if (currentStats) currentStats.cooking_completed = nextVal;
@@ -302,6 +303,7 @@
 
     // 6. NoPMO Discipline
     $('chk-nopmo')?.addEventListener('click', async () => {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
       const nextVal = !(currentStats && currentStats.nopmo_completed);
       updateChecklistItem('chk-nopmo', nextVal);
       if (currentStats) currentStats.nopmo_completed = nextVal;
@@ -441,6 +443,7 @@
 
     // 9. 5-Min Meditation
     $('chk-meditation')?.addEventListener('click', async () => {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
       notify('Logging 5-Min Meditation...', 'info');
       try {
         const r = await fetch('/api/meditation/log', {
@@ -460,6 +463,7 @@
 
     // 10. Semester ML Track
     $('chk-semester')?.addEventListener('click', async () => {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
       notify('Syncing Semester ML Track...', 'info');
       try {
         const r = await fetch('/api/canvas/sync', { method: 'POST' });
