@@ -478,11 +478,49 @@
   <script>
     let activeTopics = [];
     let currentTopicObj = null;
+    let sessionTimerSec = 600;
+    let timerInterval = null;
+
+    function startMasterTimer() {
+      if (timerInterval) return;
+      timerInterval = setInterval(() => {
+        if (sessionTimerSec > 0) {
+          sessionTimerSec--;
+          const m = Math.floor(sessionTimerSec / 60).toString().padStart(2, '0');
+          const s = (sessionTimerSec % 60).toString().padStart(2, '0');
+          const timerEl = document.getElementById('sessionTimerDisplay');
+          if (timerEl) timerEl.textContent = `${m}:${s}`;
+
+          const phaseTag = document.getElementById('currentPhaseTag');
+          const p1Card = document.getElementById('p1Card');
+          const p2Card = document.getElementById('p2Card');
+          const p3Card = document.getElementById('p3Card');
+
+          if (sessionTimerSec > 480) {
+            if (phaseTag) phaseTag.textContent = 'PHASE 1 OF 3';
+            if (p1Card) p1Card.className = 'bg-[#1c1f2a] p-2 rounded-xl border border-cyan-500/50 flex flex-col justify-between';
+            if (p2Card) p2Card.className = 'bg-[#171b26] p-2 rounded-xl border border-slate-800 opacity-70 flex flex-col justify-between';
+            if (p3Card) p3Card.className = 'bg-[#171b26] p-2 rounded-xl border border-slate-800 opacity-70 flex flex-col justify-between';
+          } else if (sessionTimerSec > 180) {
+            if (phaseTag) phaseTag.textContent = 'PHASE 2 OF 3';
+            if (p1Card) p1Card.className = 'bg-[#171b26] p-2 rounded-xl border border-slate-800 opacity-70 flex flex-col justify-between';
+            if (p2Card) p2Card.className = 'bg-[#1c1f2a] p-2 rounded-xl border border-purple-500/50 flex flex-col justify-between shadow-md';
+            if (p3Card) p3Card.className = 'bg-[#171b26] p-2 rounded-xl border border-slate-800 opacity-70 flex flex-col justify-between';
+          } else {
+            if (phaseTag) phaseTag.textContent = 'PHASE 3 OF 3';
+            if (p1Card) p1Card.className = 'bg-[#171b26] p-2 rounded-xl border border-slate-800 opacity-70 flex flex-col justify-between';
+            if (p2Card) p2Card.className = 'bg-[#171b26] p-2 rounded-xl border border-slate-800 opacity-70 flex flex-col justify-between';
+            if (p3Card) p3Card.className = 'bg-[#1c1f2a] p-2 rounded-xl border border-emerald-500/50 flex flex-col justify-between shadow-md';
+          }
+        }
+      }, 1000);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       loadTopics();
       loadPhraseVault();
       checkEnglishStatus();
+      startMasterTimer();
 
       // Real-time transcript listener for live telemetry updates
       const tInput = document.getElementById('transcriptInput');
@@ -633,7 +671,7 @@
       let fCnt = 0;
       let matchedFillers = {};
       words.forEach(w => {
-        const clean = w.lower().replace(/[^\w]/g, '');
+        const clean = w.toLowerCase().replace(/[^\w]/g, '');
         if (fillers.includes(clean)) {
           fCnt++;
           matchedFillers[clean] = (matchedFillers[clean] || 0) + 1;
