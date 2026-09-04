@@ -234,8 +234,14 @@
 
   // ─── 5. Accountability Tasks Handlers ─────────────────────────────────────
   function setupAccountabilityHandlers() {
+    // Helper to trigger dopamine feedback (sound + haptic shake) on task interaction
+    const triggerTaskFeedback = (type = 'completion') => {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge(type);
+    };
+
     // 1. Study Target
     $('chk-study')?.addEventListener('click', async () => {
+      triggerTaskFeedback('completion');
       try {
         const r = await fetch('/api/syllabus');
         if (r.ok) {
@@ -251,6 +257,7 @@
 
     // 2. LeetCode Sync
     $('chk-leetcode')?.addEventListener('click', async () => {
+      triggerTaskFeedback('sync');
       notify('Syncing LeetCode solved problems...', 'info');
       try {
         const r = await fetch('/api/leetcode/sync', { method: 'POST' });
@@ -268,17 +275,19 @@
 
     // 3. Gym Target
     $('chk-gym')?.addEventListener('click', () => {
+      triggerTaskFeedback('completion');
       openModal('gym-modal');
     });
 
     // 4. English Booster (Opens /english page; updates automatically on session completion)
     $('chk-english')?.addEventListener('click', () => {
+      triggerTaskFeedback('completion');
       window.location.href = '/english';
     });
 
     // 5. Cooking / Meal Prep
     $('chk-cooking')?.addEventListener('click', async () => {
-      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+      triggerTaskFeedback('completion');
       const nextVal = !(currentStats && currentStats.cooking_completed);
       updateChecklistItem('chk-cooking', nextVal);
       if (currentStats) currentStats.cooking_completed = nextVal;
@@ -342,6 +351,7 @@
 
     // 7. Reading Book Modal Trigger
     $('chk-reading')?.addEventListener('click', () => {
+      triggerTaskFeedback('completion');
       openReadingModal();
     });
 
@@ -364,6 +374,7 @@
     };
 
     $('chk-fit')?.addEventListener('click', (e) => {
+      triggerTaskFeedback('completion');
       if (e.target.closest('#sync-fit-btn')) return;
       openFitModal();
     });
