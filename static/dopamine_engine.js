@@ -46,8 +46,8 @@
   }
 
   /**
-   * Synthesizes rich, highly satisfying sound chimes via Web Audio API.
-   * Handles audio context resume asynchronously to bypass browser autoplay blocks.
+   * Synthesizes crisp, satisfying sound effects via Web Audio API.
+   * Produces a realistic "Chess Piece Snap / Wood Pop" on task completion.
    * @param {string} type - 'completion' | 'milestone' | 'levelup' | 'sync' | 'error'
    */
   function playDopamineSound(type = 'completion') {
@@ -57,21 +57,6 @@
 
       const playOscillators = () => {
         const now = ctx.currentTime;
-
-        // Layer 1: Satisfying Tactile Sub-Bass Pop (Thump)
-        const popOsc = ctx.createOscillator();
-        const popGain = ctx.createGain();
-        popOsc.type = 'sine';
-        popOsc.frequency.setValueAtTime(160, now);
-        popOsc.frequency.exponentialRampToValueAtTime(40, now + 0.06);
-
-        popGain.gain.setValueAtTime(0.4, now);
-        popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
-        popOsc.connect(popGain);
-        popGain.connect(ctx.destination);
-        popOsc.start(now);
-        popOsc.stop(now + 0.06);
 
         if (type === 'milestone' || type === 'levelup') {
           // High Dopamine Major Surge Arpeggio: C5 (523Hz) -> E5 (659Hz) -> G5 (784Hz) -> C6 (1046Hz) -> E6 (1318Hz)
@@ -112,25 +97,36 @@
           osc.start(now);
           osc.stop(now + 0.32);
         } else {
-          // Standard Super Satisfying Task Completion Chime: E5 (659Hz) -> A5 (880Hz) -> E6 (1318Hz)
-          const notes = [659.25, 880.00, 1318.51];
-          notes.forEach((freq, i) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+          // ─── Realistic Chess Piece Snap / Tactile Wood Pop ─────────────────
+          // Layer 1: Resonant Low Wood Thud (360Hz -> 80Hz in 28ms)
+          const woodOsc = ctx.createOscillator();
+          const woodGain = ctx.createGain();
+          woodOsc.type = 'sine';
+          woodOsc.frequency.setValueAtTime(360, now);
+          woodOsc.frequency.exponentialRampToValueAtTime(80, now + 0.028);
 
-            osc.type = i === 2 ? 'triangle' : 'sine';
-            osc.frequency.setValueAtTime(freq, now + i * 0.06);
+          woodGain.gain.setValueAtTime(0.5, now);
+          woodGain.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
 
-            gain.gain.setValueAtTime(0.01, now + i * 0.06);
-            gain.gain.linearRampToValueAtTime(0.35, now + i * 0.06 + 0.015);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.3);
+          woodOsc.connect(woodGain);
+          woodGain.connect(ctx.destination);
+          woodOsc.start(now);
+          woodOsc.stop(now + 0.028);
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
+          // Layer 2: Crisp Mechanical Snap / Click (2400Hz -> 1100Hz in 12ms)
+          const snapOsc = ctx.createOscillator();
+          const snapGain = ctx.createGain();
+          snapOsc.type = 'triangle';
+          snapOsc.frequency.setValueAtTime(2400, now);
+          snapOsc.frequency.exponentialRampToValueAtTime(1100, now + 0.012);
 
-            osc.start(now + i * 0.06);
-            osc.stop(now + i * 0.06 + 0.32);
-          });
+          snapGain.gain.setValueAtTime(0.35, now);
+          snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+
+          snapOsc.connect(snapGain);
+          snapGain.connect(ctx.destination);
+          snapOsc.start(now);
+          snapOsc.stop(now + 0.012);
         }
       };
 
@@ -163,28 +159,7 @@
   window.triggerHapticShake = triggerHapticShake;
   window.triggerDopamineSurge = triggerDopamineSurge;
 
-  // Auto-attach eager pointerdown/click listeners to pre-unlock AudioContext & trigger haptics on task cards
-  document.addEventListener('DOMContentLoaded', () => {
-    const attachEagerSound = () => {
-      const taskCards = document.querySelectorAll('.chk-item, [id^="chk-"], .routine-card, [data-haptic]');
-      taskCards.forEach(card => {
-        if (card.dataset.hapticBound) return;
-        card.dataset.hapticBound = 'true';
-
-        const trigger = () => {
-          unlockAudio();
-          triggerDopamineSurge('completion');
-        };
-
-        card.addEventListener('pointerdown', trigger, { passive: true });
-        card.addEventListener('click', trigger, { passive: true });
-      });
-    };
-    attachEagerSound();
-    setTimeout(attachEagerSound, 1000);
-    setTimeout(attachEagerSound, 3000);
-  });
-
+  // Global AudioContext unlocker on user interaction
   const unlockAudio = () => {
     const ctx = getAudioContext();
     if (ctx && ctx.state === 'suspended') {

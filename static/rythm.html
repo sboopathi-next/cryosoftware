@@ -441,67 +441,100 @@
       if (container && data.milestones) {
         container.innerHTML = data.milestones.map(m => {
           const isDone = m.is_triggered;
+          const isMissed = !isDone && (m.current_delay_hours >= 5.0);
           const icon = ICON_MAP[m.id] || 'alarm';
           const attrLabel = ATTR_LABEL_MAP[m.attribute_boost] || `+${m.boost_value}`;
 
           if (isDone) {
             const tr = m.triggered_data || {};
             return `
-              <div class="flex flex-col w-full bg-[#111827]/90 rounded-xl p-3.5 relative overflow-hidden shadow-md border border-emerald-500/40">
+              <div id="card-${m.id}" class="flex flex-col w-full bg-[#052e16] rounded-xl p-3.5 relative overflow-hidden shadow-lg border-2 border-emerald-500 transition-all">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
-                      <span class="material-symbols-outlined text-[20px] font-bold">check_circle</span>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/30 border border-emerald-400 flex items-center justify-center text-emerald-300 shadow-sm shrink-0">
+                      <span class="material-symbols-outlined text-[22px] font-bold">check_circle</span>
                     </div>
                     <div>
                       <div class="flex items-center gap-2">
-                        <span class="font-headline-sm text-[14px] text-emerald-200 font-bold">${m.scheduled_time} • ${m.name}</span>
-                        <span class="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 font-label-code text-[10px] font-bold border border-emerald-600/30">${attrLabel}</span>
+                        <span class="font-headline-sm text-[15px] text-emerald-100 font-bold">${m.scheduled_time} • ${m.name}</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-label-code text-[10px] font-bold border border-emerald-500/50">${attrLabel}</span>
                       </div>
-                      <div class="font-label-code text-[10px] text-emerald-400/80 flex items-center gap-1.5 mt-0.5">
-                        <span class="material-symbols-outlined text-[13px] text-emerald-400">verified</span>
-                        <span>Logged with ${tr.delay_hours || 0}h delay • <strong>Completed & Locked for Today</strong></span>
+                      <div class="font-label-code text-[10px] text-emerald-300/90 flex items-center gap-1.5 mt-0.5 font-semibold">
+                        <span class="material-symbols-outlined text-[14px] text-emerald-400">verified</span>
+                        <span>Logged with ${tr.delay_hours || 0}h delay • <strong class="text-emerald-200 uppercase tracking-wider">✓ Completed & Locked for Today (Idempotent)</strong></span>
                       </div>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <div class="text-right">
-                      <div class="font-label-hud-stat text-emerald-400 font-bold text-sm">+${tr.xp_awarded || 486} XP</div>
-                      <div class="font-label-code text-[10px] text-emerald-400/70 font-bold">MINTED</div>
+                      <div class="font-label-hud-stat text-emerald-300 font-black text-sm">+${tr.xp_awarded || 486} XP</div>
+                      <div class="font-label-code text-[9px] text-emerald-400 font-bold uppercase">MINTED</div>
                     </div>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-sm">
-                      <span class="material-symbols-outlined text-[20px] font-bold">done_all</span>
+                    <div class="px-2.5 py-1 rounded-lg bg-emerald-500/30 border border-emerald-400 text-emerald-200 font-label-caps text-[10px] font-bold flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">lock</span>
+                      <span>DONE</span>
                     </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else if (isMissed) {
+            return `
+              <div id="card-${m.id}" class="flex flex-col w-full bg-[#2d1215] rounded-xl p-3.5 relative overflow-hidden shadow-md border-2 border-rose-600/80 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/50 flex items-center justify-center text-rose-400 shadow-sm shrink-0">
+                      <span class="material-symbols-outlined text-[20px] font-bold">warning</span>
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-headline-sm text-[14px] text-rose-100 font-bold">${m.scheduled_time} • ${m.name}</span>
+                        <span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 font-label-code text-[10px] border border-rose-600/40">${attrLabel}</span>
+                      </div>
+                      <div class="font-label-code text-[10px] text-rose-300 flex items-center gap-1.5 mt-0.5">
+                        <span class="material-symbols-outlined text-[13px] text-rose-400">schedule</span>
+                        <span>Delayed ${m.current_delay_hours}h • <strong class="text-rose-200">⚠ Missed Scheduled Window (2 XP Floor)</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="text-right">
+                      <div class="font-label-hud-stat text-rose-400 font-bold text-xs">+2 XP</div>
+                      <div class="font-label-code text-[9px] text-rose-300 font-bold">DECAYED</div>
+                    </div>
+                    <button class="px-3 py-1.5 rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-label-caps text-[10px] font-bold tracking-wider active:scale-95 transition-all shadow-sm" onclick="triggerMilestone('${m.id}')">
+                      EXECUTE (2 XP)
+                    </button>
                   </div>
                 </div>
               </div>
             `;
           } else {
             return `
-              <div class="flex flex-col w-full bg-surface-container-high rounded-xl p-3 shadow-md hover:border-primary/40 transition-colors">
+              <div id="card-${m.id}" class="flex flex-col w-full bg-[#0c182b] rounded-xl p-3.5 relative overflow-hidden shadow-md border border-cyan-500/40 hover:border-cyan-400 transition-all">
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-primary-container/20 border border-primary/30 flex items-center justify-center text-primary">
-                      <span class="material-symbols-outlined text-[18px]">${icon}</span>
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-sm shrink-0">
+                      <span class="material-symbols-outlined text-[20px]">${icon}</span>
                     </div>
                     <div>
-                      <div class="flex items-center gap-1.5">
-                        <span class="font-headline-sm text-[14px] text-on-surface font-semibold">${m.scheduled_time} • ${m.name}</span>
-                        <span class="px-1.5 py-0.2 rounded bg-surface-container text-primary font-label-code text-[10px]">${attrLabel}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="font-headline-sm text-[14px] text-cyan-100 font-bold">${m.scheduled_time} • ${m.name}</span>
+                        <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 font-label-code text-[10px] border border-cyan-600/40">${attrLabel}</span>
                       </div>
-                      <div class="font-label-code text-[10px] text-primary flex items-center gap-1 mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
-                        <span>Sched: ${m.scheduled_time} • Current Delay: ${m.current_delay_hours}h</span>
+                      <div class="font-label-code text-[10px] text-cyan-300/90 flex items-center gap-1.5 mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                        <span>Target: ${m.scheduled_time} • Current Delay: ${m.current_delay_hours}h</span>
                       </div>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <div class="text-right">
-                      <div class="font-label-hud-stat text-primary font-bold">Est. +${m.potential_xp}</div>
-                      <div class="font-label-code text-[10px] text-tertiary">YIELD</div>
+                      <div class="font-label-hud-stat text-cyan-300 font-bold text-sm">+${m.potential_xp} XP</div>
+                      <div class="font-label-code text-[9px] text-cyan-400 font-bold uppercase">YIELD</div>
                     </div>
-                    <button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-caps text-[10px] font-bold tracking-wider hover:brightness-110 active:scale-95 transition-all" onclick="triggerMilestone('${m.id}')">
-                      EXECUTE
+                    <button class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-label-caps text-[10px] font-bold tracking-wider active:scale-95 transition-all shadow-md" onclick="triggerMilestone('${m.id}')">
+                      EXECUTE NOW
                     </button>
                   </div>
                 </div>
@@ -527,19 +560,27 @@
 
     // Trigger Milestone Call
     window.triggerMilestone = async function(id) {
+      // Optimistic Card Transition to Green
+      const cardEl = document.getElementById(`card-${id}`);
+      if (cardEl) {
+        cardEl.className = "flex flex-col w-full bg-[#052e16] rounded-xl p-3.5 relative overflow-hidden shadow-lg border-2 border-emerald-500 transition-all opacity-90";
+      }
+
       try {
         const r = await fetch(`/api/routine/trigger/${id}`, { method: 'POST' });
         const d = await r.json();
         if (r.ok && d.status === 'SUCCESS') {
-          if (window.triggerDopamineSurge) window.triggerDopamineSurge('milestone');
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
           showToast(`PUNCTUALITY SYNCHRONIZED: +${d.xp_awarded} XP MINTED! (${d.stat_boost})`, d.delay_hours);
           fetchRoutineStatus();
         } else {
           if (window.triggerDopamineSurge) window.triggerDopamineSurge('error');
           showToast(d.message || 'Milestone trigger failed', 0, true);
+          fetchRoutineStatus();
         }
       } catch (e) {
         showToast('Error triggering milestone', 0, true);
+        fetchRoutineStatus();
       }
     };
 

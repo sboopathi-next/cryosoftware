@@ -778,6 +778,59 @@
   </div>
 </div>
 
+<!-- 9. Meditation Duration Logger Modal -->
+<div id="meditation-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="bg-[#0e1320] border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-spa text-purple-400 text-base"></i>
+        <h3 class="text-sm font-bold text-white tracking-wide">Mindful Meditation Logger</h3>
+      </div>
+      <button type="button" onclick="closeModal('meditation-modal')" class="text-slate-400 hover:text-white text-sm p-1">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <p class="text-xs text-slate-300">How many minutes of Mindful Meditation did you complete today?</p>
+
+    <!-- Quick Selection Pills -->
+    <div class="grid grid-cols-4 gap-2 text-xs font-mono">
+      <button type="button" onclick="selectMeditationMins(5)" class="med-pill py-2 bg-purple-950/80 border border-purple-500/40 text-purple-300 font-bold rounded-xl active:scale-95 transition-all text-center">
+        5 Mins
+        <span class="block text-[9px] text-slate-400 font-normal">+20 XP</span>
+      </button>
+      <button type="button" onclick="selectMeditationMins(10)" class="med-pill py-2 bg-slate-900 border border-slate-800 hover:bg-purple-950 text-slate-300 font-bold rounded-xl active:scale-95 transition-all text-center">
+        10 Mins
+        <span class="block text-[9px] text-slate-400 font-normal">+40 XP</span>
+      </button>
+      <button type="button" onclick="selectMeditationMins(15)" class="med-pill py-2 bg-slate-900 border border-slate-800 hover:bg-purple-950 text-slate-300 font-bold rounded-xl active:scale-95 transition-all text-center">
+        15 Mins
+        <span class="block text-[9px] text-slate-400 font-normal">+60 XP</span>
+      </button>
+      <button type="button" onclick="selectMeditationMins(20)" class="med-pill py-2 bg-slate-900 border border-slate-800 hover:bg-purple-950 text-slate-300 font-bold rounded-xl active:scale-95 transition-all text-center">
+        20 Mins
+        <span class="block text-[9px] text-slate-400 font-normal">+80 XP</span>
+      </button>
+    </div>
+
+    <!-- Meditation Form -->
+    <form id="meditation-form" class="space-y-3 pt-1">
+      <div>
+        <label class="text-[10px] text-slate-400 block mb-1">Custom Duration (Minutes)</label>
+        <input type="number" id="meditation-duration-input" value="5" min="1" max="120" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-purple-500 outline-none">
+      </div>
+      <div class="flex items-center justify-between text-[11px] font-mono text-purple-400 bg-purple-950/40 p-2.5 rounded-xl border border-purple-800/40">
+        <span>Target Gains:</span>
+        <span id="meditation-gains-tag">+20 XP • +2 STC • +1 WIL • +8 Energy</span>
+      </div>
+      <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-950/50 flex items-center justify-center gap-2 active:scale-98 transition-all">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>Log Meditation Session Now</span>
+      </button>
+    </form>
+  </div>
+</div>
+
 <!-- Mobile Bottom Navigation Footer (Hidden on Laptop / Desktop screens >= 768px) -->
 <footer class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070b14]/95 backdrop-blur-lg border-t border-slate-800/90 max-w-md mx-auto" data-purpose="mobile-bottom-navigation">
   <nav class="flex items-center justify-around py-2 px-1">

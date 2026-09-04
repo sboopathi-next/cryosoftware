@@ -452,25 +452,17 @@
       }
     });
 
-    // 9. 5-Min Meditation
-    $('chk-meditation')?.addEventListener('click', async () => {
-      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
-      notify('Logging 5-Min Meditation...', 'info');
-      try {
-        const r = await fetch('/api/meditation/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ duration_minutes: 5 })
-        });
-        const d = await r.json();
-        if (r.ok) {
-          notify(d.message || 'Meditation logged! +20 XP, +2 STC, +1 WIL, +8 Energy', 'ok');
-          hydrateTelemetry();
-        }
-      } catch (e) {
-        notify('Error logging meditation', 'err');
-      }
+    // 9. 5-Min Meditation (Opens Mindful Meditation Duration Modal)
+    $('chk-meditation')?.addEventListener('click', () => {
+      openModal('meditation-modal');
     });
+
+    window.selectMeditationMins = function(mins) {
+      const input = $('meditation-duration-input');
+      const tag = $('meditation-gains-tag');
+      if (input) input.value = mins;
+      if (tag) tag.textContent = `+${mins * 4} XP • +2 STC • +1 WIL • +8 Energy`;
+    };
 
     // 10. Semester ML Track
     $('chk-semester')?.addEventListener('click', async () => {
@@ -796,6 +788,7 @@
         });
         const d = await r.json();
         if (r.ok) {
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
           notify(d.message || 'Gym Workout Logged! +80 XP', 'ok');
           closeModal('gym-modal');
           hydrateTelemetry();
@@ -804,6 +797,32 @@
         }
       } catch (err) {
         notify('Error submitting workout', 'err');
+      }
+    });
+
+    // Meditation Logger Form
+    $('meditation-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const mins = parseInt($('meditation-duration-input')?.value || '5', 10);
+
+      notify(`Logging ${mins}-min Mindful Meditation...`, 'info');
+      try {
+        const r = await fetch('/api/meditation/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration_minutes: mins })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+          notify(d.message || `Meditation logged! +${mins * 4} XP, +2 STC, +1 WIL`, 'ok');
+          closeModal('meditation-modal');
+          hydrateTelemetry();
+        } else {
+          notify(d.detail || 'Error logging meditation', 'err');
+        }
+      } catch (err) {
+        notify('Error submitting meditation session', 'err');
       }
     });
   }
