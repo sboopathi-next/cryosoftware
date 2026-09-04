@@ -253,15 +253,18 @@ def sync_daily_fitness() -> Dict[str, Any]:
 
     # 4. Award XP & Process Health Sync
     try:
-        from engine.database import process_health_sync
+        try:
+            from antigravity_core.engine.database import process_health_sync
+        except ImportError:
+            from engine.database import process_health_sync
+
         result = process_health_sync(
             steps=steps,
             distance_km=distance_km,
             active_minutes=active_minutes,
             sleep_hours=7.5, # default good sleep baseline if sensor unread
             resting_hr=65,
-            log_date=now.strftime("%Y-%m-%d"),
-            force_override=True
+            log_date=now.strftime("%Y-%m-%d")
         )
         print(f"[GoogleFit] Synced {steps:,} steps ({distance_km} km), {active_minutes}m active | Awarded +{result.get('xp_awarded')} XP, +{result.get('wil_gained')} WIL!")
         return result

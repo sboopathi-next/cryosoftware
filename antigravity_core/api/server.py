@@ -3297,13 +3297,12 @@ def api_fitness_summary():
     """Retrieve today's fitness summary or most recent health log."""
     try:
         try:
-            from antigravity_core.engine.database import get_health_sync_history
+            from antigravity_core.engine.database import get_health_sync_today
         except ImportError:
-            from engine.database import get_health_sync_history
+            from engine.database import get_health_sync_today
 
-        hist = get_health_sync_history(limit=1)
-        if hist and len(hist) > 0:
-            latest = hist[0]
+        latest = get_health_sync_today()
+        if latest:
             return {
                 "steps": latest.get("steps", 0),
                 "distance_km": latest.get("distance_km", 0.0),
@@ -3349,8 +3348,7 @@ def api_health_sync_log(payload: HealthPayload):
             active_minutes=payload.active_minutes,
             sleep_hours=payload.sleep_hours,
             resting_hr=payload.resting_hr,
-            log_date=payload.log_date,
-            force_override=True
+            log_date=payload.log_date
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -4138,24 +4136,7 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/fitness/summary")
-def api_fitness_summary():
-    try:
-        from engine.database import get_health_sync_history
-        history = get_health_sync_history(limit=1)
-        if history:
-            item = history[0]
-            return {
-                "steps": item.get("steps", 0),
-                "distance_km": item.get("distance_km", 0.0),
-                "active_minutes": item.get("active_minutes", 0),
-                "sleep_hours": item.get("sleep_hours", 0.0),
-                "resting_hr": item.get("resting_hr", 72),
-                "log_date": item.get("log_date", datetime.date.today().isoformat())
-            }
-        return {"steps": 0, "distance_km": 0.0, "active_minutes": 0, "sleep_hours": 7.5, "resting_hr": 72}
-    except Exception:
-        return {"steps": 0, "distance_km": 0.0, "active_minutes": 0, "sleep_hours": 7.5, "resting_hr": 72}
+
 
 @app.get("/api/canvas/today")
 def api_canvas_today():

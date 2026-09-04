@@ -390,7 +390,6 @@
           const stepsStr = d.steps !== undefined ? `Synced ${d.steps.toLocaleString()} steps (${d.distance_km || 0} km)!` : 'Google Fit Synced successfully!';
           notify(d.message || stepsStr, 'ok');
           renderFitnessUI(d);
-          hydrateTelemetry();
         } else {
           const errMsg = d.detail || d.message || d.error || (typeof d === 'string' ? d : 'Google Fit sync failed');
           notify(`Google Fit Sync Error: ${errMsg}`, 'err');

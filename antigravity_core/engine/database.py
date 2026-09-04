@@ -1891,7 +1891,7 @@ def get_meditation_logs(limit: int = 50) -> list:
     return [dict(r) for r in rows]
 
 
-def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes: int = 0, sleep_hours: float = 0.0, resting_hr: Optional[int] = None, log_date: Optional[str] = None, force_override: bool = False) -> dict:
+def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes: int = 0, sleep_hours: float = 0.0, resting_hr: Optional[int] = None, log_date: Optional[str] = None) -> dict:
     """
     Processes health metrics from Google Health Connect / MacroDroid / Termux / Manual Logger.
     Calculates:
@@ -1957,11 +1957,11 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
             cursor.execute("SELECT id, steps, distance_km, active_minutes, sleep_hours FROM health_sync_logs WHERE log_date = ?", (log_date,))
             existing = cursor.fetchone()
             if existing:
-                if not force_override:
-                    steps = max(steps, existing[1] or 0)
-                    distance_km = max(distance_km, existing[2] or 0.0)
-                    active_minutes = max(active_minutes, existing[3] or 0)
-                    sleep_hours = max(sleep_hours, existing[4] or 0.0)
+                # Update with incoming telemetry if non-zero; preserve existing values if incoming metric is 0
+                steps          = steps if steps > 0 else (existing[1] or 0)
+                distance_km    = distance_km if distance_km > 0.0 else (existing[2] or 0.0)
+                active_minutes = active_minutes if active_minutes > 0 else (existing[3] or 0)
+                sleep_hours    = sleep_hours if sleep_hours > 0.0 else (existing[4] or 0.0)
 
                 cursor.execute("""
                     UPDATE health_sync_logs
@@ -1994,6 +1994,44 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
         "hrt_gained": hrt_gained,
         "energy_restored": energy_restored
     }
+
+def get_health_sync_today() -> dict:
+    from datetime import date
+    today_str = date.today().isoformat()
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_health_logs
+        logs = neon_get_health_logs(limit=10)
+        for l in logs:
+            if l.get("log_date") == today_str:
+                return l
+        return logs[0] if logs else {}
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS health_sync_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            log_date TEXT NOT NULL,
+            steps INTEGER DEFAULT 0,
+            distance_km REAL DEFAULT 0.0,
+            active_minutes INTEGER DEFAULT 0,
+            sleep_hours REAL DEFAULT 0.0,
+            resting_hr INTEGER DEFAULT 0,
+            xp_awarded INTEGER DEFAULT 0,
+            wil_gained INTEGER DEFAULT 0,
+            str_gained INTEGER DEFAULT 0,
+            hrt_gained INTEGER DEFAULT 0,
+            energy_restored REAL DEFAULT 0.0,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("SELECT * FROM health_sync_logs WHERE log_date = ? ORDER BY id DESC LIMIT 1", (today_str,))
+    row = cursor.fetchone()
+    if not row:
+        cursor.execute("SELECT * FROM health_sync_logs ORDER BY id DESC LIMIT 1")
+        row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else {}
 
 def get_health_sync_history(limit: int = 50) -> list:
     if IS_SERVERLESS:

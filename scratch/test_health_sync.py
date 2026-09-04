@@ -13,11 +13,11 @@ print("--- Testing Health Sync Upsert ---")
 today_str = datetime.date.today().isoformat()
 
 # Initial sync
-res1 = process_health_sync(steps=5000, distance_km=3.5, active_minutes=30, sleep_hours=7.0, resting_hr=68, log_date=today_str, force_override=True)
+res1 = process_health_sync(steps=5000, distance_km=3.5, active_minutes=30, sleep_hours=7.0, resting_hr=68, log_date=today_str)
 print("Sync 1 Result:", res1)
 
 # Second sync for same today_str (should UPSERT / update today's record, not create duplicate row)
-res2 = process_health_sync(steps=8420, distance_km=6.3, active_minutes=45, sleep_hours=7.5, resting_hr=66, log_date=today_str, force_override=True)
+res2 = process_health_sync(steps=8420, distance_km=6.3, active_minutes=45, sleep_hours=7.5, resting_hr=66, log_date=today_str)
 print("Sync 2 Result (Upsert):", res2)
 
 # Check history
