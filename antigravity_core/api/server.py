@@ -1847,25 +1847,31 @@ def log_reading_session(payload: LogReadingPayload):
             conn.close()
         
         # Mark as completed in state, reward XP & INT
-        state = get_state()
+        state = get_state() or {}
         prev_completed = bool(state.get("reading_completed", 0))
         
-        xp_earned = 0
-        int_earned = 0
+        book_title = payload.book_title.strip() or "General Book"
+        state["reading_book"] = book_title
+        state["reading_completed"] = 1
+        
+        xp_earned = max(10, pages_read * 2)
+        int_earned = 1
         if not prev_completed:
-            state["reading_completed"] = 1
-            state["int"] = state.get("int", 10) + 1
-            save_state(state)
-            add_xp(10)
-            xp_earned = 10
-            int_earned = 1
+            state["int"] = state.get("int", 10) + int_earned
+            try:
+                log_task_completion("reading")
+            except Exception:
+                pass
+        
+        save_state(state)
+        add_xp(xp_earned)
             
         log_activity_file(
-            doing=f"Logged Reading: {payload.book_title}",
-            accomplished=f"Read pages {payload.page_from} to {payload.page_to} ({pages_read} pages). Earned {xp_earned} XP, {int_earned} INT."
+            doing=f"Logged Reading: {book_title}",
+            accomplished=f"Read pages {payload.page_from} to {payload.page_to} ({pages_read} pages). Earned {xp_earned} XP, +1 INT."
         )
         
-        return {"status": "success", "pages_read": pages_read, "state": get_stats()}
+        return {"status": "success", "message": f"Logged {pages_read} pages of '{book_title}'! +{xp_earned} XP, +1 INT", "pages_read": pages_read, "state": get_stats()}
     except HTTPException as he:
         raise he
     except Exception as e:
@@ -3922,48 +3928,7 @@ class TaskChecklistTogglePayload(BaseModel):
     task_key: str
     value: bool = True
 
-@app.post("/api/reading/log")
-def api_log_reading(payload: LogReadingPayload):
-    try:
-        title = payload.book_title.strip() or "General Reading"
-        pages = max(1, payload.page_to - payload.page_from + 1)
-        xp = pages * 2
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        now_iso = datetime.datetime.now().isoformat()
-        today_iso = datetime.date.today().isoformat()
-        cursor.execute(
-            "INSERT INTO reading_logs (book_title, page_from, page_to, pages_read, timestamp, date) VALUES (?, ?, ?, ?, ?, ?)",
-            (title, payload.page_from, payload.page_to, pages, now_iso, today_iso)
-        )
-        conn.commit()
-        conn.close()
-        
-        state = get_state() or {}
-        state["int"] = state.get("int", 10) + 1
-        state["reading_completed"] = 1
-        state["reading_book"] = title
-        save_state(state)
-        add_xp(xp)
-        
-        log_activity_file("Daily Reading Logged", f"Read {pages} pages of '{title}' (p. {payload.page_from}-{payload.page_to}). Awarded +{xp} XP, +1 INT.")
-        return {"status": "SUCCESS", "message": f"Logged {pages} pages of '{title}'! +{xp} XP, +1 INT", "pages": pages, "xp": xp}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/reading/logs")
-def api_get_reading_logs(limit: int = 50):
-    try:
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM reading_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
-        rows = [dict(r) for r in cursor.fetchall()]
-        conn.close()
-        return rows
-    except Exception:
-        return []
 
 @app.post("/api/meditation/log")
 def api_log_meditation(payload: MeditationPayload):
@@ -3993,22 +3958,32 @@ def api_log_meditation(payload: MeditationPayload):
 def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
     try:
         key = payload.task_key.strip()
+        if not key.endswith("_completed"):
+            key = f"{key}_completed"
         val = 1 if payload.value else 0
         state = get_state() or {}
+        prev_val = bool(state.get(key, 0))
         state[key] = val
         
         xp_awarded = 0
         stat_msg = ""
-        if payload.value:
-            if key == "cooking_completed":
+        item_short = key.replace("_completed", "")
+        
+        if payload.value and not prev_val:
+            try:
+                log_task_completion(item_short)
+            except Exception as te:
+                print(f"[Task Streak Log Note] {te}")
+                
+            if item_short == "cooking":
                 xp_awarded = 10
                 log_activity_file("Meal Prep", "Completed home cooking / meal prep (+10 XP).")
-            elif key == "nopmo_completed":
+            elif item_short == "nopmo":
                 xp_awarded = 15
                 state["wil"] = state.get("wil", 10) + 1
                 stat_msg = "+1 WIL"
                 log_activity_file("NoPMO Discipline", "Maintained NoPMO discipline (+15 XP, +1 WIL).")
-            elif key == "english_completed":
+            elif item_short == "english":
                 xp_awarded = 20
                 state["int"] = state.get("int", 10) + 1
                 stat_msg = "+1 INT"
@@ -4016,6 +3991,11 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
             
             if xp_awarded > 0:
                 add_xp(xp_awarded)
+        elif not payload.value and prev_val:
+            if item_short == "nopmo":
+                state["wil"] = max(10, state.get("wil", 10) - 1)
+            elif item_short == "english":
+                state["int"] = max(10, state.get("int", 10) - 1)
                 
         save_state(state)
         return {"status": "SUCCESS", "task_key": key, "value": bool(val), "xp_awarded": xp_awarded, "message": f"Updated {key}! {stat_msg}"}

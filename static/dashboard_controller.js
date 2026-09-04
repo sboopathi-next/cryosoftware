@@ -246,43 +246,69 @@
 
     // 5. Cooking / Meal Prep
     $('chk-cooking')?.addEventListener('click', async () => {
+      const nextVal = !(currentStats && currentStats.cooking_completed);
+      updateChecklistItem('chk-cooking', nextVal);
+      if (currentStats) currentStats.cooking_completed = nextVal;
       try {
         const r = await fetch('/api/tasks/checklist/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task_key: 'cooking_completed', value: !currentStats?.cooking_completed })
+          body: JSON.stringify({ task_key: 'cooking_completed', value: nextVal })
         });
         const d = await r.json();
         if (r.ok) {
-          notify(d.message || 'Meal prep logged! +10 XP', 'ok');
-          hydrateTelemetry();
+          notify(d.message || (nextVal ? 'Meal prep logged! +10 XP' : 'Meal prep unmarked'), 'ok');
+        } else {
+          updateChecklistItem('chk-cooking', !nextVal);
         }
+        hydrateTelemetry();
       } catch (e) {
+        updateChecklistItem('chk-cooking', !nextVal);
         notify('Error toggling meal prep', 'err');
       }
     });
 
     // 6. NoPMO Discipline
     $('chk-nopmo')?.addEventListener('click', async () => {
+      const nextVal = !(currentStats && currentStats.nopmo_completed);
+      updateChecklistItem('chk-nopmo', nextVal);
+      if (currentStats) currentStats.nopmo_completed = nextVal;
       try {
         const r = await fetch('/api/tasks/checklist/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task_key: 'nopmo_completed', value: !currentStats?.nopmo_completed })
+          body: JSON.stringify({ task_key: 'nopmo_completed', value: nextVal })
         });
         const d = await r.json();
         if (r.ok) {
-          notify(d.message || 'NoPMO Discipline logged! +15 XP, +1 WIL', 'ok');
-          hydrateTelemetry();
+          notify(d.message || (nextVal ? 'NoPMO Discipline logged! +15 XP, +1 WIL' : 'NoPMO unmarked'), 'ok');
+        } else {
+          updateChecklistItem('chk-nopmo', !nextVal);
         }
+        hydrateTelemetry();
       } catch (e) {
+        updateChecklistItem('chk-nopmo', !nextVal);
         notify('Error toggling NoPMO', 'err');
       }
     });
 
+    // More Modules Pop-Up Button
+    const bindMoreBtn = (btnId) => {
+      const btn = $(btnId);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          openModal('more-modules-modal');
+        });
+      }
+    };
+    bindMoreBtn('btn-more-modules');
+    bindMoreBtn('mobile-more-btn');
+    bindMoreBtn('desktop-more-btn');
+
     // 7. Reading Book Modal Trigger
     $('chk-reading')?.addEventListener('click', () => {
-      openModal('reading-modal');
+      openReadingModal();
     });
 
     // 8. Sync Fit Button
@@ -454,6 +480,49 @@
       container.innerHTML = '<div class="text-xs text-rose-400 p-3 text-center">Failed to load energy history.</div>';
     }
   }
+
+  async function openReadingModal() {
+    openModal('reading-modal');
+    if ($('rd-title') && currentStats && currentStats.reading_book && currentStats.reading_book !== 'None') {
+      if (!$('rd-title').value) {
+        $('rd-title').value = currentStats.reading_book;
+      }
+    }
+    const container = $('reading-recent-logs');
+    if (!container) return;
+
+    container.innerHTML = '<div class="text-xs text-slate-400 py-2 text-center"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Loading reading logs...</div>';
+    try {
+      const r = await fetch('/api/reading/logs');
+      const d = await r.json();
+      const logs = (d && d.status === 'success' && d.logs) ? d.logs : (Array.isArray(d) ? d : []);
+      if (!logs || !logs.length) {
+        container.innerHTML = '<div class="text-xs text-slate-500 py-2 text-center">No reading logs recorded yet.</div>';
+        return;
+      }
+
+      container.innerHTML = logs.slice(0, 10).map(item => `
+        <div class="bg-[#111726] border border-slate-800 rounded-xl p-2 flex items-center justify-between text-xs cursor-pointer hover:border-amber-500/50 transition-colors" onclick="selectBookTitle('${(item.book_title || '').replace(/'/g, "\\'")}')">
+          <div class="truncate mr-2">
+            <div class="font-semibold text-amber-300 hover:underline truncate">${item.book_title || 'General Book'}</div>
+            <div class="text-[10px] text-slate-400">Read p. ${item.page_from}–${item.page_to} (${item.pages_read || (item.page_to - item.page_from + 1)} pages)</div>
+          </div>
+          <div class="text-[10px] text-slate-500 whitespace-nowrap font-mono">
+            ${item.timestamp ? item.timestamp.split(' ')[0] : (item.date || '')}
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      container.innerHTML = '<div class="text-xs text-rose-400 py-2 text-center">Failed to load reading logs.</div>';
+    }
+  }
+
+  window.selectBookTitle = function(title) {
+    if ($('rd-title')) {
+      $('rd-title').value = title;
+      notify(`Selected book: "${title}"`, 'info');
+    }
+  };
 
   // Form Submit Handlers
   function setupFormSubmitHandlers() {

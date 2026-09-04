@@ -222,13 +222,15 @@ def merge_states(local_state: dict, remote_state: dict) -> dict:
             local_state.get("completed_quests_today", []) +
             remote_state.get("completed_quests_today", [])
         ))
-        merged["gym_completed"] = bool(local_state.get("gym_completed") or remote_state.get("gym_completed"))
-        merged["study_completed"] = bool(local_state.get("study_completed") or remote_state.get("study_completed"))
+        # For daily checklist booleans, take from local_state if available, else remote_state, so toggling OFF works!
+        for flag in ("gym_completed", "study_completed", "cooking_completed", "nopmo_completed", "reading_completed", "english_completed"):
+            if flag in local_state:
+                merged[flag] = bool(local_state[flag])
+            elif flag in remote_state:
+                merged[flag] = bool(remote_state[flag])
+            else:
+                merged[flag] = False
         merged["leetcode_completed"] = bool(local_state.get("leetcode_completed", False)) if local_ts >= remote_ts else bool(remote_state.get("leetcode_completed", False))
-        merged["cooking_completed"] = bool(local_state.get("cooking_completed") or remote_state.get("cooking_completed"))
-        merged["nopmo_completed"] = bool(local_state.get("nopmo_completed") or remote_state.get("nopmo_completed"))
-        merged["reading_completed"] = bool(local_state.get("reading_completed") or remote_state.get("reading_completed"))
-        merged["english_completed"] = bool(local_state.get("english_completed") or remote_state.get("english_completed"))
         merged["claimed_rewards_today"] = list(set(
             local_state.get("claimed_rewards_today", []) +
             remote_state.get("claimed_rewards_today", [])
