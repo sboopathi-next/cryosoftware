@@ -536,14 +536,68 @@ def neon_save_health_log(log_date: str, steps: int, distance_km: float, active_m
     with _conn() as conn:
         with conn.cursor() as cur:
             _init_pg_health_logs(cur)
+            # Ensure unique constraint on log_date exists
+            try:
+                cur.execute("SAVEPOINT hlog_idx;")
+                cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_health_log_date ON pg_health_logs (log_date);")
+                cur.execute("RELEASE SAVEPOINT hlog_idx;")
+            except Exception:
+                try: cur.execute("ROLLBACK TO SAVEPOINT hlog_idx;")
+                except Exception: pass
+
+            # UPSERT: update if today already exists, insert if new
             cur.execute("""
                 INSERT INTO pg_health_logs
                 (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (log_date) DO UPDATE SET
+                    steps          = GREATEST(EXCLUDED.steps, pg_health_logs.steps),
+                    distance_km    = GREATEST(EXCLUDED.distance_km, pg_health_logs.distance_km),
+                    active_minutes = GREATEST(EXCLUDED.active_minutes, pg_health_logs.active_minutes),
+                    sleep_hours    = GREATEST(EXCLUDED.sleep_hours, pg_health_logs.sleep_hours),
+                    resting_hr     = EXCLUDED.resting_hr,
+                    xp_awarded     = EXCLUDED.xp_awarded,
+                    wil_gained     = EXCLUDED.wil_gained,
+                    str_gained     = EXCLUDED.str_gained,
+                    hrt_gained     = EXCLUDED.hrt_gained,
+                    energy_restored = EXCLUDED.energy_restored,
+                    created_at     = EXCLUDED.created_at
                 RETURNING id
             """, (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored, _now()))
             new_id = cur.fetchone()[0]
     return {"id": new_id, "status": "success"}
+
+def neon_get_health_logs(limit: int = 10) -> list:
+    """Fetch health logs from Neon DB ordered by date desc. Called by get_health_sync_today()."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_health_logs(cur)
+            cur.execute("""
+                SELECT log_date, steps, distance_km, active_minutes, sleep_hours,
+                       resting_hr, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored
+                FROM pg_health_logs
+                ORDER BY log_date DESC, id DESC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+    result = []
+    for row in rows:
+        result.append({
+            "log_date":       str(row[0]),
+            "steps":          int(row[1] or 0),
+            "distance_km":    float(row[2] or 0.0),
+            "active_minutes": int(row[3] or 0),
+            "sleep_hours":    float(row[4] or 0.0),
+            "resting_hr":     int(row[5] or 0),
+            "xp_awarded":     int(row[6] or 0),
+            "wil_gained":     int(row[7] or 0),
+            "str_gained":     int(row[8] or 0),
+            "hrt_gained":     int(row[9] or 0),
+            "energy_restored":float(row[10] or 0.0),
+        })
+    return result
+
+
 
 def _init_pg_office_work_logs(cur):
     cur.execute("""
