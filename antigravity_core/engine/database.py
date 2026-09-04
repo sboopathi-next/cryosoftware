@@ -1954,11 +1954,22 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
                     timestamp TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            cursor.execute("""
-                INSERT INTO health_sync_logs
-                (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, total_xp, wil_gained, str_gained, hrt_gained, energy_restored))
+            cursor.execute("SELECT id, steps FROM health_sync_logs WHERE log_date = ?", (log_date,))
+            existing = cursor.fetchone()
+            if existing:
+                cursor.execute("""
+                    UPDATE health_sync_logs
+                    SET steps = ?, distance_km = ?, active_minutes = ?, sleep_hours = ?, resting_hr = ?,
+                        xp_awarded = ?, wil_gained = ?, str_gained = ?, hrt_gained = ?, energy_restored = ?,
+                        timestamp = CURRENT_TIMESTAMP
+                    WHERE log_date = ?
+                """, (steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, total_xp, wil_gained, str_gained, hrt_gained, energy_restored, log_date))
+            else:
+                cursor.execute("""
+                    INSERT INTO health_sync_logs
+                    (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr, xp_awarded, wil_gained, str_gained, hrt_gained, energy_restored)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, total_xp, wil_gained, str_gained, hrt_gained, energy_restored))
             conn.commit()
             conn.close()
 

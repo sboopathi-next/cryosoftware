@@ -172,10 +172,44 @@
         ring.setAttribute('stroke', '#00e5ff'); // Cyan
       } else if (eVal >= 25) {
         ring.setAttribute('stroke', '#f59e0b'); // Amber
-      } else {
-        ring.setAttribute('stroke', '#ef4444'); // Crimson
-      }
     }
+  }
+
+  // ─── 4. Health & Fitness Renderer ──────────────────────────────────────────
+  function renderFitnessUI(data) {
+    if (!data) return;
+
+    const steps = data.steps || 0;
+    const dist = typeof data.distance_km === 'number' ? data.distance_km : parseFloat(data.distance_km || 0);
+    const sleep = typeof data.sleep_hours === 'number' ? data.sleep_hours : parseFloat(data.sleep_hours || 0);
+    const active = data.active_minutes || 0;
+    const hr = data.resting_hr || 70;
+
+    if ($('fit-steps-val')) $('fit-steps-val').textContent = steps.toLocaleString();
+    if ($('fit-dist-val')) $('fit-dist-val').textContent = `${dist.toFixed(1)} km`;
+    if ($('fit-sleep-val')) $('fit-sleep-val').textContent = `${sleep.toFixed(1)}h`;
+
+    // Modal elements update
+    if ($('modal-fit-steps')) $('modal-fit-steps').textContent = steps.toLocaleString();
+    if ($('modal-fit-dist')) $('modal-fit-dist').textContent = dist.toFixed(1);
+    if ($('modal-fit-sleep')) $('modal-fit-sleep').textContent = sleep.toFixed(1);
+    if ($('modal-fit-hr')) $('modal-fit-hr').textContent = hr;
+    if ($('modal-fit-active')) $('modal-fit-active').textContent = `${active} mins active`;
+
+    if ($('modal-fit-steps-bar')) {
+      const stepPct = Math.min(100, Math.max(0, (steps / 10000) * 100));
+      $('modal-fit-steps-bar').style.width = `${stepPct.toFixed(1)}%`;
+    }
+
+    if ($('modal-fit-energy')) {
+      const eGain = sleep >= 7.0 ? 35 : (sleep >= 5.5 ? 15 : 0);
+      $('modal-fit-energy').textContent = eGain > 0 ? `+${eGain}% Energy Restored` : 'Low Sleep Recovery';
+    }
+
+    // Subtitle checkmark state
+    const isFitCompleted = steps >= 1000 || dist >= 0.5 || active >= 10 || data.health_completed || data.walk_completed;
+    const subText = `Steps: ${steps.toLocaleString()} | ${dist.toFixed(1)} km | ${sleep.toFixed(1)}h sleep`;
+    updateChecklistItem('chk-fit', isFitCompleted, subText);
   }
 
   // ─── 4. Fitness Telemetry UI Renderer ──────────────────────────────────────
@@ -298,20 +332,99 @@
       openReadingModal();
     });
 
-    // 8. Sync Fit Button
-    $('sync-fit-btn')?.addEventListener('click', async () => {
+    // 8. Health & Fitness Sync Modal & Button Handlers
+    const openFitModal = () => {
+      const modal = $('fit-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (currentFitness) renderFitnessUI(currentFitness);
+      }
+    };
+
+    const closeFitModal = () => {
+      const modal = $('fit-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    };
+
+    $('chk-fit')?.addEventListener('click', (e) => {
+      if (e.target.closest('#sync-fit-btn')) return;
+      openFitModal();
+    });
+
+    $('close-fit-modal')?.addEventListener('click', closeFitModal);
+
+    const triggerFitSync = async () => {
       notify('Connecting to Google Fit Cloud...', 'info');
       try {
         const r = await fetch('/api/health_sync/google_fit', { method: 'POST' });
         const d = await r.json();
         if (r.ok) {
-          notify('Google Fit Cloud Synced!', 'ok');
+          notify(d.message || 'Google Fit Synced successfully!', 'ok');
+          renderFitnessUI(d);
           hydrateTelemetry();
         } else {
           notify(d.detail || 'Google Fit sync error', 'err');
         }
       } catch (e) {
         notify('Error triggering Fit sync', 'err');
+      }
+    };
+
+    $('sync-fit-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerFitSync();
+    });
+
+    $('modal-sync-fit-btn')?.addEventListener('click', () => {
+      triggerFitSync();
+    });
+
+    // Manual Fit Entry Form
+    $('fit-manual-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const steps = parseInt($('manual-steps-input')?.value || '0', 10);
+      const dist = parseFloat($('manual-dist-input')?.value || '0');
+      const sleep = parseFloat($('manual-sleep-input')?.value || '0');
+
+      notify('Logging manual fitness entry...', 'info');
+      try {
+        const r = await fetch('/api/health_sync/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            steps: steps,
+            distance_km: dist,
+            sleep_hours: sleep,
+            active_minutes: Math.round(steps / 100)
+          })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          notify('Fitness data logged & database updated!', 'ok');
+          renderFitnessUI(d);
+          hydrateTelemetry();
+          closeFitModal();
+        } else {
+          notify(d.detail || 'Failed to log fitness entry', 'err');
+        }
+      } catch (err) {
+        notify('Error submitting fitness log', 'err');
+      }
+    });
+
+    // Reauth button
+    $('fit-reauth-btn')?.addEventListener('click', async () => {
+      notify('Initiating Google OAuth Re-authentication...', 'info');
+      try {
+        const r = await fetch('/api/health_sync/reauth');
+        const d = await r.json();
+        notify(d.message || 'OAuth re-auth triggered', d.status === 'SUCCESS' ? 'ok' : 'err');
+      } catch (err) {
+        notify('Error triggering Google OAuth', 'err');
       }
     });
 
