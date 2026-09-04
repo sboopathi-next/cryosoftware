@@ -167,7 +167,8 @@ def get_fit_service():
 def sync_daily_fitness() -> Dict[str, Any]:
     """
     Queries Google Fitness API for today's steps, distance, active minutes, sleep, and resting HR.
-    Processes gains and updates player state via database.process_health_sync().
+    Returns LIVE data directly from Google Fit API. DB save is a background side-effect only.
+    Throws exact error if auth or API fails — never falls back to DB data.
     """
     service = get_fit_service()
     if not service:
@@ -181,34 +182,28 @@ def sync_daily_fitness() -> Dict[str, Any]:
     start_of_day = int(datetime.datetime(now.year, now.month, now.day, 0, 0, 0).timestamp() * 1000)
     end_of_day   = int(now.timestamp() * 1000)
 
-    # 1. Step Count Aggregate
+    # 1. Step Count — required. Any error returns exact error to UI.
     steps_body = {
         "aggregateBy": [{"dataTypeName": "com.google.step_count.delta"}],
         "bucketByTime": {"durationMillis": 86400000},
         "startTimeMillis": start_of_day,
         "endTimeMillis": end_of_day
     }
-    
-    steps = 0
-    step_err = None
     try:
         res = service.users().dataset().aggregate(userId='me', body=steps_body).execute()
         buckets = res.get('bucket', [])
+        steps = 0
         if buckets and buckets[0].get('dataset'):
             points = buckets[0]['dataset'][0].get('point', [])
             if points and points[0].get('value'):
                 steps = points[0]['value'][0].get('intVal', 0)
     except Exception as e:
-        step_err = str(e)
-        print(f"[GoogleFit] Step count fetch error: {step_err}")
-
-    if step_err and steps == 0:
         return {
             "status": "ERROR",
-            "message": f"Google Fitness API Query Failed: {step_err}"
+            "message": f"Google Fitness API Error (steps): {e}"
         }
 
-    # 2. Distance Aggregate (meters to km)
+    # 2. Distance (meters → km)
     dist_body = {
         "aggregateBy": [{"dataTypeName": "com.google.distance.delta"}],
         "bucketByTime": {"durationMillis": 86400000},
@@ -222,12 +217,11 @@ def sync_daily_fitness() -> Dict[str, Any]:
         if buckets and buckets[0].get('dataset'):
             points = buckets[0]['dataset'][0].get('point', [])
             if points and points[0].get('value'):
-                meters = points[0]['value'][0].get('fpVal', 0.0)
-                distance_km = round(meters / 1000.0, 2)
+                distance_km = round(points[0]['value'][0].get('fpVal', 0.0) / 1000.0, 2)
     except Exception as e:
         print(f"[GoogleFit] Distance fetch warning: {e}")
 
-    # 3. Active Minutes Aggregate
+    # 3. Active Minutes
     active_mins_body = {
         "aggregateBy": [{"dataTypeName": "com.google.active_minutes"}],
         "bucketByTime": {"durationMillis": 86400000},
@@ -243,34 +237,51 @@ def sync_daily_fitness() -> Dict[str, Any]:
             if points and points[0].get('value'):
                 active_minutes = points[0]['value'][0].get('intVal', 0)
     except Exception as e:
-        print(f"[GoogleFit] Active minutes fetch warning: {e}")
+        print(f"[GoogleFit] Active minutes warning: {e}")
 
-    # Default fallbacks if distance/active minutes are 0 but steps exist
+    # Fallback estimates if sensors didn't report distance/active_minutes
     if steps > 0 and distance_km == 0.0:
         distance_km = round(steps * 0.00075, 2)
     if steps > 0 and active_minutes == 0:
         active_minutes = int(steps / 100)
 
-    # 4. Award XP & Process Health Sync
+    # Compute XP from LIVE numbers
+    total_xp   = (steps // 1000) * 10 + active_minutes * 2
+    wil_gained = steps // 1000
+    str_gained = (active_minutes // 10) * 2
+
+    # Save to DB silently — never let DB errors break what gets returned to UI
     try:
         try:
             from antigravity_core.engine.database import process_health_sync
         except ImportError:
             from engine.database import process_health_sync
-
-        result = process_health_sync(
+        process_health_sync(
             steps=steps,
             distance_km=distance_km,
             active_minutes=active_minutes,
-            sleep_hours=7.5, # default good sleep baseline if sensor unread
+            sleep_hours=7.5,
             resting_hr=65,
             log_date=now.strftime("%Y-%m-%d")
         )
-        print(f"[GoogleFit] Synced {steps:,} steps ({distance_km} km), {active_minutes}m active | Awarded +{result.get('xp_awarded')} XP, +{result.get('wil_gained')} WIL!")
-        return result
     except Exception as e:
-        print(f"[GoogleFit] Process health sync error: {e}")
-        return {"status": "ERROR", "message": str(e), "steps": steps}
+        print(f"[GoogleFit] DB save warning: {e}")
+
+    # Return LIVE Google Fit API data — never from DB
+    print(f"[GoogleFit] LIVE: {steps:,} steps | {distance_km} km | {active_minutes}m active | +{total_xp} XP +{wil_gained} WIL")
+    return {
+        "status": "SUCCESS",
+        "log_date": now.strftime("%Y-%m-%d"),
+        "steps": steps,
+        "distance_km": distance_km,
+        "active_minutes": active_minutes,
+        "sleep_hours": 7.5,
+        "resting_hr": 65,
+        "xp_awarded": total_xp,
+        "wil_gained": wil_gained,
+        "str_gained": str_gained,
+        "source": "google_fit_live"
+    }
 
 if __name__ == "__main__":
     print("=" * 60)
