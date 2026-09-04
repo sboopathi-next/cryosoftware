@@ -2935,6 +2935,63 @@ Return ONLY the raw JSON object. Do not wrap in markdown code blocks or add any 
         
         return default_lesson
 
+# ─── IELTS SPEED SPEAKING & 10-MIN DAILY ENGLISH ENDPOINTS ───────────────────
+
+class IeltsEvaluatePayload(BaseModel):
+    topic: str
+    transcript: str
+    duration_seconds: float = 60.0
+    test_type: Optional[str] = "IELTS_PART_2"
+
+class AddPhrasePayload(BaseModel):
+    phrase: str
+    meaning_context: Optional[str] = ""
+    tamil_equivalent: Optional[str] = ""
+    source: Optional[str] = "Cinema / Dialogue"
+
+@app.get("/api/english/topics")
+def api_get_english_topics():
+    from engine.ielts_speaking_engine import IeltsSpeakingEngine
+    engine = IeltsSpeakingEngine()
+    return {"status": "success", "topics": engine.get_topics()}
+
+@app.post("/api/english/evaluate")
+def api_evaluate_english_speech(payload: IeltsEvaluatePayload):
+    if not payload.transcript.strip():
+        raise HTTPException(status_code=400, detail="Speech transcript cannot be empty.")
+    from engine.ielts_speaking_engine import IeltsSpeakingEngine
+    engine = IeltsSpeakingEngine()
+    res = engine.process_speaking_session(
+        topic=payload.topic,
+        transcript=payload.transcript,
+        duration_seconds=payload.duration_seconds,
+        test_type=payload.test_type
+    )
+    return res
+
+@app.get("/api/english/phrases")
+def api_get_phrase_vault():
+    from engine.ielts_speaking_engine import IeltsSpeakingEngine
+    engine = IeltsSpeakingEngine()
+    return {"status": "success", "phrases": engine.get_phrase_vault()}
+
+@app.post("/api/english/phrases/add")
+def api_add_phrase_to_vault(payload: AddPhrasePayload):
+    from engine.ielts_speaking_engine import IeltsSpeakingEngine
+    engine = IeltsSpeakingEngine()
+    return engine.add_phrase_to_vault(
+        phrase=payload.phrase,
+        meaning_context=payload.meaning_context,
+        tamil_equivalent=payload.tamil_equivalent,
+        source=payload.source
+    )
+
+@app.get("/api/english/history")
+def api_get_english_history():
+    from engine.ielts_speaking_engine import IeltsSpeakingEngine
+    engine = IeltsSpeakingEngine()
+    return {"status": "success", "history": engine.get_logs_history()}
+
 @app.post("/api/english/complete")
 def complete_english_session():
     state = get_state()
@@ -2943,19 +3000,16 @@ def complete_english_session():
         
     if not state.get("english_completed", 0):
         state["english_completed"] = 1
-        # Award stats: +1 WIL (Willpower), +1 INT (Intelligence)
         state["wil"] = state.get("wil", 10) + 1
         state["int"] = state.get("int", 10) + 1
-        # Replenish +10.0% Cognitive Energy
-        state["energy"] = min(100.0, state.get("energy", 100.0) + 10.0)
         save_state(state)
-        add_xp(15) # +15 XP
+        add_xp(15)
         
         log_activity_file(
             doing="Daily English Booster Completed",
-            accomplished="Completed 5 minutes of focused English practice and dictionary lookups under AI surveillance. +15 XP, +1 WIL, +1 INT, +10.0% Cognitive Energy."
+            accomplished="Completed focused 10-Minute English Speed Speaking session. +15 XP, +1 WIL, +1 INT."
         )
-        return {"status": "success", "message": "English session complete! Gained +15 XP, +1 WIL, +1 INT, +10.0% Cognitive Energy."}
+        return {"status": "success", "message": "English session complete! Gained +15 XP, +1 WIL, +1 INT."}
     
     return {"status": "already_completed", "message": "Daily session already completed."}
 

@@ -176,6 +176,55 @@ def init_db():
     )
     """)
 
+    # 7b. IELTS Speaking Telemetry Logs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ielts_speaking_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        test_type TEXT DEFAULT 'IELTS_PART_2',
+        topic TEXT NOT NULL,
+        duration_seconds REAL,
+        word_count INTEGER,
+        words_per_minute REAL,
+        filler_count INTEGER,
+        estimated_band REAL,
+        fc_score REAL,
+        lr_score REAL,
+        gra_score REAL,
+        transcript TEXT,
+        ai_feedback TEXT,
+        xp_awarded INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # 7c. Cinema Phrase Vault Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS phrase_vault (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        phrase TEXT UNIQUE NOT NULL,
+        meaning_context TEXT,
+        tamil_equivalent TEXT,
+        source TEXT,
+        mastery_level INTEGER DEFAULT 1,
+        next_review_date TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # Seed phrase vault with high-impact native collocations & idioms
+    default_phrases = [
+        ("hit the nail on the head", "To describe or identify something with absolute accuracy", "துல்லியமாக கூறுவது", "Cinema / Dialogue"),
+        ("bite the bullet", "To face a difficult situation with courage and resolve", "துணிச்சலுடன் எதிர்கொள்வது", "Cinema / Dialogue"),
+        ("burn the midnight oil", "To work or study late into the night with high intensity", "இரவு முழுவதும் உழைப்பது", "Academic / Professional"),
+        ("a double-edged sword", "A solution or technology that has both positive and negative consequences", "இருமுனை கத்தி", "IELTS Band 8+ Essay"),
+        ("par for the course", "Something that is normal, expected, or typical in a situation", "வழக்கமான விஷயம்", "Native Collocation")
+    ]
+    for p, m, t, s in default_phrases:
+        cursor.execute("""
+        INSERT OR IGNORE INTO phrase_vault (phrase, meaning_context, tamil_equivalent, source)
+        VALUES (?, ?, ?, ?)
+        """, (p, m, t, s))
+
     # 8. Financial Governance Tables
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS finance_expenses (
