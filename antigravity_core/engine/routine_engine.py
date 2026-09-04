@@ -144,20 +144,18 @@ class RoutineEngine:
                 completed_count += 1
                 total_xp_minted += trigger_data.get("xp_awarded", 0)
 
-            # Find next impending milestone
-            if not is_triggered and delay_sec < 3600 * 2: # Scheduled soon or slightly past
+            # Find next impending milestone (first uncompleted milestone)
+            if not is_triggered and next_impending is None:
                 secs_diff = (sched_dt - now).total_seconds()
-                if 0 <= secs_diff < min_seconds_until_next:
-                    min_seconds_until_next = secs_diff
-                    next_impending = {
-                        "id": id_,
-                        "name": name,
-                        "scheduled_time": sched_time_str,
-                        "attr": attr,
-                        "boost": boost,
-                        "potential_xp": potential_xp,
-                        "seconds_remaining": max(0, int(secs_diff))
-                    }
+                next_impending = {
+                    "id": id_,
+                    "name": name,
+                    "scheduled_time": sched_time_str,
+                    "attr": attr,
+                    "boost": boost,
+                    "potential_xp": potential_xp,
+                    "seconds_remaining": max(0, int(secs_diff)) if secs_diff > 0 else 0
+                }
 
             milestones_list.append({
                 "id": id_,

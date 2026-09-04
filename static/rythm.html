@@ -412,9 +412,28 @@
         if (triggerLabel) triggerLabel.textContent = `TRIGGER NOW • ${next.name?.toUpperCase()} (+${next.potential_xp} XP)`;
 
         if (triggerBtn) {
+          triggerBtn.disabled = false;
+          triggerBtn.className = "mt-3 w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-primary-container to-primary text-on-primary font-label-caps text-xs tracking-widest uppercase font-bold flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-[0.98] transition-all";
           triggerBtn.onclick = () => window.triggerMilestone(next.id);
         }
         countdownSeconds = next.seconds_remaining || 0;
+      } else if (data.completed_count === 8) {
+        // All 8 completed for today!
+        const nextTitle = document.getElementById('nextMilestoneTitle');
+        const nextTarget = document.getElementById('nextMilestoneTarget');
+        const nextXP = document.getElementById('nextMilestoneXP');
+        const triggerBtn = document.getElementById('quickTriggerBtn');
+        const triggerLabel = document.getElementById('quickTriggerLabel');
+
+        if (nextTitle) nextTitle.textContent = 'ALL 8 MILESTONES COMPLETED TODAY!';
+        if (nextTarget) nextTarget.textContent = '100% IDEMPOTENT';
+        if (nextXP) nextXP.textContent = 'ALL XP MINTED';
+        if (triggerLabel) triggerLabel.textContent = '✓ ALL DAILY ROUTINES LOCKED IN';
+
+        if (triggerBtn) {
+          triggerBtn.disabled = true;
+          triggerBtn.className = "mt-3 w-full py-2.5 px-4 rounded-lg bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 font-label-caps text-xs tracking-widest uppercase font-bold flex items-center justify-center gap-2 shadow-md opacity-90 cursor-not-allowed";
+        }
       }
 
       // Render 8 Milestones List
@@ -428,29 +447,31 @@
           if (isDone) {
             const tr = m.triggered_data || {};
             return `
-              <div class="flex flex-col w-full bg-surface-container rounded-xl p-3 relative overflow-hidden shadow-sm border border-tertiary-container/30">
+              <div class="flex flex-col w-full bg-[#111827]/90 rounded-xl p-3.5 relative overflow-hidden shadow-md border border-emerald-500/40">
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-tertiary-container flex items-center justify-center text-on-tertiary">
-                      <span class="material-symbols-outlined text-[18px]">${icon}</span>
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
+                      <span class="material-symbols-outlined text-[20px] font-bold">check_circle</span>
                     </div>
                     <div>
-                      <div class="flex items-center gap-1.5">
-                        <span class="font-headline-sm text-[14px] text-on-surface font-semibold">${m.scheduled_time} • ${m.name}</span>
-                        <span class="px-1.5 py-0.2 rounded bg-surface-container-high text-tertiary font-label-code text-[10px]">${attrLabel}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="font-headline-sm text-[14px] text-emerald-200 font-bold">${m.scheduled_time} • ${m.name}</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 font-label-code text-[10px] font-bold border border-emerald-600/30">${attrLabel}</span>
                       </div>
-                      <div class="font-label-code text-[10px] text-on-surface-variant flex items-center gap-1 mt-0.5">
-                        <span>Logged with ${tr.delay_hours || 0}h delay</span>
-                        <span class="text-tertiary">• Triggered</span>
+                      <div class="font-label-code text-[10px] text-emerald-400/80 flex items-center gap-1.5 mt-0.5">
+                        <span class="material-symbols-outlined text-[13px] text-emerald-400">verified</span>
+                        <span>Logged with ${tr.delay_hours || 0}h delay • <strong>Completed & Locked for Today</strong></span>
                       </div>
                     </div>
                   </div>
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-2">
                     <div class="text-right">
-                      <div class="font-label-hud-stat text-tertiary font-bold">+${tr.xp_awarded || 486} XP</div>
-                      <div class="font-label-code text-[10px] text-tertiary">MINTED</div>
+                      <div class="font-label-hud-stat text-emerald-400 font-bold text-sm">+${tr.xp_awarded || 486} XP</div>
+                      <div class="font-label-code text-[10px] text-emerald-400/70 font-bold">MINTED</div>
                     </div>
-                    <span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-sm">
+                      <span class="material-symbols-outlined text-[20px] font-bold">done_all</span>
+                    </div>
                   </div>
                 </div>
               </div>
