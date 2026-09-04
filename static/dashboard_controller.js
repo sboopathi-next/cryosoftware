@@ -180,6 +180,9 @@
         ring.setAttribute('stroke', '#00e5ff'); // Cyan
       } else if (eVal >= 25) {
         ring.setAttribute('stroke', '#f59e0b'); // Amber
+      } else {
+        ring.setAttribute('stroke', '#ef4444'); // Crimson
+      }
     }
   }
 
