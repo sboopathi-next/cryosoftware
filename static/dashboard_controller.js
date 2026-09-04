@@ -226,22 +226,9 @@
       openModal('gym-modal');
     });
 
-    // 4. English Booster
-    $('chk-english')?.addEventListener('click', async () => {
-      try {
-        const r = await fetch('/api/tasks/checklist/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task_key: 'english_completed', value: !currentStats?.english_completed })
-        });
-        const d = await r.json();
-        if (r.ok) {
-          notify(d.message || 'English practice updated!', 'ok');
-          hydrateTelemetry();
-        }
-      } catch (e) {
-        notify('Error updating English booster', 'err');
-      }
+    // 4. English Booster (Opens /english page; updates automatically on session completion)
+    $('chk-english')?.addEventListener('click', () => {
+      window.location.href = '/english';
     });
 
     // 5. Cooking / Meal Prep
@@ -481,47 +468,119 @@
     }
   }
 
+  // Change listener on dropdown to toggle custom input field
+  $('rd-title')?.addEventListener('change', (e) => {
+    const customInput = $('rd-title-custom');
+    if (!customInput) return;
+    if (e.target.value === '__CUSTOM__') {
+      customInput.classList.remove('hidden');
+      customInput.focus();
+    } else {
+      customInput.classList.add('hidden');
+    }
+  });
+
   async function openReadingModal() {
     openModal('reading-modal');
-    if ($('rd-title') && currentStats && currentStats.reading_book && currentStats.reading_book !== 'None') {
-      if (!$('rd-title').value) {
-        $('rd-title').value = currentStats.reading_book;
-      }
-    }
-    const container = $('reading-recent-logs');
-    if (!container) return;
+    const selectEl = $('rd-title');
+    const customInput = $('rd-title-custom');
+    if (customInput) customInput.classList.add('hidden');
 
-    container.innerHTML = '<div class="text-xs text-slate-400 py-2 text-center"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Loading reading logs...</div>';
+    const container = $('reading-recent-logs');
+    if (container) {
+      container.innerHTML = '<div class="text-xs text-slate-400 py-2 text-center"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Loading reading logs...</div>';
+    }
+
     try {
       const r = await fetch('/api/reading/logs');
       const d = await r.json();
       const logs = (d && d.status === 'success' && d.logs) ? d.logs : (Array.isArray(d) ? d : []);
-      if (!logs || !logs.length) {
-        container.innerHTML = '<div class="text-xs text-slate-500 py-2 text-center">No reading logs recorded yet.</div>';
-        return;
+
+      // Extract unique book titles from history
+      const uniqueBooks = [];
+      const defaultBooks = [
+        "Designing Data-Intensive Applications",
+        "System Design",
+        "Clean Code",
+        "Atomic Habits",
+        "Think And Grow Rich",
+        "Solo Leveling"
+      ];
+
+      logs.forEach(log => {
+        if (log.book_title && !uniqueBooks.includes(log.book_title)) {
+          uniqueBooks.push(log.book_title);
+        }
+      });
+
+      defaultBooks.forEach(b => {
+        if (!uniqueBooks.includes(b)) {
+          uniqueBooks.push(b);
+        }
+      });
+
+      const activeBook = (currentStats && currentStats.reading_book && currentStats.reading_book !== 'None')
+        ? currentStats.reading_book
+        : uniqueBooks[0];
+
+      if (activeBook && !uniqueBooks.includes(activeBook)) {
+        uniqueBooks.unshift(activeBook);
       }
 
-      container.innerHTML = logs.slice(0, 10).map(item => `
-        <div class="bg-[#111726] border border-slate-800 rounded-xl p-2 flex items-center justify-between text-xs cursor-pointer hover:border-amber-500/50 transition-colors" onclick="selectBookTitle('${(item.book_title || '').replace(/'/g, "\\'")}')">
-          <div class="truncate mr-2">
-            <div class="font-semibold text-amber-300 hover:underline truncate">${item.book_title || 'General Book'}</div>
-            <div class="text-[10px] text-slate-400">Read p. ${item.page_from}–${item.page_to} (${item.pages_read || (item.page_to - item.page_from + 1)} pages)</div>
+      if (selectEl) {
+        selectEl.innerHTML = uniqueBooks.map(b => `<option value="${b.replace(/"/g, '&quot;')}" ${b === activeBook ? 'selected' : ''}>${b}</option>`).join('')
+          + `<option value="__CUSTOM__">+ Enter New Book Title...</option>`;
+      }
+
+      if (container) {
+        if (!logs || !logs.length) {
+          container.innerHTML = '<div class="text-xs text-slate-500 py-2 text-center">No reading logs recorded yet.</div>';
+          return;
+        }
+
+        container.innerHTML = logs.slice(0, 10).map(item => `
+          <div class="bg-[#111726] border border-slate-800 rounded-xl p-2 flex items-center justify-between text-xs cursor-pointer hover:border-amber-500/50 transition-colors" onclick="selectBookTitle('${(item.book_title || '').replace(/'/g, "\\'")}')">
+            <div class="truncate mr-2">
+              <div class="font-semibold text-amber-300 hover:underline truncate">${item.book_title || 'General Book'}</div>
+              <div class="text-[10px] text-slate-400">Read p. ${item.page_from}–${item.page_to} (${item.pages_read || (item.page_to - item.page_from + 1)} pages)</div>
+            </div>
+            <div class="text-[10px] text-slate-500 whitespace-nowrap font-mono">
+              ${item.timestamp ? item.timestamp.split(' ')[0] : (item.date || '')}
+            </div>
           </div>
-          <div class="text-[10px] text-slate-500 whitespace-nowrap font-mono">
-            ${item.timestamp ? item.timestamp.split(' ')[0] : (item.date || '')}
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     } catch (e) {
-      container.innerHTML = '<div class="text-xs text-rose-400 py-2 text-center">Failed to load reading logs.</div>';
+      if (container) {
+        container.innerHTML = '<div class="text-xs text-rose-400 py-2 text-center">Failed to load reading logs.</div>';
+      }
     }
   }
 
   window.selectBookTitle = function(title) {
-    if ($('rd-title')) {
-      $('rd-title').value = title;
-      notify(`Selected book: "${title}"`, 'info');
+    const selectEl = $('rd-title');
+    const customInput = $('rd-title-custom');
+    if (!selectEl) return;
+
+    let foundOption = false;
+    for (let opt of selectEl.options) {
+      if (opt.value === title) {
+        selectEl.value = title;
+        foundOption = true;
+        if (customInput) customInput.classList.add('hidden');
+        break;
+      }
     }
+
+    if (!foundOption) {
+      const opt = document.createElement('option');
+      opt.value = title;
+      opt.textContent = title;
+      opt.selected = true;
+      selectEl.insertBefore(opt, selectEl.lastElementChild);
+      if (customInput) customInput.classList.add('hidden');
+    }
+    notify(`Selected book: "${title}"`, 'info');
   };
 
   // Form Submit Handlers
@@ -529,7 +588,10 @@
     // Reading Form
     $('reading-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const title = $('rd-title')?.value || 'General Book';
+      let title = $('rd-title')?.value || 'General Book';
+      if (title === '__CUSTOM__') {
+        title = $('rd-title-custom')?.value.trim() || 'General Book';
+      }
       const pageFrom = parseInt($('rd-from')?.value) || 1;
       const pageTo = parseInt($('rd-to')?.value) || 10;
 

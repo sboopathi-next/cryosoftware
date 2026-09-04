@@ -551,8 +551,17 @@
     </div>
     <form id="reading-form" class="space-y-3">
       <div>
-        <label class="block text-[11px] font-mono text-slate-400 mb-1">Book Title</label>
-        <input type="text" id="rd-title" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none" placeholder="e.g. Designing Data-Intensive Applications" required/>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Select Book Title</label>
+        <select id="rd-title" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none cursor-pointer">
+          <option value="Designing Data-Intensive Applications">Designing Data-Intensive Applications</option>
+          <option value="System Design">System Design</option>
+          <option value="Clean Code">Clean Code</option>
+          <option value="Atomic Habits">Atomic Habits</option>
+          <option value="Think And Grow Rich">Think And Grow Rich</option>
+          <option value="Solo Leveling">Solo Leveling</option>
+          <option value="__CUSTOM__">+ Enter New Book Title...</option>
+        </select>
+        <input type="text" id="rd-title-custom" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none mt-2 hidden" placeholder="Type new book title..." />
       </div>
       <div class="grid grid-cols-2 gap-2">
         <div>
