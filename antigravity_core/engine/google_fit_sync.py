@@ -190,6 +190,7 @@ def sync_daily_fitness() -> Dict[str, Any]:
     }
     
     steps = 0
+    step_err = None
     try:
         res = service.users().dataset().aggregate(userId='me', body=steps_body).execute()
         buckets = res.get('bucket', [])
@@ -198,7 +199,14 @@ def sync_daily_fitness() -> Dict[str, Any]:
             if points and points[0].get('value'):
                 steps = points[0]['value'][0].get('intVal', 0)
     except Exception as e:
-        print(f"[GoogleFit] Step count fetch warning: {e}")
+        step_err = str(e)
+        print(f"[GoogleFit] Step count fetch error: {step_err}")
+
+    if step_err and steps == 0:
+        return {
+            "status": "ERROR",
+            "message": f"Google Fitness API Query Failed: {step_err}"
+        }
 
     # 2. Distance Aggregate (meters to km)
     dist_body = {

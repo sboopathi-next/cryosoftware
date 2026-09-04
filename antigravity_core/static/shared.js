@@ -783,10 +783,10 @@ async function syncGoogleFitCloudManual(btnEl = null) {
     const res = await apiFetch('/api/health_sync/google_fit', { method: 'POST' });
     const d = await res.json();
 
-    if (d.setup_required) {
-      toast('⚠️ Google Fit Setup Needed: ' + d.message, 'warn');
-      if (window.openHealthSyncModal) window.openHealthSyncModal();
-    } else if (d.status === 'SUCCESS' || d.steps !== undefined) {
+    if (d.status === 'ERROR' || d.setup_required) {
+      toast('⚠️ Google Fit Error: ' + (d.message || d.detail || 'Sync failed'), 'err');
+      if (d.setup_required && window.openHealthSyncModal) window.openHealthSyncModal();
+    } else if (d.status === 'SUCCESS' || (d.steps !== undefined && d.steps > 0)) {
       const stepsFormatted = (d.steps || 0).toLocaleString();
       toast(`✅ Google Fit Synced! ${stepsFormatted} steps (${d.distance_km || 0} km) | +${d.xp_awarded || 0} XP, +${d.wil_gained || 0} WIL!`, 'ok');
 
@@ -801,7 +801,7 @@ async function syncGoogleFitCloudManual(btnEl = null) {
       if (window.loadMiniStats) window.loadMiniStats();
       if (window.closeHealthSyncModal) window.closeHealthSyncModal();
     } else {
-      toast('Google Fit Sync: ' + (d.message || JSON.stringify(d)), 'err');
+      toast('Google Fit Sync: ' + (d.detail || d.message || JSON.stringify(d)), 'err');
     }
   } catch (e) {
     toast('Google Fit Sync Error: ' + e.message, 'err');

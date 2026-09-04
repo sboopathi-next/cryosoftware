@@ -386,15 +386,18 @@
       try {
         const r = await fetch('/api/health_sync/google_fit', { method: 'POST' });
         const d = await r.json();
-        if (r.ok) {
-          notify(d.message || 'Google Fit Synced successfully!', 'ok');
+        if (r.ok && d.status !== 'ERROR') {
+          const stepsStr = d.steps !== undefined ? `Synced ${d.steps.toLocaleString()} steps (${d.distance_km || 0} km)!` : 'Google Fit Synced successfully!';
+          notify(d.message || stepsStr, 'ok');
           renderFitnessUI(d);
           hydrateTelemetry();
         } else {
-          notify(d.detail || 'Google Fit sync error', 'err');
+          const errMsg = d.detail || d.message || d.error || (typeof d === 'string' ? d : 'Google Fit sync failed');
+          notify(`Google Fit Sync Error: ${errMsg}`, 'err');
+          console.error('[Google Fit Sync Error]', d);
         }
       } catch (e) {
-        notify('Error triggering Fit sync', 'err');
+        notify(`Error triggering Fit sync: ${e.message || e}`, 'err');
       }
     };
 

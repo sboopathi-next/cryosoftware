@@ -3363,7 +3363,12 @@ def api_health_sync_google_fit():
         except ImportError:
             from engine.google_fit_sync import sync_daily_fitness
 
-        return sync_daily_fitness()
+        res = sync_daily_fitness()
+        if isinstance(res, dict) and res.get("status") == "ERROR":
+            raise HTTPException(status_code=400, detail=res.get("message", "Google Fit sync failed"))
+        return res
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
