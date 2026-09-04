@@ -260,7 +260,8 @@ def sync_daily_fitness() -> Dict[str, Any]:
             active_minutes=active_minutes,
             sleep_hours=7.5, # default good sleep baseline if sensor unread
             resting_hr=65,
-            log_date=now.strftime("%Y-%m-%d")
+            log_date=now.strftime("%Y-%m-%d"),
+            force_override=True
         )
         print(f"[GoogleFit] Synced {steps:,} steps ({distance_km} km), {active_minutes}m active | Awarded +{result.get('xp_awarded')} XP, +{result.get('wil_gained')} WIL!")
         return result

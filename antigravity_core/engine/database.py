@@ -1891,7 +1891,7 @@ def get_meditation_logs(limit: int = 50) -> list:
     return [dict(r) for r in rows]
 
 
-def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes: int = 0, sleep_hours: float = 0.0, resting_hr: Optional[int] = None, log_date: Optional[str] = None) -> dict:
+def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes: int = 0, sleep_hours: float = 0.0, resting_hr: Optional[int] = None, log_date: Optional[str] = None, force_override: bool = False) -> dict:
     """
     Processes health metrics from Google Health Connect / MacroDroid / Termux / Manual Logger.
     Calculates:
@@ -1957,11 +1957,11 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
             cursor.execute("SELECT id, steps, distance_km, active_minutes, sleep_hours FROM health_sync_logs WHERE log_date = ?", (log_date,))
             existing = cursor.fetchone()
             if existing:
-                # Monotonic accumulation: preserve maximum recorded telemetry for today
-                steps = max(steps, existing[1] or 0)
-                distance_km = max(distance_km, existing[2] or 0.0)
-                active_minutes = max(active_minutes, existing[3] or 0)
-                sleep_hours = max(sleep_hours, existing[4] or 0.0)
+                if not force_override:
+                    steps = max(steps, existing[1] or 0)
+                    distance_km = max(distance_km, existing[2] or 0.0)
+                    active_minutes = max(active_minutes, existing[3] or 0)
+                    sleep_hours = max(sleep_hours, existing[4] or 0.0)
 
                 cursor.execute("""
                     UPDATE health_sync_logs

@@ -3349,7 +3349,8 @@ def api_health_sync_log(payload: HealthPayload):
             active_minutes=payload.active_minutes,
             sleep_hours=payload.sleep_hours,
             resting_hr=payload.resting_hr,
-            log_date=payload.log_date
+            log_date=payload.log_date,
+            force_override=True
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
