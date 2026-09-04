@@ -58,6 +58,7 @@
       }
     };
   </script>
+  <script src="/static/dopamine_engine.js"></script>
 </head>
 <body class="bg-surface text-on-surface font-body-md flex flex-col min-h-screen selection:bg-primary selection:text-on-primary">
 
@@ -509,9 +510,11 @@
         const r = await fetch(`/api/routine/trigger/${id}`, { method: 'POST' });
         const d = await r.json();
         if (r.ok && d.status === 'SUCCESS') {
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('milestone');
           showToast(`PUNCTUALITY SYNCHRONIZED: +${d.xp_awarded} XP MINTED! (${d.stat_boost})`, d.delay_hours);
           fetchRoutineStatus();
         } else {
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('error');
           showToast(d.message || 'Milestone trigger failed', 0, true);
         }
       } catch (e) {

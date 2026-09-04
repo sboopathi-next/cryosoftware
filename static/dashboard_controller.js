@@ -15,8 +15,16 @@
   // DOM Helper
   const $ = (id) => document.getElementById(id);
 
-  // Toast notifier fallback
+  // Toast notifier fallback & Dopamine Surge Trigger
   function notify(msg, type = 'info') {
+    if (type === 'ok' || type === 'success') {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+    } else if (type === 'milestone' || type === 'levelup') {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('milestone');
+    } else if (type === 'sync') {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('sync');
+    }
+
     if (window.toast) {
       window.toast(msg, type);
     } else {
