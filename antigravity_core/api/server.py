@@ -3913,6 +3913,179 @@ def api_notification_count():
         return {"unread_count": 0}
 
 
+# ─── Accountablity & Telemetry Consolidation Endpoints ────────────────────────
+
+class MeditationPayload(BaseModel):
+    duration_minutes: int = 5
+
+class TaskChecklistTogglePayload(BaseModel):
+    task_key: str
+    value: bool = True
+
+@app.post("/api/reading/log")
+def api_log_reading(payload: LogReadingPayload):
+    try:
+        title = payload.book_title.strip() or "General Reading"
+        pages = max(1, payload.page_to - payload.page_from + 1)
+        xp = pages * 2
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        now_iso = datetime.datetime.now().isoformat()
+        today_iso = datetime.date.today().isoformat()
+        cursor.execute(
+            "INSERT INTO reading_logs (book_title, page_from, page_to, pages_read, timestamp, date) VALUES (?, ?, ?, ?, ?, ?)",
+            (title, payload.page_from, payload.page_to, pages, now_iso, today_iso)
+        )
+        conn.commit()
+        conn.close()
+        
+        state = get_state() or {}
+        state["int"] = state.get("int", 10) + 1
+        state["reading_completed"] = 1
+        state["reading_book"] = title
+        save_state(state)
+        add_xp(xp)
+        
+        log_activity_file("Daily Reading Logged", f"Read {pages} pages of '{title}' (p. {payload.page_from}-{payload.page_to}). Awarded +{xp} XP, +1 INT.")
+        return {"status": "SUCCESS", "message": f"Logged {pages} pages of '{title}'! +{xp} XP, +1 INT", "pages": pages, "xp": xp}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/reading/logs")
+def api_get_reading_logs(limit: int = 50):
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM reading_logs ORDER BY logged_at DESC LIMIT ?", (limit,))
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+        return rows
+    except Exception:
+        return []
+
+@app.post("/api/meditation/log")
+def api_log_meditation(payload: MeditationPayload):
+    try:
+        dur = payload.duration_minutes or 5
+        xp = 20
+        save_meditation_log(duration_mins=dur, track_name="5-Min Focused Meditation Protocol")
+        state = get_state() or {}
+        state["meditation_completed"] = 1
+        state["stoic"] = state.get("stoic", 10) + 2
+        state["wil"] = state.get("wil", 10) + 1
+        save_state(state)
+        add_xp(xp)
+        
+        try:
+            from engine.energy_engine import EnergyEngine
+            EnergyEngine().apply_recovery("MEDITATION", dur)
+        except Exception:
+            pass
+            
+        log_activity_file("Meditation Logged", f"Completed {dur}-min meditation session. +{xp} XP, +2 STC, +1 WIL, +8 Energy.")
+        return {"status": "SUCCESS", "message": f"Completed {dur}-min Meditation! +{xp} XP, +2 STC, +1 WIL, +8 Energy"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/tasks/checklist/toggle")
+def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
+    try:
+        key = payload.task_key.strip()
+        val = 1 if payload.value else 0
+        state = get_state() or {}
+        state[key] = val
+        
+        xp_awarded = 0
+        stat_msg = ""
+        if payload.value:
+            if key == "cooking_completed":
+                xp_awarded = 10
+                log_activity_file("Meal Prep", "Completed home cooking / meal prep (+10 XP).")
+            elif key == "nopmo_completed":
+                xp_awarded = 15
+                state["wil"] = state.get("wil", 10) + 1
+                stat_msg = "+1 WIL"
+                log_activity_file("NoPMO Discipline", "Maintained NoPMO discipline (+15 XP, +1 WIL).")
+            elif key == "english_completed":
+                xp_awarded = 20
+                state["int"] = state.get("int", 10) + 1
+                stat_msg = "+1 INT"
+                log_activity_file("English Practice", "Completed 5-min English booster (+20 XP, +1 INT).")
+            
+            if xp_awarded > 0:
+                add_xp(xp_awarded)
+                
+        save_state(state)
+        return {"status": "SUCCESS", "task_key": key, "value": bool(val), "xp_awarded": xp_awarded, "message": f"Updated {key}! {stat_msg}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/fitness/summary")
+def api_fitness_summary():
+    try:
+        from engine.database import get_health_sync_history
+        history = get_health_sync_history(limit=1)
+        if history:
+            item = history[0]
+            return {
+                "steps": item.get("steps", 0),
+                "distance_km": item.get("distance_km", 0.0),
+                "active_minutes": item.get("active_minutes", 0),
+                "sleep_hours": item.get("sleep_hours", 0.0),
+                "resting_hr": item.get("resting_hr", 72),
+                "log_date": item.get("log_date", datetime.date.today().isoformat())
+            }
+        return {"steps": 0, "distance_km": 0.0, "active_minutes": 0, "sleep_hours": 7.5, "resting_hr": 72}
+    except Exception:
+        return {"steps": 0, "distance_km": 0.0, "active_minutes": 0, "sleep_hours": 7.5, "resting_hr": 72}
+
+@app.get("/api/canvas/today")
+def api_canvas_today():
+    try:
+        from engine.semester_enforcer import SemesterEnforcer
+        enforcer = SemesterEnforcer()
+        aud = enforcer.audit_today()
+        state = get_state() or {}
+        return {
+            "required_course": aud.get("required_course", "Semester ML Track"),
+            "due_assignment": "Wk Assignment",
+            "submission_status": "PENDING" if not state.get("canvas_semester_completed") else "SUBMITTED",
+            "audit": aud
+        }
+    except Exception as e:
+        return {"required_course": "Semester ML Track", "due_assignment": "Wk Assignment", "submission_status": "PENDING"}
+
+@app.post("/api/gympro/log_workout")
+@app.post("/api/workouts/log")
+def api_log_gym_workout(payload: WorkoutLogPayload):
+    try:
+        dur = payload.duration_minutes or 45
+        category = payload.category or "Gym_Pro"
+        workout = payload.workout or "Strength Session"
+        xp = 80
+        
+        state = get_state() or {}
+        state["str"] = state.get("str", 10) + 2
+        state["wil"] = state.get("wil", 10) + 1
+        state["gym_completed"] = 1
+        save_state(state)
+        add_xp(xp)
+        
+        try:
+            from engine.energy_engine import EnergyEngine
+            EnergyEngine().apply_recovery("WORKOUT_RECOVERY", dur)
+        except Exception:
+            pass
+            
+        log_activity_file("Gym Workout Logged", f"Logged workout '{workout}' ({category}, {dur}m). Awarded +80 XP, +2 STR, +1 WIL.")
+        return {"status": "SUCCESS", "message": f"Gym Workout Logged! +80 XP, +2 STR, +1 WIL", "xp_earned": xp}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 
 
 

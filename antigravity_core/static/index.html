@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>Antigravity — Mission Control</title>
-<!-- Tailwind CSS v3 with Plugins -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <title>Antigravity — Mission Control</title>
+  <!-- Tailwind CSS v3 with Plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -33,634 +33,549 @@
       }
     };
   </script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<style data-purpose="custom-scroll-and-glass">
-    /* Custom subtle glass and edge animations */
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+  <style data-purpose="custom-scroll-and-glass">
     body {
       background-color: #06090f;
       color: #e2e8f0;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
-    ::-webkit-scrollbar {
-      width: 4px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #090e17;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 4px;
-    }
-    .neon-glow-cyan {
-      box-shadow: 0 0 16px -2px rgba(0, 229, 255, 0.35);
-    }
-    .neon-glow-emerald {
-      box-shadow: 0 0 16px -2px rgba(16, 185, 129, 0.4);
-    }
-    .neon-glow-amber {
-      box-shadow: 0 0 18px -3px rgba(245, 158, 11, 0.45);
-    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #090e17; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
     .sidebar-blur {
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       background: rgba(18, 24, 38, 0.92);
     }
   </style>
-<script src="/static/shared.js"></script>
 </head>
 <body class="font-sans antialiased text-slate-100 min-h-screen bg-[#07090e] pb-24 overflow-x-hidden relative">
 
-<!-- BEGIN: MobileStatusBar -->
+<!-- Mobile Status Header -->
 <header class="sticky top-0 z-40 bg-[#07090e]/95 backdrop-blur-md px-5 pt-3 pb-2 flex justify-between items-center text-xs text-slate-400 border-b border-slate-900/80">
-<div class="flex items-center space-x-2 font-mono font-medium tracking-tight text-slate-200">
-<span id="current-clock">14:24</span>
-<i class="fa-solid fa-cloud text-[10px] text-cyan-400/80"></i>
-<i class="fa-solid fa-bell text-[10px] text-slate-400"></i>
-</div>
-<div class="flex items-center space-x-2 text-[11px]">
-<span class="text-[10px] font-mono text-cyan-400" id="live-net-speed">18.9 KB/s</span>
-<span class="text-[9px] font-semibold text-slate-300 border border-slate-700 px-1 rounded">5G+</span>
-<i class="fa-solid fa-signal text-xs text-slate-200"></i>
-<i class="fa-solid fa-wifi text-xs text-slate-200"></i>
-<div class="flex items-center text-emerald-400 text-xs font-mono">
-<i class="fa-solid fa-battery-three-quarters text-sm"></i>
-</div>
-</div>
+  <div class="flex items-center space-x-2 font-mono font-medium tracking-tight text-slate-200">
+    <i class="fa-solid fa-rocket text-cyan-400 text-sm"></i>
+    <span class="font-bold text-white">Antigravity Workstation OS</span>
+  </div>
+  <div class="flex items-center space-x-2 text-[11px]">
+    <span class="text-[10px] font-mono text-cyan-400">ONLINE</span>
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+  </div>
 </header>
-<!-- END: MobileStatusBar -->
 
-<!-- BEGIN: MainContent -->
+<!-- Main Dashboard Container -->
 <main class="px-4 pt-3 space-y-4 max-w-md mx-auto relative">
-<!-- BEGIN: HeaderAndQuickTriggers -->
-<section class="space-y-3" data-purpose="mission-control-header">
-<div>
-<h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-<span>Mission Control</span>
-<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-</h1>
-<p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">
-          GATE 2028 DA • Machine Learning Engineer Track
-        </p>
-</div>
-<!-- Quick Action Buttons -->
-<div class="grid grid-cols-2 gap-2.5">
-<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95" id="sync-leetcode-btn" type="button">
-<i class="fa-solid fa-code text-[11px]"></i>
-<span id="leetcode-btn-label">Sync LeetCode</span>
-</button>
-<button class="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95" id="gym-complete-btn" type="button">
-<i class="fa-solid fa-dumbbell text-[11px]"></i>
-<span id="gym-btn-label">Gym Complete</span>
-</button>
-</div>
-</section>
-<!-- END: HeaderAndQuickTriggers -->
+  <!-- Mission Control Header -->
+  <section class="space-y-3" data-purpose="mission-control-header">
+    <div>
+      <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+        <span>Mission Control</span>
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      </h1>
+      <p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">
+        SOLO LEVELING • SYSTEM OPERATIONAL
+      </p>
+    </div>
 
-<!-- BEGIN: ActiveTargetProtocol -->
-<section class="relative rounded-2xl p-4 bg-gradient-to-br from-[#0c1424] via-[#0f172a] to-[#0a101d] border border-cyan-500/30 shadow-lg" data-purpose="active-target-banner">
-<div class="flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="w-9 h-9 rounded-xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-cyan-400 mt-0.5 shadow-inner">
-<i class="fa-solid fa-crosshairs text-base animate-spin-slow"></i>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<span class="text-[10px] tracking-wider uppercase font-mono font-bold text-cyan-400">ACTIVE TARGET PROTOCOL</span>
-<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 ring-2 ring-emerald-500/40"></span>
-</div>
-<h2 class="text-xs font-semibold text-slate-100 mt-1 leading-snug" id="target-title">
-              Study Calculus_Optimization: Calculus_Optimization_w1_v1 - L02: Differentiability Rules
-            </h2>
-<p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1" id="target-desc">
-              Product, Quotient, and Chain Rule Derivations from First Principles
-            </p>
-</div>
-</div>
-</div>
-<!-- Telemetry Meta Badges -->
-<div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-800/80 text-center font-mono">
-<div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
-<span class="block text-[9px] text-rose-400 uppercase">Drain Cost</span>
-<span class="text-xs font-bold text-slate-200" id="target-cost-val">-22 ENG</span>
-</div>
-<div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
-<span class="block text-[9px] text-emerald-400 uppercase">Target Gain</span>
-<span class="text-xs font-bold text-slate-200" id="target-gain-val">+65 XP</span>
-</div>
-<div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
-<span class="block text-[9px] text-amber-400 uppercase">Est. Clock</span>
-<span class="text-xs font-bold text-slate-200" id="target-clock-val">55 MIN</span>
-</div>
-</div>
-<!-- Engage Button -->
-<div class="mt-3 flex gap-2">
-<button class="flex-1 py-2 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" id="engageProtocolBtn" type="button">
-<i class="fa-solid fa-bolt-lightning text-xs text-cyan-400"></i>
-<span>Engage Protocol Now</span>
-<i class="fa-solid fa-chevron-right text-[10px] ml-auto"></i>
-</button>
-</div>
-</section>
-<!-- END: ActiveTargetProtocol -->
+    <!-- Active Quest Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-[#0e1628] to-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-lg relative overflow-hidden">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-crosshairs text-cyan-400 text-xs animate-spin" style="animation-duration: 4s;"></i>
+          <span class="text-[10px] font-mono font-bold tracking-widest text-cyan-300 uppercase">ACTIVE TARGET PROTOCOL</span>
+        </div>
+        <span class="text-[9px] font-mono bg-cyan-950/80 text-cyan-300 px-2 py-0.5 rounded border border-cyan-800/50">Priority 0</span>
+      </div>
+      <h2 class="text-sm font-semibold text-slate-100 leading-snug" id="active-quest-title">
+        Semester ML Track & DSA Optimization
+      </h2>
+      <div class="mt-2.5 grid grid-cols-2 gap-2 font-mono">
+        <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
+          <span class="block text-[9px] text-slate-400 uppercase">Target Reward</span>
+          <span class="text-xs font-bold text-emerald-400">+120 XP • +2 INT</span>
+        </div>
+        <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800">
+          <span class="block text-[9px] text-amber-400 uppercase">Est. Clock</span>
+          <span class="text-xs font-bold text-slate-200">55 MIN</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- BEGIN: PrimaryTabs -->
-<nav class="flex bg-[#0c121e] p-1 rounded-xl border border-slate-800/80 text-xs font-medium">
-<button class="flex-1 py-2 rounded-lg bg-[#141e33] text-cyan-400 shadow-sm flex items-center justify-center gap-2 font-semibold" id="tab-stats-btn" type="button">
-<i class="fa-solid fa-chart-simple text-xs"></i>
-<span>Stats</span>
-</button>
-<button class="flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2" id="tab-tasks-btn" type="button">
-<i class="fa-solid fa-list-check text-xs"></i>
-<span>Tasks</span>
-</button>
-</nav>
-<!-- END: PrimaryTabs -->
+  <!-- Dual Telemetry Engine Cards -->
+  <section class="space-y-4" data-purpose="telemetry-cards">
+    <!-- System Level & XP Card -->
+    <div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
+          <span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">SYSTEM LEVEL</span>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30" id="tier-badge">Tier Level 7</span>
+      </div>
+      <div class="flex flex-col items-center justify-center py-2 relative">
+        <div class="relative w-36 h-36 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" fill="none" r="48" stroke="#172238" stroke-width="9"></circle>
+            <circle class="transition-all duration-1000" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="120" stroke-linecap="round" stroke-width="9"></circle>
+            <defs>
+              <linearGradient id="levelGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6"></stop>
+                <stop offset="100%" stop-color="#8b5cf6"></stop>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center text-center">
+            <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400">LEVEL</span>
+            <span class="text-4xl font-black text-white tracking-tight" id="level-val">7</span>
+          </div>
+        </div>
+        <div class="w-full mt-3 space-y-2">
+          <div class="flex justify-between items-center text-xs font-mono">
+            <span class="text-cyan-400">XP: <span class="font-bold" id="xp-val">1707</span></span>
+            <span class="text-slate-500" id="xp-max">/ 2000</span>
+          </div>
+          <div class="w-full bg-slate-800/90 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-500" id="xp-progress-bar" style="width: 85%"></div>
+          </div>
+          <div class="flex justify-center items-center gap-1.5 pt-1 text-amber-400 text-xs font-semibold">
+            <i class="fa-solid fa-fire text-amber-500"></i>
+            <span id="streak-val">28 day streak</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- BEGIN: DualEngineCards -->
-<section class="space-y-4" data-purpose="telemetry-cards">
-<!-- System Level Card -->
-<div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
-<div class="flex items-center justify-between mb-3">
-<div class="flex items-center gap-2">
-<i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
-<span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">SYSTEM LEVEL</span>
-</div>
-<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30" id="tier-badge">Tier II Prodigy</span>
-</div>
-<!-- Radial Gauge for System Level 38 -->
-<div class="flex flex-col items-center justify-center py-2 relative">
-<div class="relative w-36 h-36 flex items-center justify-center">
-<svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-<circle cx="60" cy="60" fill="none" r="48" stroke="#172238" stroke-width="9"></circle>
-<circle class="transition-all duration-1000" id="level-ring-circle" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="135" stroke-linecap="round" stroke-width="9"></circle>
-<defs>
-<linearGradient id="levelGradient" x1="0%" x2="100%" y1="0%" y2="100%">
-<stop offset="0%" stop-color="#3b82f6"></stop>
-<stop offset="100%" stop-color="#8b5cf6"></stop>
-</linearGradient>
-</defs>
-</svg>
-<div class="absolute flex flex-col items-center justify-center text-center">
-<span class="text-[10px] font-mono uppercase tracking-widest text-slate-400">LEVEL</span>
-<span class="text-4xl font-black text-white tracking-tight" id="level-val">38</span>
-</div>
-</div>
-<!-- XP Details & Sub-bar -->
-<div class="w-full mt-3 space-y-2">
-<div class="flex justify-between items-center text-xs font-mono">
-<span class="text-cyan-400">XP: <span class="font-bold" id="xp-val">9832</span></span>
-<span class="text-slate-500" id="xp-max">/ 23424</span>
-</div>
-<div class="w-full bg-slate-800/90 h-1.5 rounded-full overflow-hidden">
-<div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-500" id="xp-progress-bar" style="width: 42%"></div>
-</div>
-<div class="flex justify-center items-center gap-1.5 pt-1 text-amber-400 text-xs font-semibold">
-<i class="fa-solid fa-fire text-amber-500"></i>
-<span id="streak-val">37 day streak</span>
-</div>
-</div>
-</div>
-</div>
+    <!-- Cognitive Energy Engine Card -->
+    <div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
+          <span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">COGNITIVE ENERGY ENGINE</span>
+        </div>
+        <span class="text-xs font-mono font-bold text-emerald-400" id="energy-pct-val">80%</span>
+      </div>
+      <div class="flex flex-col items-center justify-center py-2 relative">
+        <div class="relative w-32 h-32 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" fill="none" r="40" stroke="#162335" stroke-width="8"></circle>
+            <circle class="transition-all duration-1000" id="energy-ring-circle" cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="50" stroke-linecap="round" stroke-width="8"></circle>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center text-center">
+            <div class="w-11 h-11 rounded-full bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md">
+              <i class="fa-solid fa-brain text-xl"></i>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-400 font-bold mt-1" id="energy-mode-name">POWER MODE</span>
+          </div>
+        </div>
+        <div class="w-full mt-3 flex items-center justify-between text-xs px-2 pt-1 border-t border-slate-800/70">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-slate-300 font-mono text-[11px]" id="energy-capacity-tag">85 min Max Cap</span>
+          </div>
+          <div class="text-[10px] font-mono text-slate-400">
+            Blocks: <span class="text-emerald-400 font-bold" id="deep-blocks-tag">0 / 3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- Cognitive Energy Card -->
-<div class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 relative overflow-hidden shadow-md">
-<div class="flex items-center justify-between mb-3">
-<div class="flex items-center gap-2">
-<i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
-<span class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">COGNITIVE ENERGY</span>
-</div>
-<span class="text-xs font-mono font-bold text-emerald-400" id="energy-pct-val">80%</span>
-</div>
-<div class="flex flex-col items-center justify-center py-2 relative">
-<div class="relative w-32 h-32 flex items-center justify-center">
-<svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-<circle cx="50" cy="50" fill="none" r="40" stroke="#162335" stroke-width="8"></circle>
-<circle class="neon-glow-emerald transition-all duration-1000" id="energy-ring-circle" cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="50" stroke-linecap="round" stroke-width="8"></circle>
-</svg>
-<div class="absolute flex flex-col items-center justify-center text-center">
-<div class="w-11 h-11 rounded-full bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md">
-<i class="fa-solid fa-brain text-xl"></i>
-</div>
-<span class="text-[10px] font-mono text-emerald-400 font-bold mt-1" id="energy-mode-name">POWER MODE</span>
-</div>
-</div>
-<div class="w-full mt-3 flex items-center justify-between text-xs px-2 pt-1 border-t border-slate-800/70">
-<div class="flex items-center gap-1.5">
-<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-<span class="text-slate-300 font-mono text-[11px]" id="energy-capacity-tag">85 min Max Cap</span>
-</div>
-<div class="text-[10px] font-mono text-slate-400">
-              Blocks: <span class="text-emerald-400 font-bold" id="deep-blocks-tag">0 / 3</span>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- END: DualEngineCards -->
+  <!-- Bio-Telemetry Attributes Grid -->
+  <section class="space-y-2" data-purpose="bio-attributes">
+    <div class="flex items-center justify-between">
+      <h3 class="text-xs font-mono font-bold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+        <i class="fa-solid fa-dna text-cyan-400 text-xs"></i>
+        <span>BIO-TELEMETRY ATTRIBUTES</span>
+      </h3>
+      <span class="text-[10px] font-mono text-slate-500">Live Sync</span>
+    </div>
+    <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+      <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+        <div class="text-[10px] text-rose-400 flex justify-between items-center">
+          <span>STR</span><i class="fa-solid fa-hand-fist text-[10px]"></i>
+        </div>
+        <div class="text-base font-bold text-white mt-1" id="attr-str">10</div>
+        <div class="text-[9px] text-emerald-400 mt-0.5">+2 Gym</div>
+      </div>
+      <div class="bg-[#0b101d] border border-cyan-500/30 rounded-xl p-2.5">
+        <div class="text-[10px] text-cyan-400 flex justify-between items-center">
+          <span>INT</span><i class="fa-solid fa-microchip text-[10px]"></i>
+        </div>
+        <div class="text-base font-bold text-cyan-200 mt-1" id="attr-int">10</div>
+        <div class="text-[9px] text-cyan-400 mt-0.5">Core Stat</div>
+      </div>
+      <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+        <div class="text-[10px] text-amber-400 flex justify-between items-center">
+          <span>AGI</span><i class="fa-solid fa-person-running text-[10px]"></i>
+        </div>
+        <div class="text-base font-bold text-white mt-1" id="attr-agi">10</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">Agility</div>
+      </div>
+      <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+        <div class="text-[10px] text-purple-400 flex justify-between items-center">
+          <span>WIL</span><i class="fa-solid fa-shield-halved text-[10px]"></i>
+        </div>
+        <div class="text-base font-bold text-white mt-1" id="attr-wil">10</div>
+        <div class="text-[9px] text-purple-400 mt-0.5">Willpower</div>
+      </div>
+      <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+        <div class="text-[10px] text-rose-500 flex justify-between items-center">
+          <span>HRT</span><i class="fa-solid fa-heart-pulse text-[10px]"></i>
+        </div>
+        <div class="text-base font-bold text-white mt-1" id="attr-hrt">72 bpm</div>
+        <div class="text-[9px] text-emerald-400 mt-0.5">Resting</div>
+      </div>
+      <div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
+        <div class="text-[10px] text-blue-400 flex justify-between items-center">
+          <span>STC</span><i class="fa-solid fa-battery-half text-[10px]"></i>
+        </div>
+        <div class="text-base font-bold text-white mt-1" id="attr-stc">10</div>
+        <div class="text-[9px] text-blue-400 mt-0.5">Stoic</div>
+      </div>
+    </div>
+  </section>
 
-<!-- BEGIN: AttributesGrid -->
-<section class="space-y-2" data-purpose="bio-attributes">
-<div class="flex items-center justify-between">
-<h3 class="text-xs font-mono font-bold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
-<i class="fa-solid fa-dna text-cyan-400 text-xs"></i>
-<span>BIO-TELEMETRY ATTRIBUTES</span>
-</h3>
-<span class="text-[10px] font-mono text-slate-500">Sync: Real-time</span>
-</div>
-<div class="grid grid-cols-3 gap-2 text-xs font-mono">
-<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
-<div class="text-[10px] text-rose-400 flex justify-between items-center">
-<span>STR</span>
-<i class="fa-solid fa-hand-fist text-[10px]"></i>
-</div>
-<div class="text-base font-bold text-white mt-1" id="attr-str">2,811</div>
-<div class="text-[9px] text-emerald-400 flex items-center gap-0.5 mt-0.5">
-<i class="fa-solid fa-arrow-trend-up text-[8px]"></i> +14 today
-</div>
-</div>
-<div class="bg-[#0b101d] border border-cyan-500/30 rounded-xl p-2.5 relative">
-<div class="text-[10px] text-cyan-400 flex justify-between items-center">
-<span>INT</span>
-<i class="fa-solid fa-microchip text-[10px]"></i>
-</div>
-<div class="text-base font-bold text-cyan-200 mt-1" id="attr-int">7,265</div>
-<div class="text-[9px] text-cyan-400 flex items-center gap-0.5 mt-0.5">
-<i class="fa-solid fa-arrow-trend-up text-[8px]"></i> Core Stat
-</div>
-</div>
-<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
-<div class="text-[10px] text-amber-400 flex justify-between items-center">
-<span>AGI</span>
-<i class="fa-solid fa-person-running text-[10px]"></i>
-</div>
-<div class="text-base font-bold text-white mt-1" id="attr-agi">3,022</div>
-<div class="text-[9px] text-slate-400 flex items-center gap-0.5 mt-0.5">Stable</div>
-</div>
-<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
-<div class="text-[10px] text-purple-400 flex justify-between items-center">
-<span>WIL</span>
-<i class="fa-solid fa-shield-halved text-[10px]"></i>
-</div>
-<div class="text-base font-bold text-white mt-1" id="attr-wil">1,687</div>
-<div class="text-[9px] text-purple-400 flex items-center gap-0.5 mt-0.5">
-<i class="fa-solid fa-arrow-trend-up text-[8px]"></i> +2 streak
-</div>
-</div>
-<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
-<div class="text-[10px] text-rose-500 flex justify-between items-center">
-<span>HRT</span>
-<i class="fa-solid fa-heart-pulse text-[10px]"></i>
-</div>
-<div class="text-base font-bold text-white mt-1" id="attr-hrt">76 <span class="text-[10px] font-normal text-slate-400">bpm</span></div>
-<div class="text-[9px] text-emerald-400 mt-0.5">Resting</div>
-</div>
-<div class="bg-[#0b101d] border border-slate-800/80 rounded-xl p-2.5">
-<div class="text-[10px] text-blue-400 flex justify-between items-center">
-<span>STC</span>
-<i class="fa-solid fa-battery-half text-[10px]"></i>
-</div>
-<div class="text-base font-bold text-white mt-1" id="attr-stc">136</div>
-<div class="text-[9px] text-blue-400 mt-0.5">Ready</div>
-</div>
-</div>
-</section>
-<!-- END: AttributesGrid -->
+  <!-- Complete 10-Item Daily Accountability Checklist -->
+  <section class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 space-y-3" data-purpose="daily-accountability">
+    <div class="flex justify-between items-center pb-1 border-b border-slate-800/80">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-indigo-400 text-xs"></i>
+        <h3 class="text-xs font-mono font-bold tracking-wide text-slate-200 uppercase">
+          DAILY ACCOUNTABILITY CHECKLIST (10 TASKS)
+        </h3>
+      </div>
+      <a class="text-[11px] font-semibold text-amber-400 flex items-center gap-1 hover:text-amber-300" href="/task-streaks">
+        <i class="fa-solid fa-fire text-xs"></i>
+        <span>STREAKS</span>
+      </a>
+    </div>
 
-<!-- BEGIN: UniversalSanctuaryPass -->
-<section class="bg-[#0b111e] border border-slate-800/90 rounded-2xl p-4 shadow-sm relative" data-purpose="sanctuary-pass-card">
-<div class="flex items-start gap-3">
-<div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0">
-<i class="fa-solid fa-shield-halved text-lg"></i>
-</div>
-<div>
-<h3 class="text-xs font-semibold text-white">Universal Monthly Sanctuary Passes</h3>
-<p class="text-[10px] text-slate-400 leading-tight mt-0.5">
-            2 passes per calendar month • Freeze streaks &amp; avoid burnout
-          </p>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-2 mt-3.5 items-center">
-<div class="bg-[#121a2d] border border-amber-500/40 rounded-xl py-2 px-3 text-center">
-<span class="text-xs font-mono font-bold text-amber-400" id="sanctuary-count">2 / 2 Available</span>
-</div>
-<button class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all" id="activate-sanctuary-btn" type="button">
-<i class="fa-solid fa-shield text-[10px]"></i>
-<span>Activate Sanctuary</span>
-</button>
-</div>
-</section>
-<!-- END: UniversalSanctuaryPass -->
+    <div class="space-y-2" id="daily-checklist-container">
+      <!-- Task 1: Study Target -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-study">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">1. Daily Study Target</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Auto: Complete Syllabus Module (+65 XP, +1 INT)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+65 XP</span>
+      </div>
 
-<!-- BEGIN: DailyChecklist -->
-<section class="bg-[#0b101c] border border-slate-800/90 rounded-2xl p-4 space-y-3" data-purpose="daily-accountability">
-<div class="flex justify-between items-center pb-1 border-b border-slate-800/80">
-<div class="flex items-center gap-2">
-<i class="fa-solid fa-list-check text-indigo-400 text-xs"></i>
-<h3 class="text-xs font-mono font-bold tracking-wide text-slate-200 uppercase">
-            DAILY ACCOUNTABILITY CHECKLIST
-          </h3>
-</div>
-<a class="text-[11px] font-semibold text-amber-400 flex items-center gap-1 hover:text-amber-300" href="/task-streaks">
-<i class="fa-solid fa-fire text-xs"></i>
-<span>VIEW STREAKS</span>
-<i class="fa-solid fa-arrow-right text-[9px]"></i>
-</a>
-</div>
+      <!-- Task 2: LeetCode Problem -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-leetcode">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">2. Daily LeetCode Problem</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Auto: Sync Solved Count (+30 XP, +1 STR)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+30 XP</span>
+      </div>
 
-<div class="space-y-2" id="checklist-container">
-<!-- Item 1 (Auto-checked Study Target) -->
-<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
-<i class="fa-solid fa-check text-xs"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Daily Study Target</h4>
-<p class="text-[10px] font-mono text-slate-400">Auto: Complete Syllabus Item</p>
-</div>
-</div>
-<span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">
-          +65 XP
-        </span>
-</div>
-<!-- Item 2 (Auto-checked LeetCode) -->
-<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
-<i class="fa-solid fa-check text-xs"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Daily LeetCode Problem</h4>
-<p class="text-[10px] font-mono text-slate-400">Auto: Sync solved count</p>
-</div>
-</div>
-<span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">
-          +30 XP
-        </span>
-</div>
-<!-- Item 3 (Auto-checked Gym) -->
-<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
-<i class="fa-solid fa-check text-xs"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Daily Gym/Physical Target</h4>
-<p class="text-[10px] font-mono text-slate-400">Auto: Log Workout or Gym Check-in</p>
-</div>
-</div>
-<span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">
-          +80 XP
-        </span>
-</div>
-<!-- Item 4 (Daily English) -->
-<div class="bg-[#111726] border border-indigo-900/40 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
-<i class="fa-solid fa-check text-xs"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Daily English &amp; Translation Booster</h4>
-<p class="text-[10px] font-mono text-slate-400">Auto: Spend 5 min on English page under AI Surveillance</p>
-</div>
-</div>
-</div>
-<!-- Item 5 (Manual Meal Prep) -->
-<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center text-transparent shrink-0">
-<i class="fa-solid fa-check text-xs"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Home Cooking / Meal Prep</h4>
-<p class="text-[10px] font-mono text-slate-400">Manual: +10 XP</p>
-</div>
-</div>
-<div class="flex items-center text-amber-400 text-xs font-bold gap-1">
-<i class="fa-solid fa-fire text-xs"></i>
-<span>3</span>
-</div>
-</div>
-<!-- Item 6 (NoPMO Discipline) -->
-<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center text-transparent shrink-0">
-<i class="fa-solid fa-check text-xs"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">NoPMO Discipline</h4>
-<p class="text-[10px] font-mono text-slate-400">Manual: +15 XP, +1 WIL</p>
-</div>
-</div>
-<div class="flex items-center text-amber-400 text-xs font-bold gap-1">
-<i class="fa-solid fa-fire text-xs"></i>
-<span>3</span>
-</div>
-</div>
-<!-- Item 7 (Daily Reading) -->
-<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Daily Reading</h4>
-<p class="text-[10px] font-mono text-slate-400">Manual: +10 XP, +1 INT (Click to Log Pages)</p>
-</div>
-</div>
-</div>
-<!-- Item 8: Google Health & Walking Sync -->
-<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-lg bg-teal-950/60 border border-teal-600/40 flex items-center justify-center text-teal-400">
-<i class="fa-solid fa-person-walking text-base"></i>
-</div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Google Health &amp; Walking Sync</h4>
-<p class="text-[10px] font-mono text-slate-400">Auto/Cloud: Steps, Sleep, Active Mins &amp; HR</p>
-</div>
-</div>
-<button class="px-2.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[11px] font-semibold rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition-transform" id="sync-fit-btn" type="button">
-<i class="fa-solid fa-rotate text-[10px]"></i>
-<span>Sync Fit</span>
-</button>
-</div>
-<!-- Item 9: 5-Min Focused Meditation -->
-<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">5-Min Focused Meditation</h4>
-<p class="text-[10px] font-mono text-slate-400">Daily Protocol: +20 XP, +2 STC, +1 WIL</p>
-</div>
-</div>
-<span class="text-[9px] font-mono text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">Mind</span>
-</div>
-<!-- Item 10: Semester ML Track -->
-<div class="bg-[#101524] border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-3">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 shrink-0"></div>
-<div>
-<h4 class="text-xs font-semibold text-slate-200">Semester ML Track</h4>
-<p class="text-[10px] font-mono text-slate-400">Wk 4/12 Assignment • Due 23:59</p>
-</div>
-</div>
-<span class="text-[9px] font-mono text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded">Priority</span>
-</div>
-</div>
-</section>
-<!-- END: DailyChecklist -->
+      <!-- Task 3: Gym Physical Target -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-gym">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">3. Daily Gym/Physical Target</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Auto: Log Workout or Gym Check-in (+80 XP, +2 STR)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+80 XP</span>
+      </div>
+
+      <!-- Task 4: English Practice -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-english">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">4. Daily English & Translation Booster</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">5 min English practice (+20 XP, +1 INT)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+20 XP</span>
+      </div>
+
+      <!-- Task 5: Cooking / Meal Prep -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-cooking">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">5. Home Cooking / Meal Prep</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Manual: Nutrition (+10 XP, +12 E)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+10 XP</span>
+      </div>
+
+      <!-- Task 6: NoPMO Discipline -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-nopmo">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">6. NoPMO Discipline</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Manual: Discipline (+15 XP, +1 WIL)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+15 XP</span>
+      </div>
+
+      <!-- Task 7: Daily Reading (Book Log Modal) -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-reading">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">7. Daily Reading</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Click to Log Book & Pages Read (+10 XP, +1 INT)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/30">+10 XP</span>
+      </div>
+
+      <!-- Task 8: Google Health & Walking Sync -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 opacity-80 border-slate-800 bg-[#101524]" id="chk-fit">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">8. Google Health & Walking Sync</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Steps: <span id="fit-steps-val">0</span> | <span id="fit-dist-val">0.0 km</span> | Sleep: <span id="fit-sleep-val">7.5 hrs</span></p>
+          </div>
+        </div>
+        <button class="px-2 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[10px] font-semibold rounded-lg shadow-sm flex items-center gap-1 active:scale-95 transition-transform" id="sync-fit-btn" type="button">
+          <i class="fa-solid fa-rotate text-[9px]"></i><span>Sync Fit</span>
+        </button>
+      </div>
+
+      <!-- Task 9: 5-Min Focused Meditation -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-meditation">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">9. 5-Min Focused Meditation</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Daily Protocol (+20 XP, +2 STC, +1 WIL, +8 E)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">Mind</span>
+      </div>
+
+      <!-- Task 10: Semester ML Track -->
+      <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-semester">
+        <div class="flex items-center gap-3">
+          <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+            <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">10. Semester ML Track</h4>
+            <p class="chk-sub text-[10px] font-mono text-slate-400">Canvas Week Assignment Due 23:59 (+50 XP)</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded">Priority</span>
+      </div>
+    </div>
+  </section>
 </main>
-<!-- END: MainContent -->
 
-<!-- BEGIN: SmartFloatingSidebar -->
+<!-- Smart Floating Side Dock for Energy Management -->
 <aside class="fixed right-2 top-24 z-50 flex items-center select-none" data-purpose="smart-sidebar-dock">
-<div class="sidebar-blur rounded-2xl border border-slate-700/60 shadow-2xl p-2 flex flex-col items-center gap-3 w-12 py-3.5 transition-all transform duration-200">
-<button class="w-8 h-8 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center shadow hover:scale-105 active:scale-95 transition-transform" title="Select Cursor">
-<i class="fa-solid fa-arrow-pointer text-xs"></i>
-</button>
-<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Focus Target Region">
-<i class="fa-regular fa-square text-xs"></i>
-</button>
-<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Quick Notes">
-<i class="fa-solid fa-pencil text-xs text-amber-300"></i>
-</button>
-<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Canvas Pan">
-<i class="fa-regular fa-hand text-xs"></i>
-</button>
-<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Snapshot Canvas">
-<i class="fa-regular fa-image text-xs"></i>
-</button>
-<div class="w-6 h-[1px] bg-slate-700/80 my-0.5"></div>
-<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Color Palette">
-<i class="fa-solid fa-palette text-xs text-cyan-400"></i>
-</button>
-<button class="w-8 h-8 rounded-xl text-slate-300 hover:text-amber-400 hover:bg-slate-800/80 flex items-center justify-center transition-colors" title="Sanctuary Star">
-<i class="fa-regular fa-star text-xs"></i>
-</button>
-<button class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/70 text-slate-300 hover:text-white flex items-center justify-center mt-1 active:scale-90 transition-all" title="Toggle Dock">
-<i class="fa-solid fa-chevron-left text-[11px]"></i>
-</button>
-</div>
+  <div class="sidebar-blur rounded-2xl border border-slate-700/60 shadow-2xl p-2 flex flex-col items-center gap-2.5 w-12 py-3 transition-all duration-200" id="dock-container">
+    <!-- Live Energy Pool Readout -->
+    <button class="w-8 h-8 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-400 flex flex-col items-center justify-center shadow hover:scale-105 active:scale-95 transition-transform" id="dock-energy-btn" title="Cognitive Energy Pool Status">
+      <i class="fa-solid fa-bolt text-[11px]"></i>
+    </button>
+    <!-- Task Energy Calculator Sizer -->
+    <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-cyan-300 hover:bg-slate-800/80 flex items-center justify-center transition-colors" id="dock-sizer-btn" title="Task Energy Cost Calculator Sizer">
+      <i class="fa-solid fa-calculator text-xs"></i>
+    </button>
+    <!-- Quick Rest (+15 E) -->
+    <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-emerald-300 hover:bg-slate-800/80 flex items-center justify-center transition-colors" id="dock-rest-btn" title="20-Min Power Nap (+15 Energy)">
+      <i class="fa-solid fa-bed text-xs"></i>
+    </button>
+    <!-- Sleep Reset Rollover -->
+    <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-amber-300 hover:bg-slate-800/80 flex items-center justify-center transition-colors" id="dock-sleep-btn" title="Execute Sleep Reset Rollover">
+      <i class="fa-solid fa-moon text-xs"></i>
+    </button>
+    <!-- Energy Ledger History -->
+    <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-purple-300 hover:bg-slate-800/80 flex items-center justify-center transition-colors" id="dock-ledger-btn" title="View Energy Ledger History">
+      <i class="fa-solid fa-receipt text-xs"></i>
+    </button>
+    <div class="w-6 h-[1px] bg-slate-700/80 my-0.5"></div>
+    <!-- Dock Collapse Toggle -->
+    <button class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/70 text-slate-300 hover:text-white flex items-center justify-center active:scale-90 transition-all" id="dock-toggle-btn" title="Toggle Sidebar">
+      <i class="fa-solid fa-chevron-left text-[11px]"></i>
+    </button>
+  </div>
 </aside>
-<!-- END: SmartFloatingSidebar -->
 
-<!-- BEGIN: BottomNavigation -->
-<footer class="fixed bottom-0 left-0 right-0 z-40 bg-[#070b14]/95 backdrop-blur-lg border-t border-slate-800/90 max-w-md mx-auto" data-purpose="mobile-bottom-navigation">
-<nav class="flex items-center justify-around py-2 px-1">
-<a class="flex flex-col items-center text-cyan-400 px-3 py-1 group" href="/">
-<div class="relative">
-<i class="fa-solid fa-gauge-high text-lg"></i>
-<span class="absolute -top-1 -right-1.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-sm"></span>
+<!-- MODALS -->
+
+<!-- 1. Reading Book Log Modal -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4" id="reading-modal">
+  <div class="bg-[#0e1422] border border-slate-700/80 rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-book-open text-amber-400"></i>
+        <span>Log Book Reading Session</span>
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('reading-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="reading-form" class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Book Title</label>
+        <input type="text" id="rd-title" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none" placeholder="e.g. Designing Data-Intensive Applications" required/>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[11px] font-mono text-slate-400 mb-1">From Page</label>
+          <input type="number" id="rd-from" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none" value="1" min="1"/>
+        </div>
+        <div>
+          <label class="block text-[11px] font-mono text-slate-400 mb-1">To Page</label>
+          <input type="number" id="rd-to" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none" value="15" min="1"/>
+        </div>
+      </div>
+      <button type="submit" class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold text-xs rounded-xl shadow-md transition-transform active:scale-95">
+        Log Reading (+2 XP per page, +1 INT)
+      </button>
+    </form>
+  </div>
 </div>
-<span class="text-[10px] font-semibold tracking-tight mt-1">Dashboard</span>
-</a>
-<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/canvas">
-<i class="fa-solid fa-graduation-cap text-lg group-hover:scale-110 transition-transform"></i>
-<span class="text-[10px] font-medium tracking-tight mt-1">Canvas</span>
-</a>
-<a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-3 py-1 group transition-colors" href="/gym-pro">
-<i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
-<span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Gym Pro</span>
-</a>
-<a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-3 py-1 group transition-colors" href="/mind-os">
-<i class="fa-solid fa-brain text-lg group-hover:scale-110 transition-transform"></i>
-<span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Mind OS</span>
-</a>
-<a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/system">
-<i class="fa-solid fa-bars text-lg group-hover:scale-110 transition-transform"></i>
-<span class="text-[10px] font-medium tracking-tight mt-1">More</span>
-</a>
-</nav>
+
+<!-- 2. Task Energy Calculator Sizer Modal -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4" id="energy-sizer-modal">
+  <div class="bg-[#0e1422] border border-slate-700/80 rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-calculator text-cyan-400"></i>
+        <span>Task Energy Cost Calculator Sizer</span>
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('energy-sizer-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="sizer-form" class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Task Category</label>
+        <select id="sz-category" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-cyan-400 focus:outline-none">
+          <option value="Machine_Learning">Machine Learning (Friction 2.8)</option>
+          <option value="DSA_LeetCode">DSA / LeetCode (Friction 2.8)</option>
+          <option value="Linear_Algebra">Linear Algebra (Friction 2.5)</option>
+          <option value="Gym_Pro">Gym Pro Workout (Friction 3.5)</option>
+          <option value="Canvas_Lecture">Canvas Lecture (Friction 1.2)</option>
+          <option value="Mind_OS">Mind OS Journaling (Friction 0.8)</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[11px] font-mono text-slate-400 mb-1">Duration (Mins)</label>
+          <input type="number" id="sz-duration" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-cyan-400 focus:outline-none" value="45" min="10" max="180"/>
+        </div>
+        <div>
+          <label class="block text-[11px] font-mono text-slate-400 mb-1">Difficulty (1-10)</label>
+          <input type="number" id="sz-difficulty" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-cyan-400 focus:outline-none" value="7" min="1" max="10"/>
+        </div>
+      </div>
+      <button type="submit" class="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-xs rounded-xl shadow-md transition-transform active:scale-95">
+        Engage Protocol & Consume Energy
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 3. Energy Ledger History Modal -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4" id="energy-ledger-modal">
+  <div class="bg-[#0e1422] border border-slate-700/80 rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-receipt text-purple-400"></i>
+        <span>Energy Ledger History</span>
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('energy-ledger-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="space-y-2 max-h-64 overflow-y-auto pr-1" id="energy-ledger-list">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<!-- 4. Gym Workout Logger Modal -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4" id="gym-modal">
+  <div class="bg-[#0e1422] border border-slate-700/80 rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-dumbbell text-amber-400"></i>
+        <span>Log Gym Workout</span>
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('gym-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="gym-form" class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Workout Title</label>
+        <input type="text" id="gym-workout-title" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none" value="Upper Body Hypertrophy" required/>
+      </div>
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Duration (Minutes)</label>
+        <input type="number" id="gym-workout-duration" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none" value="45" min="15" max="180"/>
+      </div>
+      <button type="submit" class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold text-xs rounded-xl shadow-md transition-transform active:scale-95">
+        Log Workout (+80 XP, +2 STR, +1 WIL)
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Bottom Navigation Footer -->
+<footer class="fixed bottom-0 left-0 right-0 z-40 bg-[#070b14]/95 backdrop-blur-lg border-t border-slate-800/90 max-w-md mx-auto" data-purpose="mobile-bottom-navigation">
+  <nav class="flex items-center justify-around py-2 px-1">
+    <a class="flex flex-col items-center text-cyan-400 px-3 py-1 group" href="/">
+      <div class="relative">
+        <i class="fa-solid fa-gauge-high text-lg"></i>
+        <span class="absolute -top-1 -right-1.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-sm"></span>
+      </div>
+      <span class="text-[10px] font-semibold tracking-tight mt-1">Dashboard</span>
+    </a>
+    <a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/canvas">
+      <i class="fa-solid fa-graduation-cap text-lg group-hover:scale-110 transition-transform"></i>
+      <span class="text-[10px] font-medium tracking-tight mt-1">Canvas</span>
+    </a>
+    <a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-3 py-1 group transition-colors" href="/gym-pro">
+      <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
+      <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Gym Pro</span>
+    </a>
+    <a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-3 py-1 group transition-colors" href="/mind-os">
+      <i class="fa-solid fa-brain text-lg group-hover:scale-110 transition-transform"></i>
+      <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Mind OS</span>
+    </a>
+    <a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/system">
+      <i class="fa-solid fa-bars text-lg group-hover:scale-110 transition-transform"></i>
+      <span class="text-[10px] font-medium tracking-tight mt-1">More</span>
+    </a>
+  </nav>
 </footer>
-<!-- END: BottomNavigation -->
 
-<!-- Energy Engine Live Integration Script -->
-<script>
-  (function() {
-    async function syncEnergyTelemetry() {
-      try {
-        const resp = await fetch('/api/energy/state');
-        if (!resp.ok) return;
-        const data = await resp.json();
-
-        // Update Cognitive Energy Card
-        const energyPctVal = document.getElementById('energy-pct-val');
-        const energyModeName = document.getElementById('energy-mode-name');
-        const energyCapTag = document.getElementById('energy-capacity-tag');
-        const deepBlocksTag = document.getElementById('deep-blocks-tag');
-        const energyRingCircle = document.getElementById('energy-ring-circle');
-
-        if (energyPctVal) energyPctVal.textContent = `${data.current_energy}%`;
-        if (energyModeName) energyModeName.textContent = `${data.tier} MODE`;
-        if (energyCapTag) energyCapTag.textContent = `${data.max_task_capacity_minutes} min Max Cap`;
-        if (deepBlocksTag) deepBlocksTag.textContent = `${data.deep_work_blocks_used} / 3`;
-
-        if (energyRingCircle) {
-          const strokeOffset = 251.2 - (251.2 * (data.current_energy / 100.0));
-          energyRingCircle.setAttribute('stroke-dashoffset', strokeOffset.toFixed(1));
-        }
-      } catch(e) {
-        console.log('Energy telemetry sync note:', e);
-      }
-    }
-
-    // Interactive Action Handlers
-    document.getElementById('engageProtocolBtn')?.addEventListener('click', async function() {
-      try {
-        const r = await fetch('/api/energy/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: 'Machine_Learning', duration_minutes: 55, difficulty: 8 })
-        });
-        const d = await r.json();
-        if (r.ok && d.status === 'SUCCESS') {
-          syncEnergyTelemetry();
-          if (window.toast) window.toast(`Engaged Protocol! -${d.energy_cost} E | +${d.xp_minted} XP`, 'ok');
-          else alert(`Engaged Protocol! -${d.energy_cost} E | +${d.xp_minted} XP`);
-        } else if (d.detail) {
-          alert(d.detail);
-        }
-      } catch(e) { console.error(e); }
-    });
-
-    document.getElementById('sync-leetcode-btn')?.addEventListener('click', async function() {
-      const lbl = document.getElementById('leetcode-btn-label');
-      if (lbl) lbl.textContent = 'Syncing...';
-      try {
-        const r = await fetch('/api/energy/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: 'DSA_LeetCode', duration_minutes: 30, difficulty: 7 })
-        });
-        const d = await r.json();
-        if (lbl) lbl.textContent = '+1 SOLVED!';
-        syncEnergyTelemetry();
-        setTimeout(() => { if (lbl) lbl.textContent = 'Sync LeetCode'; }, 1500);
-      } catch(e) {
-        if (lbl) lbl.textContent = 'Sync LeetCode';
-      }
-    });
-
-    document.getElementById('gym-complete-btn')?.addEventListener('click', async function() {
-      const lbl = document.getElementById('gym-btn-label');
-      if (lbl) lbl.textContent = 'Logging...';
-      try {
-        const r = await fetch('/api/energy/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: 'Gym_Pro', duration_minutes: 45, difficulty: 8 })
-        });
-        const d = await r.json();
-        if (lbl) lbl.textContent = '+80 XP LOGGED!';
-        syncEnergyTelemetry();
-        setTimeout(() => { if (lbl) lbl.textContent = 'Gym Complete'; }, 1500);
-      } catch(e) {
-        if (lbl) lbl.textContent = 'Gym Complete';
-      }
-    });
-
-    syncEnergyTelemetry();
-  })();
-</script>
+<!-- External Controller Scripts -->
+<script src="/static/shared.js"></script>
+<script src="/static/dashboard_controller.js"></script>
 </body>
 </html>

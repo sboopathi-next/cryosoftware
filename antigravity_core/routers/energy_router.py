@@ -44,3 +44,8 @@ def apply_restoration(payload: RecoveryPayload):
 @router.post("/rollover")
 def execute_midnight_reset(payload: SleepRolloverPayload):
     return engine.midnight_fatigue_rollover(payload.sleep_hours)
+
+@router.get("/ledger")
+def get_energy_ledger(limit: int = 10):
+    return engine.get_recent_ledger(limit=limit)
+

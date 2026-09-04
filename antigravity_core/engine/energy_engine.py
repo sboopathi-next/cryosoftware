@@ -315,6 +315,38 @@ class EnergyEngine:
             "tier": tier
         }
 
+    def get_recent_ledger(self, limit: int = 10) -> list:
+        ledger = []
+        try:
+            conn, db_type = self._get_connection()
+            cursor = conn.cursor()
+            if db_type == "pg":
+                cursor.execute("""
+                    SELECT transaction_id, transaction_type, category, magnitude, energy_before, energy_after, associated_quest_id, logged_at
+                    FROM energy_ledger ORDER BY transaction_id DESC LIMIT %s
+                """, (limit,))
+                rows = cursor.fetchall()
+                for r in rows:
+                    ledger.append({
+                        "transaction_id": r[0], "transaction_type": r[1], "category": r[2],
+                        "magnitude": r[3], "energy_before": r[4], "energy_after": r[5],
+                        "associated_quest_id": r[6], "logged_at": str(r[7])
+                    })
+            else:
+                conn.row_factory = sqlite3.Row
+                c2 = conn.cursor()
+                c2.execute("""
+                    SELECT transaction_id, transaction_type, category, magnitude, energy_before, energy_after, associated_quest_id, logged_at
+                    FROM energy_ledger ORDER BY transaction_id DESC LIMIT ?
+                """, (limit,))
+                rows = c2.fetchall()
+                for r in rows:
+                    ledger.append(dict(r))
+            conn.close()
+        except Exception as e:
+            print("[EnergyEngine] Ledger fetch error:", e)
+        return ledger
+
     def _ensure_tables_exist(self):
         try:
             conn, db_type = self._get_connection()

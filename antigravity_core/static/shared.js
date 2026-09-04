@@ -818,7 +818,7 @@ window.syncGoogleFitCloudManual = syncGoogleFitCloudManual;
 
 // ── Mobile Bottom Nav & Sheet Injection ───────────────────────
 function injectMobileNavigation() {
-  if (document.querySelector('.mobile-bottom-nav')) return;
+  if (document.querySelector('.mobile-bottom-nav') || document.querySelector('[data-purpose="mobile-bottom-navigation"]') || document.querySelector('footer')) return;
   if (!document.body) {
     document.addEventListener('DOMContentLoaded', injectMobileNavigation);
     return;
