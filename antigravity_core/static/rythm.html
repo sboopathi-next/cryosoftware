@@ -560,6 +560,9 @@
 
     // Trigger Milestone Call
     window.triggerMilestone = async function(id) {
+      // Synchronous sound & haptic trigger directly inside gesture event loop
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+
       // Optimistic Card Transition to Green
       const cardEl = document.getElementById(`card-${id}`);
       if (cardEl) {
@@ -570,11 +573,9 @@
         const r = await fetch(`/api/routine/trigger/${id}`, { method: 'POST' });
         const d = await r.json();
         if (r.ok && d.status === 'SUCCESS') {
-          if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
           showToast(`PUNCTUALITY SYNCHRONIZED: +${d.xp_awarded} XP MINTED! (${d.stat_boost})`, d.delay_hours);
           fetchRoutineStatus();
         } else {
-          if (window.triggerDopamineSurge) window.triggerDopamineSurge('error');
           showToast(d.message || 'Milestone trigger failed', 0, true);
           fetchRoutineStatus();
         }

@@ -229,14 +229,8 @@ class RoutineEngine:
         sched_dt = datetime.datetime.combine(now.date(), datetime.time(hour, minute))
         delay_sec = (now - sched_dt).total_seconds()
 
-        # Check 15-minute early window
-        if delay_sec < -900:
-            return {
-                "status": "TOO_EARLY",
-                "message": f"Cannot trigger '{name}' earlier than 15 mins before scheduled time ({sched_time_str})."
-            }
-        elif delay_sec < 0:
-            # Within 15 min early grace window
+        # Calculate delay hours (0.0 if on or before scheduled time)
+        if delay_sec <= 0:
             delay_hours = 0.0
         else:
             delay_hours = delay_sec / 3600.0
