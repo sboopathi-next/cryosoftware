@@ -3371,6 +3371,52 @@ def api_health_sync_google_fit():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/health_sync/debug")
+def api_health_sync_debug():
+    """Returns exact diagnostic info: env vars, auth status, last DB entry. Visit in browser to debug."""
+    import os
+    diag = {
+        "env": {
+            "GOOGLE_FIT_CLIENT_ID": "SET" if os.getenv("GOOGLE_FIT_CLIENT_ID") else "MISSING",
+            "GOOGLE_FIT_CLIENT_SECRET": "SET" if os.getenv("GOOGLE_FIT_CLIENT_SECRET") else "MISSING",
+            "GOOGLE_FIT_REFRESH_TOKEN": "SET" if os.getenv("GOOGLE_FIT_REFRESH_TOKEN") else "MISSING",
+            "DATABASE_URL": "SET" if os.getenv("DATABASE_URL") else "MISSING",
+        },
+        "auth_check": None,
+        "db_check": None,
+        "last_health_record": None,
+    }
+    # Auth check
+    try:
+        try:
+            from antigravity_core.engine.google_fit_sync import get_fit_service
+        except ImportError:
+            from engine.google_fit_sync import get_fit_service
+        service, err = get_fit_service()
+        diag["auth_check"] = "OK - Google Fit service built successfully" if service else f"FAILED: {err}"
+    except Exception as e:
+        diag["auth_check"] = f"EXCEPTION: {e}"
+
+    # DB check
+    try:
+        try:
+            from antigravity_core.engine.database import get_db_connection
+        except ImportError:
+            from engine.database import get_db_connection
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT log_date, steps, distance_km FROM health_log ORDER BY log_date DESC LIMIT 1")
+        row = cur.fetchone()
+        diag["db_check"] = "OK"
+        diag["last_health_record"] = {"log_date": str(row[0]), "steps": row[1], "distance_km": float(row[2])} if row else "No records yet"
+        conn.close()
+    except Exception as e:
+        diag["db_check"] = f"FAILED: {e}"
+
+    return diag
+
+
+
 @app.get("/api/health_sync/reauth")
 @app.post("/api/health_sync/reauth")
 def api_health_sync_reauth():

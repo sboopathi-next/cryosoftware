@@ -58,14 +58,13 @@ DEFAULT_CLIENT_SECRET = ""
 DEFAULT_REFRESH_TOKEN = ""
 
 def get_fit_service():
-    """Build and return authenticated Google Fitness API service (supports local token.json AND Vercel Cloud Serverless)."""
+    """Build and return (service, error_message) tuple. service is None if auth fails."""
     try:
         from google.oauth2.credentials import Credentials
         from google.auth.transport.requests import Request
         from googleapiclient.discovery import build
     except ImportError as e:
-        print(f"[GoogleFit] [ERROR] Missing libraries: {e}. Run 'pip install google-auth-oauthlib google-api-python-client'")
-        return None
+        return None, f"Missing Google libraries on server: {e}. Run pip install google-auth-oauthlib google-api-python-client"
 
     client_id     = os.getenv("GOOGLE_FIT_CLIENT_ID", DEFAULT_CLIENT_ID)
     client_secret = os.getenv("GOOGLE_FIT_CLIENT_SECRET", DEFAULT_CLIENT_SECRET)
@@ -74,7 +73,6 @@ def get_fit_service():
     token_path = find_file("token.json") or os.path.join(_CORE_DIR, "data", "token.json")
     creds = None
 
-    # 1. Try loading existing token.json file
     if os.path.exists(token_path):
         try:
             creds = Credentials.from_authorized_user_file(token_path, SCOPES)
@@ -82,99 +80,50 @@ def get_fit_service():
             print(f"[GoogleFit] Warning reading {token_path}: {e}")
             creds = None
 
-    # 2. Serverless / Cloud Fallback using Refresh Token (No local browser or interactive login needed!)
     if not creds or not creds.valid:
         r_token = (creds.refresh_token if creds else None) or refresh_token
         c_id    = (creds.client_id if creds else None) or client_id
         c_sec   = (creds.client_secret if creds else None) or client_secret
 
-        if r_token and c_id and c_sec:
-            try:
-                creds = Credentials(
-                    token=None,
-                    refresh_token=r_token,
-                    token_uri="https://oauth2.googleapis.com/token",
-                    client_id=c_id,
-                    client_secret=c_sec,
-                    scopes=SCOPES
-                )
-                creds.refresh(Request())
-                print("[GoogleFit OK] Cloud Serverless OAuth token refreshed successfully!")
-            except Exception as e:
-                print(f"[GoogleFit] Serverless refresh error: {e}")
-                creds = None
+        if not r_token:
+            return None, "GOOGLE_FIT_REFRESH_TOKEN is missing. Set it in Vercel environment variables or .env file."
+        if not c_id or not c_sec:
+            return None, "GOOGLE_FIT_CLIENT_ID or GOOGLE_FIT_CLIENT_SECRET is missing in environment variables."
 
-    # Auto-generate credentials.json from env vars if missing
-    cred_path = find_file("credentials.json")
-    if not cred_path and client_id and client_secret:
-        cred_path = os.path.join(_CORE_DIR, "data", "credentials.json")
         try:
-            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
-            with open(cred_path, "w", encoding="utf-8") as f:
-                json.dump({
-                    "installed": {
-                        "client_id": client_id,
-                        "project_id": "cryosoftware",
-                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                        "token_uri": "https://oauth2.googleapis.com/token",
-                        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                        "client_secret": client_secret,
-                        "redirect_uris": ["http://localhost"]
-                    }
-                }, f, indent=2)
-            print(f"[GoogleFit] Generated credentials.json at {cred_path}")
+            creds = Credentials(
+                token=None,
+                refresh_token=r_token,
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=c_id,
+                client_secret=c_sec,
+                scopes=SCOPES
+            )
+            creds.refresh(Request())
+            print("[GoogleFit OK] Cloud Serverless OAuth token refreshed successfully!")
         except Exception as e:
-            print(f"[GoogleFit] Error generating credentials.json: {e}")
+            return None, f"Google OAuth token refresh failed: {e}"
 
-    # 3. Interactive local fallback only if running interactively in CLI
-    if (not creds or not creds.valid) and sys.stdin.isatty():
-        cred_path = find_file("credentials.json") or cred_path
-        if cred_path:
-            try:
-                from google_auth_oauthlib.flow import InstalledAppFlow
-                flow = InstalledAppFlow.from_client_secrets_file(cred_path, SCOPES)
-                creds = flow.run_local_server(port=0)
-                os.makedirs(os.path.dirname(token_path), exist_ok=True)
-                with open(token_path, "w") as token_file:
-                    token_file.write(creds.to_json())
-                print(f"[GoogleFit] [OK] token.json saved to {token_path}")
-                
-                # Update GOOGLE_FIT_REFRESH_TOKEN in .env if fresh token obtained
-                if creds.refresh_token:
-                    env_file = os.path.join(_ROOT_DIR, ".env")
-                    if os.path.exists(env_file):
-                        try:
-                            with open(env_file, "r", encoding="utf-8") as f:
-                                env_content = f.read()
-                            if "GOOGLE_FIT_REFRESH_TOKEN=" in env_content:
-                                import re
-                                env_content = re.sub(r'GOOGLE_FIT_REFRESH_TOKEN\s*=\s*".*?"', f'GOOGLE_FIT_REFRESH_TOKEN="{creds.refresh_token}"', env_content)
-                                with open(env_file, "w", encoding="utf-8") as f:
-                                    f.write(env_content)
-                                print("[GoogleFit] [OK] Updated GOOGLE_FIT_REFRESH_TOKEN in .env file!")
-                        except Exception as ee:
-                            print(f"[GoogleFit Note] Could not update .env: {ee}")
-            except Exception as e:
-                print(f"[GoogleFit] Local auth error: {e}")
-                return None
+    if not creds or not creds.valid:
+        return None, "Google Fit credentials are invalid after all attempts. Please re-authenticate."
 
-    if not creds:
-        print("[GoogleFit] [ERROR] Unable to authenticate Google Fit service.")
-        return None
-
-    return build('fitness', 'v1', credentials=creds)
+    try:
+        service = build('fitness', 'v1', credentials=creds)
+        return service, None
+    except Exception as e:
+        return None, f"Failed to build Google Fitness API client: {e}"
 
 def sync_daily_fitness() -> Dict[str, Any]:
     """
-    Queries Google Fitness API for today's steps, distance, active minutes, sleep, and resting HR.
-    Returns LIVE data directly from Google Fit API. DB save is a background side-effect only.
-    Throws exact error if auth or API fails — never falls back to DB data.
+    Queries Google Fitness API for today's steps, distance, active minutes.
+    Returns LIVE data directly. DB save is a silent background side-effect.
+    Returns exact error message if auth or API fails.
     """
-    service = get_fit_service()
+    service, auth_error = get_fit_service()
     if not service:
         return {
             "status": "ERROR",
-            "message": "Google Fitness API token expired or invalid. Please re-authenticate at /api/health_sync/reauth or update GOOGLE_FIT_REFRESH_TOKEN in .env.",
+            "message": auth_error or "Google Fit authentication failed. Check GOOGLE_FIT_REFRESH_TOKEN in environment variables.",
             "setup_required": True
         }
 
