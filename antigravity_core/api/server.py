@@ -4183,6 +4183,41 @@ def api_log_gym_workout(payload: WorkoutLogPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# CIRCADIAN ROUTINE & PUNCTUALITY ENGINE
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/routine/status")
+def api_routine_status():
+    """Retrieve status of all 8 routine milestones, today's triggers, total minted XP & synchrony %."""
+    try:
+        from engine.routine_engine import RoutineEngine
+        return RoutineEngine().get_status()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/routine/trigger/{milestone_id}")
+def api_routine_trigger(milestone_id: str):
+    """Trigger routine milestone, compute exponential XP payout & update attributes."""
+    try:
+        from engine.routine_engine import RoutineEngine
+        return RoutineEngine().trigger_milestone(milestone_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/cadence")
+@app.get("/cadence-hub")
+@app.get("/rythm.html")
+def get_cadence_page():
+    """Serve Circadian Cadence & Punctuality Engine Page."""
+    from fastapi.responses import FileResponse
+    import os
+    for p in ["rythm.html", "static/rythm.html", "antigravity_core/static/rythm.html"]:
+        if os.path.exists(p):
+            return FileResponse(p)
+    raise HTTPException(status_code=404, detail="rythm.html not found")
+
+
 
 
 
