@@ -1954,9 +1954,15 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
                     timestamp TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            cursor.execute("SELECT id, steps FROM health_sync_logs WHERE log_date = ?", (log_date,))
+            cursor.execute("SELECT id, steps, distance_km, active_minutes, sleep_hours FROM health_sync_logs WHERE log_date = ?", (log_date,))
             existing = cursor.fetchone()
             if existing:
+                # Monotonic accumulation: preserve maximum recorded telemetry for today
+                steps = max(steps, existing[1] or 0)
+                distance_km = max(distance_km, existing[2] or 0.0)
+                active_minutes = max(active_minutes, existing[3] or 0)
+                sleep_hours = max(sleep_hours, existing[4] or 0.0)
+
                 cursor.execute("""
                     UPDATE health_sync_logs
                     SET steps = ?, distance_km = ?, active_minutes = ?, sleep_hours = ?, resting_hr = ?,

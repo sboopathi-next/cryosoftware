@@ -1,4 +1,14 @@
 import os
+import sys
+
+_API_DIR = os.path.dirname(os.path.abspath(__file__))
+_CORE_DIR = os.path.dirname(_API_DIR)
+_ROOT_DIR = os.path.dirname(_CORE_DIR)
+
+for _p in [_ROOT_DIR, _CORE_DIR, _API_DIR]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import csv
 import json
 import re
@@ -3286,38 +3296,53 @@ def api_health_sync_history(limit: int = 50):
 def api_fitness_summary():
     """Retrieve today's fitness summary or most recent health log."""
     try:
-        from engine.database import get_health_sync_history, process_health_sync
-        import datetime
+        try:
+            from antigravity_core.engine.database import get_health_sync_history
+        except ImportError:
+            from engine.database import get_health_sync_history
+
         hist = get_health_sync_history(limit=1)
-        if hist and hist[0].get("steps", 0) > 0:
+        if hist and len(hist) > 0:
             latest = hist[0]
             return {
-                "steps": latest.get("steps", 11135),
-                "distance_km": latest.get("distance_km", 7.6),
-                "active_minutes": latest.get("active_minutes", 140),
-                "sleep_hours": latest.get("sleep_hours", 7.5),
+                "steps": latest.get("steps", 0),
+                "distance_km": latest.get("distance_km", 0.0),
+                "active_minutes": latest.get("active_minutes", 0),
+                "sleep_hours": latest.get("sleep_hours", 0.0),
                 "resting_hr": latest.get("resting_hr", 70),
-                "log_date": latest.get("log_date", datetime.date.today().isoformat()),
-                "xp_awarded": latest.get("xp_awarded", 120)
+                "log_date": latest.get("log_date", datetime.datetime.now().strftime("%Y-%m-%d")),
+                "xp_awarded": latest.get("xp_awarded", 0)
             }
-        # Initialize default high-fidelity telemetry if DB is unpopulated
-        init_res = process_health_sync(
-            steps=11135,
-            distance_km=7.6,
-            active_minutes=140,
-            sleep_hours=7.5,
-            resting_hr=70,
-            log_date=datetime.date.today().isoformat()
-        )
-        return init_res
+        return {
+            "steps": 0,
+            "distance_km": 0.0,
+            "active_minutes": 0,
+            "sleep_hours": 0.0,
+            "resting_hr": 70,
+            "log_date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "xp_awarded": 0
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("[Fitness Summary Error]", e)
+        return {
+            "steps": 0,
+            "distance_km": 0.0,
+            "active_minutes": 0,
+            "sleep_hours": 0.0,
+            "resting_hr": 70,
+            "log_date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "xp_awarded": 0
+        }
 
 @app.post("/api/health_sync/log")
 def api_health_sync_log(payload: HealthPayload):
     """Manual or automated health entry logger."""
     try:
-        from engine.database import process_health_sync
+        try:
+            from antigravity_core.engine.database import process_health_sync
+        except ImportError:
+            from engine.database import process_health_sync
+
         return process_health_sync(
             steps=payload.steps,
             distance_km=payload.distance_km,
@@ -3331,30 +3356,16 @@ def api_health_sync_log(payload: HealthPayload):
 
 @app.post("/api/health_sync/google_fit")
 def api_health_sync_google_fit():
-    """Trigger direct Google Fit Cloud API query with smart fallback."""
+    """Trigger direct Google Fit Cloud API query."""
     try:
-        from engine.google_fit_sync import sync_daily_fitness
-        res = sync_daily_fitness()
-        if res.get("status") == "ERROR" or res.get("setup_required") or res.get("steps", 0) == 0:
-            # Provide high-fidelity fallback sync matching user's actual Google Fit stats (11,135 steps, 7.6 km, 140 min)!
-            from engine.database import process_health_sync, get_health_sync_history
-            hist = get_health_sync_history(limit=1)
-            prev_steps = hist[0].get("steps", 0) if hist else 0
-            new_steps = max(11135, prev_steps)
-            new_dist = round(new_steps * 0.00068, 1)
-            res = process_health_sync(
-                steps=new_steps,
-                distance_km=new_dist,
-                active_minutes=140,
-                sleep_hours=7.5,
-                resting_hr=68,
-                log_date=datetime.date.today().isoformat()
-            )
-            res["message"] = f"Synced {new_steps:,} steps ({new_dist} km), 140m active, 7.5h sleep! +{res.get('xp_awarded', 120)} XP"
-        return res
+        try:
+            from antigravity_core.engine.google_fit_sync import sync_daily_fitness
+        except ImportError:
+            from engine.google_fit_sync import sync_daily_fitness
+
+        return sync_daily_fitness()
     except Exception as e:
-        from engine.database import process_health_sync
-        return process_health_sync(steps=11135, distance_km=7.6, active_minutes=140, sleep_hours=7.5, resting_hr=68)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/health_sync/reauth")
 @app.post("/api/health_sync/reauth")
@@ -4192,7 +4203,10 @@ def api_log_gym_workout(payload: WorkoutLogPayload):
 def api_routine_status():
     """Retrieve status of all 8 routine milestones, today's triggers, total minted XP & synchrony %."""
     try:
-        from engine.routine_engine import RoutineEngine
+        try:
+            from antigravity_core.engine.routine_engine import RoutineEngine
+        except ImportError:
+            from engine.routine_engine import RoutineEngine
         return RoutineEngine().get_status()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -4201,7 +4215,10 @@ def api_routine_status():
 def api_routine_trigger(milestone_id: str):
     """Trigger routine milestone, compute exponential XP payout & update attributes."""
     try:
-        from engine.routine_engine import RoutineEngine
+        try:
+            from antigravity_core.engine.routine_engine import RoutineEngine
+        except ImportError:
+            from engine.routine_engine import RoutineEngine
         return RoutineEngine().trigger_milestone(milestone_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
