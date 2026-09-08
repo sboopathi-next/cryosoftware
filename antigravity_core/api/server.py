@@ -102,6 +102,32 @@ app.include_router(finance_router)
 app.include_router(bank_sync_router)
 app.include_router(energy_router)
 
+# ─── TWA / PWA Support Routes ─────────────────────────────────────────────────
+# SHA-256 fingerprint below is set via env var TWA_SHA256_FINGERPRINT after Bubblewrap generates keystore
+_TWA_SHA256 = os.getenv("TWA_SHA256_FINGERPRINT", "PLACEHOLDER_REPLACE_AFTER_BUBBLEWRAP")
+_TWA_PACKAGE = os.getenv("TWA_PACKAGE_NAME", "com.antigravity.os")
+
+@app.get("/.well-known/assetlinks.json", include_in_schema=False)
+def asset_links():
+    """Digital Asset Links — required for TWA fullscreen mode (no browser bar) on Android."""
+    return JSONResponse(content=[{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": _TWA_PACKAGE,
+            "sha256_cert_fingerprints": [_TWA_SHA256]
+        }
+    }])
+
+@app.get("/manifest.json", include_in_schema=False)
+def serve_manifest():
+    """Serve PWA manifest at /manifest.json root path (required by TWA spec)."""
+    manifest_path = os.path.join(ROOT_DIR, "static", "manifest.json")
+    if os.path.exists(manifest_path):
+        return FileResponse(manifest_path, media_type="application/manifest+json")
+    return JSONResponse({"error": "manifest.json not found"}, status_code=404)
+
+
 
 
 # ─── Pydantic Models ────────────────────────────────────────────────────────
