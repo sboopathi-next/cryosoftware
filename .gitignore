@@ -49,5 +49,11 @@ state.json
 # Large binary / app files (serve from releases, not git)
 static/app-debug.apk
 *.apk
+*.aab
+*.keystore
+*.jks
+android-twa/.gradle/
+android-twa/build/
+android-twa/app/build/
 # Syllabus & data files
 # syllabus.json included for online deployment
