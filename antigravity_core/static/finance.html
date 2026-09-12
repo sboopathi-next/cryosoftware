@@ -199,6 +199,9 @@ html, body {
 
 /* Sticky Dedicated AI Advisor Pane (ChatGPT / Gemini Mobile UI) */
 .ai-advisor-pane {
+  --aichat-accent: #6366f1;
+  --aichat-accent-2: #3b82f6;
+  --aichat-accent-soft: rgba(99,102,241,.18);
   position: sticky;
   top: 16px;
   height: calc(100vh - 40px);
@@ -235,37 +238,7 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
-
-.msg-bubble {
-  max-width: 88%;
-  padding: 12px 15px;
-  border-radius: 14px;
-  font-size: 12.5px;
-  line-height: 1.55;
-}
-.msg-user {
-  align-self: flex-end;
-  background: linear-gradient(135deg, #4f46e5, #3b82f6);
-  color: #fff;
-  border-bottom-right-radius: 2px;
-}
-.msg-ai {
-  align-self: flex-start;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  color: #e2e8f0;
-  border-bottom-left-radius: 2px;
-}
-
-.quick-chip {
-  background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc;
-  padding: 5px 10px; border-radius: 20px; font-size: 10.5px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
-}
-.quick-chip:hover { background: rgba(99, 102, 241, 0.3); color: #fff; }
 
 /* Mobile Segmented Tab Switcher */
 .mobile-pane-switcher {
@@ -485,24 +458,34 @@ html, body {
             <span class="nav-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;border-color:rgba(245,158,11,0.3)">ACTIVE</span>
           </div>
 
-          <div class="ai-chat-stream" id="chat-stream">
-            <div class="msg-bubble msg-ai">
-              👋 <strong>Welcome Boopathi!</strong> I am your AI Financial Governance Coach. I evaluate your financial health using proven financial laws (50/30/20 rule, Debt Snowball/Avalanche, Emergency Fund safeguards).<br><br>
-              How can I assist your financial planning today?
+          <div class="ai-chat-stream aichat-thread" id="chat-stream">
+            <div class="aichat-row assistant">
+              <div class="aichat-avatar"><i class="fa-solid fa-robot"></i></div>
+              <div class="aichat-col">
+                <span class="aichat-name">AI Financial Advisor</span>
+                <div class="aichat-content btext">
+                  👋 <strong>Welcome Boopathi!</strong> I am your AI Financial Governance Coach. I evaluate your financial health using proven financial laws (50/30/20 rule, Debt Snowball/Avalanche, Emergency Fund safeguards).<br><br>
+                  How can I assist your financial planning today?
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Quick Chips -->
-          <div style="display:flex; gap:6px; padding:8px 12px; overflow-x:auto; background:rgba(15,23,42,0.9); border-top:1px solid var(--border);">
-            <div class="quick-chip" onclick="sendQuickPrompt('Analyze my financial health score and 50/30/20 compliance')">⚖️ 50/30/20 Review</div>
-            <div class="quick-chip" onclick="sendQuickPrompt('Check my Debt and EMI ratio')">💳 Debt Strategy</div>
-            <div class="quick-chip" onclick="sendQuickPrompt('Where am I overspending?')">⚠️ Overspend Check</div>
-            <div class="quick-chip" onclick="sendQuickPrompt('How can I optimize Food and Lifestyle expenses?')">🍛 Food & Fun</div>
+          <div class="aichat-chips" style="padding:8px 12px; overflow-x:auto; flex-wrap:nowrap; background:rgba(15,23,42,0.9); border-top:1px solid var(--border);">
+            <button class="aichat-chip" onclick="sendQuickPrompt('Analyze my financial health score and 50/30/20 compliance')">⚖️ 50/30/20 Review</button>
+            <button class="aichat-chip" onclick="sendQuickPrompt('Check my Debt and EMI ratio')">💳 Debt Strategy</button>
+            <button class="aichat-chip" onclick="sendQuickPrompt('Where am I overspending?')">⚠️ Overspend Check</button>
+            <button class="aichat-chip" onclick="sendQuickPrompt('How can I optimize Food and Lifestyle expenses?')">🍛 Food & Fun</button>
           </div>
 
-          <div style="padding:10px 12px; display:flex; gap:8px; border-top:1px solid var(--border); background:#0b0f19;">
-            <input type="text" id="chat-input" placeholder="Ask AI Financial Advisor..." style="flex:1; background:#0f172a; border:1px solid var(--border); border-radius:8px; color:#fff; padding:8px 12px; font-size:13px;" onkeydown="if(event.key==='Enter') sendChatMessage()">
-            <button class="btn btn-primary btn-sm" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+          <div style="padding:10px 12px; border-top:1px solid var(--border); background:#0b0f19;">
+            <div class="aichat-composer">
+              <textarea id="chat-input" rows="1" placeholder="Ask AI Financial Advisor..."
+                oninput="AIChatUI.autoResize(this)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+              <button class="aichat-send" onclick="sendChatMessage()" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -1283,19 +1266,33 @@ async function sendChatMessage() {
   if (!msg) return;
 
   const stream = document.getElementById('chat-stream');
-  
-  const uBubble = document.createElement('div');
-  uBubble.className = 'msg-bubble msg-user';
-  uBubble.textContent = msg;
-  stream.appendChild(uBubble);
+
+  const uRow = document.createElement('div');
+  uRow.className = 'aichat-row user';
+  uRow.innerHTML = `
+    <div class="aichat-avatar"><i class="fa-solid fa-user"></i></div>
+    <div class="aichat-col">
+      <span class="aichat-name">You</span>
+      <div class="aichat-content"></div>
+    </div>`;
+  uRow.querySelector('.aichat-content').textContent = msg;
+  stream.appendChild(uRow);
   inp.value = '';
+  AIChatUI.autoResize(inp);
   stream.scrollTop = stream.scrollHeight;
 
-  const aiBubble = document.createElement('div');
-  aiBubble.className = 'msg-bubble msg-ai';
-  aiBubble.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing financial laws & telemetry...';
-  stream.appendChild(aiBubble);
+  const aiRow = document.createElement('div');
+  aiRow.className = 'aichat-row assistant thinking';
+  aiRow.innerHTML = `
+    <div class="aichat-avatar"><i class="fa-solid fa-robot"></i></div>
+    <div class="aichat-col">
+      <span class="aichat-name">AI Financial Advisor</span>
+      <div class="aichat-content">${AIChatUI.typingDotsHTML()}</div>
+    </div>`;
+  stream.appendChild(aiRow);
   stream.scrollTop = stream.scrollHeight;
+
+  const contentEl = aiRow.querySelector('.aichat-content');
 
   try {
     const r = await apiFetch('/api/ai/finance_advisor', {
@@ -1304,13 +1301,20 @@ async function sendChatMessage() {
       body: JSON.stringify({ message: msg })
     });
     const d = await r.json();
+    aiRow.classList.remove('thinking');
     if (r.ok && d.reply) {
-      aiBubble.innerHTML = d.reply.replace(/\n/g, '<br>');
+      contentEl.classList.add('btext');
+      contentEl.innerHTML = d.reply.replace(/\n/g, '<br>');
+      aiRow.insertAdjacentHTML('beforeend', `
+        <div class="aichat-actions" style="margin-left:42px;">
+          <button class="aichat-action-btn" onclick="AIChatUI.copyText(this, this.closest('.aichat-row').querySelector('.aichat-content').innerText)"><i class="fa-regular fa-copy"></i> Copy</button>
+        </div>`);
     } else {
-      aiBubble.innerHTML = `⚠️ ${d.detail || 'Error getting response from AI Financial Advisor.'}`;
+      contentEl.innerHTML = `⚠️ ${d.detail || 'Error getting response from AI Financial Advisor.'}`;
     }
   } catch(e) {
-    aiBubble.innerHTML = '⚠️ Failed to connect to Financial AI Engine.';
+    aiRow.classList.remove('thinking');
+    contentEl.innerHTML = '⚠️ Failed to connect to Financial AI Engine.';
   }
   stream.scrollTop = stream.scrollHeight;
 }

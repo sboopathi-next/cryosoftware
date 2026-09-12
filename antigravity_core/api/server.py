@@ -1533,6 +1533,74 @@ def delete_workout_entry(payload: WorkoutDeletePayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class WorkoutUpdatePayload(BaseModel):
+    original_timestamp: str
+    id: Optional[int] = None
+    category: str
+    workout: str
+    variations: Optional[str] = ""
+    sets: List[WorkoutSet] = []
+    duration_minutes: Optional[int] = 0
+
+
+@app.post("/api/workouts/update")
+def update_workout_entry(payload: WorkoutUpdatePayload):
+    """Edit an existing workout log entry (category, exercise, sets, duration)."""
+    if not payload.category.strip() or not payload.workout.strip():
+        raise HTTPException(status_code=400, detail="Category and Workout name required.")
+
+    sets_summary = "; ".join([
+        f"Set {i+1}: {s.weight}kg x {s.reps} reps{(' (' + s.notes + ')') if s.notes else ''}"
+        for i, s in enumerate(payload.sets)
+    ]) if payload.sets else "No sets recorded"
+
+    try:
+        if IS_SERVERLESS:
+            from engine.neon_db import neon_update_workout_log
+            neon_update_workout_log(
+                payload.id,
+                payload.original_timestamp,
+                payload.category.strip(),
+                payload.workout.strip(),
+                payload.variations or "",
+                sets_summary,
+                payload.duration_minutes or 0
+            )
+        else:
+            if not os.path.exists(WORKOUT_LOG_CSV):
+                raise HTTPException(status_code=404, detail="Workout log file not found.")
+            temp_file = WORKOUT_LOG_CSV + ".tmp"
+            updated = False
+            try:
+                with open(WORKOUT_LOG_CSV, "r", encoding="utf-8") as f, \
+                     open(temp_file, "w", encoding="utf-8", newline="") as out:
+                    reader = csv.DictReader(f)
+                    writer = csv.DictWriter(out, fieldnames=reader.fieldnames)
+                    writer.writeheader()
+                    for row in reader:
+                        if not updated and row.get("Timestamp") == payload.original_timestamp:
+                            row["Category"] = payload.category.strip()
+                            row["Workout"] = payload.workout.strip()
+                            row["Variations"] = payload.variations or ""
+                            row["Sets"] = sets_summary
+                            row["Duration_Minutes"] = payload.duration_minutes or 0
+                            updated = True
+                        writer.writerow(row)
+                os.replace(temp_file, WORKOUT_LOG_CSV)
+            except Exception as e:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                raise e
+            if not updated:
+                raise HTTPException(status_code=404, detail="Workout log entry not found.")
+
+        return {"status": "success", "message": "Workout updated successfully."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating workout: {e}")
+
+
 # ─── Gym Pro Page ─────────────────────────────────────────────────────────────
 
 @app.get("/gym-pro")

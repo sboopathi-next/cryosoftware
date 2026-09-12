@@ -15,15 +15,13 @@
  */
 package com.antigravity.os;
 
-
+import com.antigravity.os.utils.NotificationHelper;
 
 public class Application extends android.app.Application {
-
-  
 
   @Override
   public void onCreate() {
       super.onCreate();
-      
+      NotificationHelper.createNotificationChannel(this);
   }
 }

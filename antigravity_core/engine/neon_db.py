@@ -411,6 +411,24 @@ def neon_delete_workout_by_timestamp(timestamp: str):
             cur.execute("DELETE FROM pg_workout_log WHERE timestamp = %s", (timestamp,))
 
 
+def neon_update_workout_log(pg_id: Optional[int], timestamp: str, category: str, workout: str, variations: str, sets: str, duration_minutes: int) -> dict:
+    """Update an existing workout log row, matched by id (preferred) or original timestamp."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_workout_log_table(cur)
+            if pg_id:
+                cur.execute(
+                    "UPDATE pg_workout_log SET category=%s, workout=%s, variations=%s, sets=%s, duration_minutes=%s WHERE id=%s",
+                    (category, workout, variations or "", sets or "", duration_minutes or 0, pg_id)
+                )
+            else:
+                cur.execute(
+                    "UPDATE pg_workout_log SET category=%s, workout=%s, variations=%s, sets=%s, duration_minutes=%s WHERE timestamp=%s",
+                    (category, workout, variations or "", sets or "", duration_minutes or 0, timestamp)
+                )
+    return {"status": "success"}
+
+
 # ─── Custom Workout Options ─────────────────────────────────────────────────────
 # Stored here (not the CSV) because the CSV lives on the read-only serverless FS
 # and any appended rows are lost the moment the function instance recycles.

@@ -38,33 +38,15 @@ body, .app { height: 100vh; overflow: hidden; }
 .sk-summary-row span:last-child { color: var(--amber); font-weight: 700; }
 
 /* Chat Pane */
-.chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e; }
-.chat-scroll { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
-.bubble { display: flex; gap: 12px; max-width: 85%; margin-bottom: 2px; }
-.bubble.user { align-self: flex-end; flex-direction: row-reverse; }
-.bubble.ai { align-self: flex-start; }
-.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
-.bubble.user .avatar { background: #3b82f6; color: white; }
-.bubble.ai .avatar { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-.bubble-body { border-radius: 12px; padding: 11px 15px; font-size: 13px; line-height: 1.65; color: var(--text1); word-break: break-word; }
-.bubble.user .bubble-body { background: #1e293b; border: 1px solid rgba(255,255,255,.06); }
-.bubble.ai .bubble-body { background: rgba(245,158,11,.04); border: 1px solid rgba(245,158,11,.18); }
-.bubble-body strong { color: #e2e8f0; }
-.bubble-body em { color: var(--text2); }
-.bubble-body code { background: rgba(255,255,255,.08); padding: 2px 4px; border-radius: 4px; font-family: var(--ff-mono); font-size: 11px; color: var(--amber); }
-.bubble-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
-.bubble-body th, .bubble-body td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
-.bubble-body th { background: rgba(255,255,255,.05); font-weight: 600; color: var(--amber); }
-.thinking { opacity: .6; font-style: italic; }
+.chat-pane {
+  --aichat-accent: #f59e0b;
+  --aichat-accent-2: #d97706;
+  --aichat-accent-soft: rgba(245,158,11,.18);
+  flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e;
+}
+.chat-scroll { flex: 1; overflow-y: auto; padding: 20px 24px; }
 .chat-footer { padding: 14px 24px; border-top: 1px solid var(--border); background: #060818; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
 .quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; }
-.qp-btn { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); border-radius: 16px; color: var(--amber); font-size: 11px; padding: 5px 12px; cursor: pointer; transition: all .15s; font-family: var(--ff-mono); }
-.qp-btn:hover { background: rgba(245,158,11,.18); border-color: var(--amber); }
-.input-row { display: flex; gap: 8px; }
-.chat-input { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: var(--text1); padding: 10px 14px; font-size: 13px; outline: none; transition: border-color .15s; }
-.chat-input:focus { border-color: var(--amber); }
-.send-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 8px; padding: 0 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
-.send-btn:hover { opacity: .9; }
 
 /* Mobile */
 .streak-mobile-nav { display: none; }
@@ -125,28 +107,35 @@ body, .app { height: 100vh; overflow: hidden; }
 
       <!-- Right: Chat -->
       <div class="chat-pane active" id="chat-pane">
-        <div class="chat-scroll" id="chat-msgs">
-          <div class="bubble ai">
-            <div class="avatar"><i class="fa-solid fa-fire"></i></div>
-            <div class="bubble-body">
-              <strong>🔥 Streak Monitor AI</strong><br><br>
-              I analyze your <strong>12 daily accountability streaks</strong> and give you data-driven insights.
-              Ask me anything about your streaks — which are at risk, how to maintain them, or get a full analysis.<br><br>
-              <em>Try the quick prompts below to get started!</em>
+        <div class="chat-scroll aichat-thread" id="chat-msgs">
+          <div class="aichat-row assistant">
+            <div class="aichat-avatar"><i class="fa-solid fa-fire"></i></div>
+            <div class="aichat-col">
+              <span class="aichat-name">Streak Monitor AI</span>
+              <div class="aichat-content btext">
+                <strong>🔥 Streak Monitor AI</strong><br><br>
+                I analyze your <strong>12 daily accountability streaks</strong> and give you data-driven insights.
+                Ask me anything about your streaks — which are at risk, how to maintain them, or get a full analysis.<br><br>
+                <em>Try the quick prompts below to get started!</em>
+              </div>
             </div>
           </div>
         </div>
         <div class="chat-footer">
-          <div class="quick-prompts" id="quick-prompts">
-            <button class="qp-btn" onclick="quickAsk('Analyze all my streaks')">📊 Full Analysis</button>
-            <button class="qp-btn" onclick="quickAsk('Which streaks are at risk?')">⚠️ At Risk</button>
-            <button class="qp-btn" onclick="quickAsk('Weekly consistency review')">📅 Weekly Review</button>
-            <button class="qp-btn" onclick="quickAsk('What should I focus on today?')">🎯 Today Focus</button>
-            <button class="qp-btn" onclick="quickAsk('Celebrate my wins')">🏆 My Wins</button>
+          <div class="quick-prompts aichat-chips" id="quick-prompts">
+            <button class="aichat-chip" onclick="quickAsk('Analyze all my streaks')">📊 Full Analysis</button>
+            <button class="aichat-chip" onclick="quickAsk('Which streaks are at risk?')">⚠️ At Risk</button>
+            <button class="aichat-chip" onclick="quickAsk('Weekly consistency review')">📅 Weekly Review</button>
+            <button class="aichat-chip" onclick="quickAsk('What should I focus on today?')">🎯 Today Focus</button>
+            <button class="aichat-chip" onclick="quickAsk('Celebrate my wins')">🏆 My Wins</button>
           </div>
           <div class="input-row">
-            <input class="chat-input" id="chat-inp" placeholder="Ask about your streaks…" onkeydown="if(event.key==='Enter')sendMsg()">
-            <button class="send-btn" id="send-btn" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i> Send</button>
+            <div class="aichat-composer">
+              <textarea id="chat-inp" rows="1" placeholder="Ask about your streaks…"
+                oninput="AIChatUI.autoResize(this)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+              <button class="aichat-send" id="send-btn" onclick="sendMsg()" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -249,15 +238,29 @@ function renderStreakCards(streaks) {
 }
 
 function appendBubble(text, role, id, isThinking) {
+  const isAssistant = role !== 'user';
   const div = document.createElement('div');
-  div.className = `bubble ${role}`;
-  const fmt = (role === 'ai' && !isThinking) ? renderMarkdown(text) : (isThinking ? text : text.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
-  const iconCls = role === 'ai' ? 'fa-fire' : 'fa-user';
+  div.className = `aichat-row ${isAssistant ? 'assistant' : 'user'}${isThinking ? ' thinking' : ''}`;
+  if (id) div.id = id;
+  const fmt = (isAssistant && !isThinking)
+    ? renderMarkdown(text)
+    : (isThinking ? window.AIChatUI.typingDotsHTML() : text.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  const iconCls = isAssistant ? 'fa-fire' : 'fa-user';
+  const actionsHtml = (isAssistant && !isThinking)
+    ? `<div class="aichat-actions">
+         <button class="aichat-action-btn" onclick="AIChatUI.copyText(this, this.closest('.aichat-col').querySelector('.aichat-content').innerText)"><i class="fa-regular fa-copy"></i> Copy</button>
+       </div>`
+    : '';
   div.innerHTML = `
-    <div class="avatar"><i class="fa-solid ${iconCls}"></i></div>
-    <div class="bubble-body${isThinking ? ' thinking' : ''}${id ? ` id="${id}"` : ''}">${fmt}</div>`;
+    <div class="aichat-avatar"><i class="fa-solid ${iconCls}"></i></div>
+    <div class="aichat-col">
+      <span class="aichat-name">${isAssistant ? 'Streak Monitor AI' : 'You'}</span>
+      <div class="aichat-content${isAssistant && !isThinking ? ' btext' : ''}">${fmt}</div>
+      ${actionsHtml}
+    </div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+  if (isAssistant && !isThinking) window.AIChatUI.decorateCodeBlocks(div);
 }
 
 function quickAsk(txt) {
@@ -288,7 +291,7 @@ async function sendMsg() {
     });
 
     const el = document.getElementById(tid);
-    if (el) el.closest('.bubble').remove();
+    if (el) el.remove();
 
     if (!r.ok) {
       let errText = 'Server Error';
@@ -300,7 +303,7 @@ async function sendMsg() {
     }
   } catch(e) {
     const el = document.getElementById(tid);
-    if (el) el.closest('.bubble').remove();
+    if (el) el.remove();
     appendBubble(`Connection error: ${e.message}`, 'ai');
   } finally {
     document.getElementById('send-btn').disabled = false;

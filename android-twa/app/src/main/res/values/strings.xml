@@ -29,6 +29,7 @@
     https://developers.google.com/web/updates/2017/10/using-twa#set_up_digital_asset_links_in_an_android_app
     and is injected into the AndroidManifest.xml
   -->
+  <string name="accessibility_service_desc">Enables Antigravity OS to govern focus mode and intercept addictive / distracting applications.</string>
   <string name="assetStatements">
     [{
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],

@@ -95,6 +95,13 @@
     if ($('xp-progress-bar') && data.xp_required) {
       const pct = Math.min(100, Math.max(0, (data.xp / data.xp_required) * 100));
       $('xp-progress-bar').style.width = `${pct.toFixed(1)}%`;
+
+      // Level ring (r=48 -> circumference = 301.6)
+      const ring = $('level-ring-circle');
+      if (ring) {
+        const offset = 301.6 - (301.6 * (pct / 100));
+        ring.setAttribute('stroke-dashoffset', offset.toFixed(1));
+      }
     }
 
     if ($('streak-val')) $('streak-val').textContent = `${data.streak_days || 0} day streak`;
@@ -547,6 +554,9 @@
       openEnergyLedgerModal();
     });
 
+    // Custom Side Dock Shortcuts Init & Edit Modal
+    renderCustomSideDock();
+
     // Dock Collapse Toggle
     $('dock-toggle-btn')?.addEventListener('click', () => {
       const container = $('dock-container');
@@ -557,6 +567,98 @@
       }
     });
   }
+
+  // ─── 6.5 Custom Side Dock App Manager ────────────────────────────────────
+  const ALL_SYSTEM_MODULES = [
+    { id: 'canvas', name: 'Canvas', icon: 'fa-graduation-cap', url: '/canvas', color: '#00e5ff' },
+    { id: 'gym-pro', name: 'Gym Pro', icon: 'fa-bolt', url: '/gym-pro', color: '#f59e0b' },
+    { id: 'mind-os', name: 'Mind OS', icon: 'fa-brain', url: '/mind-os', color: '#6366f1' },
+    { id: 'cadence', name: 'Cadence Hub', icon: 'fa-sliders', url: '/rythm.html', color: '#06b6d4' },
+    { id: 'finance', name: 'Finance Advisor', icon: 'fa-sack-dollar', url: '/finance', color: '#f59e0b' },
+    { id: 'task-streaks', name: 'Task Streaks', icon: 'fa-fire', url: '/task-streaks', color: '#f97316' },
+    { id: 'ai', name: 'AI Coach', icon: 'fa-robot', url: '/ai', color: '#818cf8' },
+    { id: 'teacher', name: 'AI Teacher', icon: 'fa-chalkboard-user', url: '/teacher', color: '#10b981' },
+    { id: 'syllabus', name: 'Study Path', icon: 'fa-book-open', url: '/syllabus', color: '#38bdf8' },
+    { id: 'journal', name: 'Study Journal', icon: 'fa-pen-to-square', url: '/journal', color: '#00e5ff' },
+    { id: 'english', name: 'English Booster', icon: 'fa-language', url: '/english', color: '#38bdf8' },
+    { id: 'stoic', name: 'Stoic Log', icon: 'fa-crown', url: '/stoic', color: '#fbbf24' },
+    { id: 'human', name: 'Human Journal', icon: 'fa-heart', url: '/human', color: '#f43f5e' },
+    { id: 'badlog', name: 'Rage Fuel', icon: 'fa-fire-flame-curved', url: '/badlog', color: '#ef4444' },
+    { id: 'work-tracker', name: 'Work Tracker', icon: 'fa-briefcase', url: '/work-tracker', color: '#818cf8' },
+    { id: 'news', name: 'Tech News', icon: 'fa-newspaper', url: '/news', color: '#60a5fa' },
+    { id: 'exam', name: 'Exam Editor', icon: 'fa-square-root-variable', url: '/exam', color: '#818cf8' },
+    { id: 'system', name: 'System OS', icon: 'fa-gamepad', url: '/system', color: '#fb7185' }
+  ];
+
+  function getPinnedDockAppIds() {
+    try {
+      const saved = localStorage.getItem('antigravity_dock_pinned_apps');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return ['canvas', 'gym-pro', 'cadence', 'finance'];
+  }
+
+  function renderCustomSideDock() {
+    const container = $('dock-custom-shortcuts');
+    const divider = $('dock-divider-custom');
+    if (!container) return;
+
+    const pinnedIds = getPinnedDockAppIds();
+    if (pinnedIds.length === 0) {
+      container.innerHTML = '';
+      if (divider) divider.style.display = 'none';
+      return;
+    }
+    if (divider) divider.style.display = 'block';
+
+    const pinnedModules = ALL_SYSTEM_MODULES.filter(m => pinnedIds.includes(m.id));
+    container.innerHTML = pinnedModules.map(m => `
+      <a href="${m.url}" class="w-8 h-8 rounded-xl bg-slate-900/80 border border-slate-700/60 hover:border-cyan-400 hover:scale-105 flex items-center justify-center transition-all active:scale-95 shadow-sm" title="${m.name}">
+        <i class="fa-solid ${m.icon} text-xs" style="color: ${m.color}"></i>
+      </a>
+    `).join('');
+
+    renderEditDockModal();
+  }
+
+  function renderEditDockModal() {
+    const modalList = $('edit-dock-app-list');
+    if (!modalList) return;
+
+    const pinnedIds = getPinnedDockAppIds();
+
+    modalList.innerHTML = ALL_SYSTEM_MODULES.map(m => {
+      const isPinned = pinnedIds.includes(m.id);
+      return `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/70 border ${isPinned ? 'border-cyan-500/40 bg-cyan-950/20' : 'border-slate-800'} transition-all">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center">
+              <i class="fa-solid ${m.icon} text-xs" style="color: ${m.color}"></i>
+            </div>
+            <span class="font-medium text-slate-200">${m.name}</span>
+          </div>
+          <button class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold transition-all ${isPinned ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40' : 'bg-slate-800 text-slate-400 hover:text-white'}" onclick="toggleDockAppPin('${m.id}')">
+            ${isPinned ? '✓ Visible' : '+ Add'}
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.toggleDockAppPin = function(appId) {
+    let pinnedIds = getPinnedDockAppIds();
+    if (pinnedIds.includes(appId)) {
+      pinnedIds = pinnedIds.filter(id => id !== appId);
+    } else {
+      if (pinnedIds.length >= 8) {
+        notify('Maximum 8 side dock apps allowed for screen comfort', 'err');
+        return;
+      }
+      pinnedIds.push(appId);
+    }
+    localStorage.setItem('antigravity_dock_pinned_apps', JSON.stringify(pinnedIds));
+    renderCustomSideDock();
+  };
 
   // ─── 7. Modal Managers ────────────────────────────────────────────────────
   function openModal(id) {

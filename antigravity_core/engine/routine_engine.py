@@ -245,7 +245,7 @@ class RoutineEngine:
         sched_dt = datetime.datetime.combine(now.date(), datetime.time(hour, minute))
         delay_sec = (now - sched_dt).total_seconds()
 
-        # Calculate delay hours (0.0 if on or before scheduled time)
+        # Calculate delay hours (grace window of 15m early or on-time)
         if delay_sec <= 0:
             delay_hours = 0.0
         else:

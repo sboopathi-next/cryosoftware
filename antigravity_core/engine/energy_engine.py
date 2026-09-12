@@ -243,6 +243,25 @@ class EnergyEngine:
             "tier": new_tier
         }
 
+    def set_energy(self, new_energy: float) -> dict:
+        """Overwrites current_energy/tier directly, used to keep this engine in sync with
+        other energy sources (e.g. the daily fatigue governor) so the dashboard ring never drifts."""
+        new_energy = max(0.0, min(100.0, float(new_energy)))
+        tier, _ = self.get_tier(new_energy)
+        try:
+            conn, db_type = self._get_connection()
+            cursor = conn.cursor()
+            self._exec(cursor, db_type, """
+                UPDATE energy_state
+                SET current_energy = ?, tier_status = ?, last_updated = CURRENT_TIMESTAMP
+                WHERE id = 1
+            """, (new_energy, tier))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print("[EnergyEngine] set_energy sync error:", e)
+        return {"current_energy": round(new_energy, 1), "tier": tier}
+
     def midnight_fatigue_rollover(self, sleep_hours: float) -> dict:
         drain, recovery, f_current = 0.0, 0.0, 0.0
         try:

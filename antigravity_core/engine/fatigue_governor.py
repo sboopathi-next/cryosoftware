@@ -8,6 +8,15 @@ GAMMA = 10.0  # Micro-dopamine reward replenishment
 CIRCUIT_BREAKER_LIMIT = 20.0
 MAX_STREAK_LIMIT = 21
 
+def _sync_energy_engine(new_energy: float):
+    """Pushes the fatigue-governor energy value into EnergyEngine's energy_state table,
+    keeping the dashboard's Cognitive Energy Engine ring from drifting out of sync."""
+    try:
+        from engine.energy_engine import EnergyEngine
+        EnergyEngine().set_energy(new_energy)
+    except Exception as e:
+        print(f"[FatigueGovernor] Cognitive Energy Engine sync error: {e}")
+
 def update_daily_energy(study_hours: float, gym_hours: float, dopamine_rewards: int) -> dict:
     """
     E_{t+1} = E_t - (ALPHA * study_hours) + (BETA * gym_hours) + (GAMMA * dopamine_rewards)
@@ -26,6 +35,7 @@ def update_daily_energy(study_hours: float, gym_hours: float, dopamine_rewards: 
     check_circuit_breaker(state)
     
     save_state(state)
+    _sync_energy_engine(state["energy"])
     return state
 
 def check_circuit_breaker(state: dict):
@@ -38,6 +48,7 @@ def check_circuit_breaker(state: dict):
     if state.get("active_holiday_date") == today_str:
         state["lockout_active"] = 0
         state["energy"] = 100.0
+        _sync_energy_engine(100.0)
         return
 
     energy_depleted = state.get("energy", 100.0) <= CIRCUIT_BREAKER_LIMIT

@@ -34,35 +34,18 @@ body, .app { height: 100vh; overflow: hidden; }
 .topic-item.completed .topic-checkbox { background: var(--green); border-color: var(--green); color: white; }
 .topic-name { font-size: 12.5px; color: var(--text2); line-height: 1.3; }
 .topic-item.completed .topic-name { color: var(--text3); text-decoration: line-through; }
-.chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e; }
-.chat-scroll { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
-.bubble { display: flex; gap: 14px; max-width: 80%; margin-bottom: 4px; }
-.bubble.user { align-self: flex-end; flex-direction: row-reverse; }
-.bubble.ai { align-self: flex-start; }
-.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
-.bubble.user .avatar { background: #3b82f6; color: white; }
-.bubble.ai .avatar { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-.bubble-body { border-radius: 12px; padding: 12px 16px; font-size: 13.5px; line-height: 1.6; font-family: var(--ff-body); color: var(--text1); word-break: break-word; }
-.bubble.user .bubble-body { background: #1e293b; border: 1px solid rgba(255,255,255,0.06); }
-.bubble.ai .bubble-body { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); }
-
-.bubble-body table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
-.bubble-body th, .bubble-body td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
-.bubble-body th { background: rgba(255,255,255,0.05); font-weight: 600; color: var(--cyan); }
-.bubble-body code { background: rgba(255,255,255,0.08); padding: 2px 4px; border-radius: 4px; font-family: var(--ff-mono); font-size: 11.5px; color: #f472b6; }
-.bubble-body pre { background: #060818; padding: 12px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; margin: 12px 0; }
-.bubble-body pre code { background: transparent; padding: 0; color: #38bdf8; font-size: 12px; }
+.chat-pane {
+  --aichat-accent: #10b981;
+  --aichat-accent-2: #059669;
+  --aichat-accent-soft: rgba(16,185,129,.18);
+  flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0d1e;
+}
+.chat-scroll { flex: 1; overflow-y: auto; padding: 24px 28px; }
 
 .chat-footer { padding: 16px 28px; border-top: 1px solid var(--border); background: #060818; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-.input-row { display: flex; gap: 8px; }
-.chat-input { flex: 1; background: #0a0d1e; border: 1px solid var(--border); border-radius: 8px; color: var(--text1); padding: 10px 14px; font-size: 13.5px; outline: none; transition: border-color .15s; }
-.chat-input:focus { border-color: var(--indigo); }
 .learn-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; padding: 0 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
 .learn-btn:hover { opacity: 0.9; }
 .header-meta { font-size: 10px; font-family: var(--ff-mono); color: var(--indigo); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
-
-.speak-bubble-btn { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 11px; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; transition: color .15s; }
-.speak-bubble-btn:hover { color: var(--cyan); }
 @media (max-width: 900px) {
   .teacher-grid {
     flex-direction: column !important;
@@ -182,21 +165,28 @@ body, .app { height: 100vh; overflow: hidden; }
           </div>
           <button class="btn btn-ghost btn-sm" onclick="clearTeacherChat()"><i class="fa-solid fa-trash-can"></i> Clear Chat</button>
         </div>
-        <div class="chat-scroll" id="chat-scroll">
-          <div class="bubble ai">
-            <div class="avatar" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-graduation-cap"></i></div>
-            <div class="bubble-body">
-              Hello Boopathi! I am your <strong>Antigravity AI Teacher</strong>. 📚<br><br>
-              Upload a syllabus PDF or photo on the left, and I will extract the topics and guide you through them step-by-step. 
-              Whenever you master a topic, I'll tick it off your list automatically!<br><br>
-              What would you like to study today?
+        <div class="chat-scroll aichat-thread" id="chat-scroll">
+          <div class="aichat-row assistant">
+            <div class="aichat-avatar"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="aichat-col">
+              <span class="aichat-name">Antigravity AI Teacher</span>
+              <div class="aichat-content btext">
+                Hello Boopathi! I am your <strong>Antigravity AI Teacher</strong>. 📚<br><br>
+                Upload a syllabus PDF or photo on the left, and I will extract the topics and guide you through them step-by-step. 
+                Whenever you master a topic, I'll tick it off your list automatically!<br><br>
+                What would you like to study today?
+              </div>
             </div>
           </div>
         </div>
         <div class="chat-footer">
           <div class="input-row">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Ask your teacher to explain a concept or topic..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); sendTeacherMessage(); }">
-            <button class="btn btn-primary" onclick="sendTeacherMessage()" id="send-btn" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-paper-plane"></i></button>
+            <div class="aichat-composer">
+              <textarea id="chat-input" rows="1" placeholder="Ask your teacher to explain a concept or topic..."
+                oninput="AIChatUI.autoResize(this)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){ event.preventDefault(); sendTeacherMessage(); }"></textarea>
+              <button class="aichat-send" onclick="sendTeacherMessage()" id="send-btn" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
             <span style="color:var(--text3);" id="upload-status-badge"></span>
@@ -424,9 +414,9 @@ async function sendTeacherMessage(customPrompt = null) {
 }
 
 function speakBubbleText(btn) {
-  const bubble = btn.closest('.bubble');
-  if (!bubble) return;
-  const textEl = bubble.querySelector('.bubble-body');
+  const row = btn.closest('.aichat-row');
+  if (!row) return;
+  const textEl = row.querySelector('.aichat-content');
   if (textEl && typeof speakVoice === 'function') {
     speakVoice(textEl.innerText, true, { warmth: 10, pitch: 0.9, rate: 0.95 });
   }
@@ -548,31 +538,46 @@ function tryJSONParseSyllabus(text) {
 }
 function appendBubble(text, role, id = '', isThinking = false) {
   const container = document.getElementById('chat-scroll');
+  const isAssistant = role !== 'user';
   const b = document.createElement('div');
-  b.className = `bubble ${role}`;
+  b.className = `aichat-row ${isAssistant ? 'assistant' : 'user'}${isThinking ? ' thinking' : ''}`;
   if (id) b.id = id;
   const icon = role === 'user' ? 'fa-user' : 'fa-graduation-cap';
-  
-  let formatted = (role === 'ai' && !isThinking)
-    ? renderMarkdownWithMath(text)
-    : (isThinking ? text : escH(text));
 
-  const speakBtn = (role === 'ai' && !isThinking)
-    ? `<br><button class="speak-bubble-btn" onclick="speakBubbleText(this)"><i class="fa-solid fa-volume-high"></i> Speak</button>`
+  let formatted = (isAssistant && !isThinking)
+    ? renderMarkdownWithMath(text)
+    : (isThinking ? window.AIChatUI.typingDotsHTML() : escH(text));
+
+  const actionsHtml = (isAssistant && !isThinking)
+    ? `<div class="aichat-actions">
+         <button class="aichat-action-btn" onclick="AIChatUI.copyText(this, this.closest('.aichat-col').querySelector('.aichat-content').innerText)"><i class="fa-regular fa-copy"></i> Copy</button>
+         <button class="aichat-action-btn" onclick="speakBubbleText(this)"><i class="fa-solid fa-volume-high"></i> Speak</button>
+       </div>`
     : '';
 
   b.innerHTML = `
-    <div class="avatar" style="${role==='user'?'background:#3b82f6;':'background:linear-gradient(135deg,#10b981,#059669);'}"><i class="fa-solid ${icon}"></i></div>
-    <div class="bubble-body">${formatted}${speakBtn}</div>
+    <div class="aichat-avatar"><i class="fa-solid ${icon}"></i></div>
+    <div class="aichat-col">
+      <span class="aichat-name">${isAssistant ? 'Antigravity AI Teacher' : 'You'}</span>
+      <div class="aichat-content${isAssistant && !isThinking ? ' btext' : ''}">${formatted}</div>
+      ${actionsHtml}
+    </div>
   `;
   container.appendChild(b);
   container.scrollTop = container.scrollHeight;
+  if (isAssistant && !isThinking) window.AIChatUI.decorateCodeBlocks(b);
 }
 async function clearTeacherChat() {
   try {
     await fetch('/api/ai/clear/teacher', { method: 'POST' });
     document.getElementById('chat-scroll').innerHTML = `
-      <div class="bubble ai"><div class="avatar" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-graduation-cap"></i></div><div class="bubble-body">Chat history cleared. Ready to start our next lesson!</div></div>
+      <div class="aichat-row assistant">
+        <div class="aichat-avatar"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="aichat-col">
+          <span class="aichat-name">Antigravity AI Teacher</span>
+          <div class="aichat-content btext">Chat history cleared. Ready to start our next lesson!</div>
+        </div>
+      </div>
     `;
     toast('Chat cleared', 'ok');
   } catch(e) {

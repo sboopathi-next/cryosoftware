@@ -857,6 +857,7 @@ function injectMobileNavigation() {
         <a href="/teacher" class="sheet-grid-item" style="border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.12)"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span style="color:#6ee7b7">AI Teacher</span></a>
         <a href="/finance" class="sheet-grid-item" style="border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07)"><i class="fa-solid fa-sack-dollar" style="color:#f59e0b"></i><span style="color:#fcd34d">Finance Advisor</span></a>
         <a href="/task-streaks" class="sheet-grid-item" style="border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07)"><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i><span style="color:#fcd34d">Task Streaks</span></a>
+        <a href="/rythm.html" class="sheet-grid-item" style="border-color:rgba(6,182,212,.35);background:rgba(6,182,212,.07)"><i class="fa-solid fa-sliders" style="color:#06b6d4"></i><span style="color:#67e8f9">Cadence Hub</span></a>
         <a href="/semester" class="sheet-grid-item" style="border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.07)"><i class="fa-solid fa-graduation-cap" style="color:#a78bfa"></i><span style="color:#c4b5fd">Semester</span></a>
         <a href="/syllabus" class="sheet-grid-item"><i class="fa-solid fa-book-open" style="color:var(--indigo)"></i><span>Study Path</span></a>
         <a href="/gym" class="sheet-grid-item"><i class="fa-solid fa-dumbbell" style="color:var(--amber)"></i><span>Gym Tracker</span></a>
@@ -1330,3 +1331,62 @@ if ("serviceWorker" in navigator) {
     _init();
   }
 })();
+
+// ══════════════════════════════════════════════════════════════
+// PROFESSIONAL AI CHAT UI — shared helpers (ChatGPT-style polish)
+// Used by ai.html, teacher.html, stoic.html, streak_monitor.html, finance.html
+// ══════════════════════════════════════════════════════════════
+window.AIChatUI = {
+  // Auto-grow a <textarea> up to maxHeight as the user types
+  autoResize(el, maxHeight = 160) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
+  },
+
+  // Copy plain text to clipboard with brief button feedback
+  copyText(btn, text) {
+    const flash = () => {
+      if (!btn) return;
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1400);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flash).catch(flash);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta);
+      flash();
+    }
+  },
+
+  // Adds a floating copy button to every rendered <pre> code block inside container
+  decorateCodeBlocks(container) {
+    if (!container) return;
+    container.querySelectorAll('pre').forEach(pre => {
+      if (pre.dataset.aichatDecorated) return;
+      pre.dataset.aichatDecorated = '1';
+      pre.classList.add('aichat-codeblock');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'aichat-code-copy';
+      btn.title = 'Copy code';
+      btn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+      btn.onclick = () => window.AIChatUI.copyText(btn, pre.innerText);
+      pre.appendChild(btn);
+    });
+  },
+
+  // Standard typing indicator markup (3 bouncing dots), replaces italic "thinking..." text
+  typingDotsHTML() {
+    return '<span class="aichat-typing"><span></span><span></span><span></span></span>';
+  }
+};

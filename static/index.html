@@ -119,7 +119,7 @@
           <div class="relative w-36 h-36 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
               <circle cx="60" cy="60" fill="none" r="48" stroke="#172238" stroke-width="9"></circle>
-              <circle class="transition-all duration-1000" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="120" stroke-linecap="round" stroke-width="9"></circle>
+              <circle id="level-ring-circle" class="transition-all duration-1000" cx="60" cy="60" fill="none" r="48" stroke="url(#levelGradient)" stroke-dasharray="301.6" stroke-dashoffset="120" stroke-linecap="round" stroke-width="9"></circle>
               <defs>
                 <linearGradient id="levelGradient" x1="0%" x2="100%" y1="0%" y2="100%">
                   <stop offset="0%" stop-color="#3b82f6"></stop>
@@ -440,9 +440,13 @@
   </div>
 </main>
 
-<!-- Smart Floating Side Dock for Energy Management -->
+<!-- Smart Floating Side Dock for Energy Management & Quick Nav -->
 <aside class="fixed right-2 top-24 z-50 flex items-center select-none" data-purpose="smart-sidebar-dock">
   <div class="sidebar-blur rounded-2xl border border-slate-700/60 shadow-2xl p-2 flex flex-col items-center gap-2.5 w-12 py-3 transition-all duration-200" id="dock-container">
+    <!-- Dynamic Custom App Icons Container -->
+    <div id="dock-custom-shortcuts" class="flex flex-col items-center gap-2"></div>
+    <div class="w-6 h-[1px] bg-slate-700/80 my-0.5" id="dock-divider-custom"></div>
+
     <button class="w-8 h-8 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-400 flex flex-col items-center justify-center shadow hover:scale-105 active:scale-95 transition-transform" id="dock-energy-btn" title="Cognitive Energy Pool Status">
       <i class="fa-solid fa-bolt text-[11px]"></i>
     </button>
@@ -457,6 +461,9 @@
     </button>
     <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-purple-300 hover:bg-slate-800/80 flex items-center justify-center transition-colors" id="dock-ledger-btn" title="View Energy Ledger History">
       <i class="fa-solid fa-receipt text-xs"></i>
+    </button>
+    <button class="w-8 h-8 rounded-xl text-slate-300 hover:text-amber-400 hover:bg-slate-800/80 flex items-center justify-center transition-colors" id="dock-edit-nav-btn" title="Edit Side Nav Shortcuts" onclick="openModal('edit-dock-modal')">
+      <i class="fa-solid fa-gear text-xs"></i>
     </button>
     <div class="w-6 h-[1px] bg-slate-700/80 my-0.5"></div>
     <button class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/70 text-slate-300 hover:text-white flex items-center justify-center active:scale-90 transition-all" id="dock-toggle-btn" title="Toggle Sidebar">
@@ -491,6 +498,9 @@
         </a>
         <a href="/task-streaks" class="p-2.5 rounded-xl bg-[#131b2e] border border-orange-500/30 hover:border-orange-500/80 flex items-center gap-2 text-orange-300 transition-all active:scale-95">
           <i class="fa-solid fa-fire text-orange-400 text-sm"></i><span>Task Streaks</span>
+        </a>
+        <a href="/rythm.html" class="p-2.5 rounded-xl bg-[#131b2e] border border-cyan-500/30 hover:border-cyan-500/80 flex items-center gap-2 text-cyan-300 transition-all active:scale-95">
+          <i class="fa-solid fa-sliders text-cyan-400 text-sm"></i><span>Cadence Hub</span>
         </a>
         <a href="/semester" class="p-2.5 rounded-xl bg-[#131b2e] border border-purple-500/30 hover:border-purple-500/80 flex items-center gap-2 text-purple-300 transition-all active:scale-95">
           <i class="fa-solid fa-graduation-cap text-purple-400 text-sm"></i><span>Semester</span>
@@ -535,6 +545,26 @@
           <i class="fa-solid fa-briefcase text-indigo-400 text-sm"></i><span>Work Tracker</span>
         </a>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1.5 Edit Side Nav Shortcuts Modal -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4" id="edit-dock-modal">
+  <div class="bg-[#0e1422] border border-slate-700/80 rounded-2xl max-w-md w-full p-4 shadow-2xl space-y-3 max-h-[85vh] flex flex-col">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 shrink-0">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-sliders text-cyan-400"></i>
+        <span>Customize Side Nav Apps</span>
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('edit-dock-modal')"><i class="fa-solid fa-xmark text-base"></i></button>
+    </div>
+    <p class="text-xs text-slate-400">Select which apps and modules appear in your floating side dock on Home:</p>
+    <div id="edit-dock-app-list" class="overflow-y-auto pr-1 flex-1 space-y-1.5 max-h-64 font-sans text-xs">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="pt-2 border-t border-slate-800 flex justify-end gap-2">
+      <button class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700" onclick="closeModal('edit-dock-modal')">Close</button>
     </div>
   </div>
 </div>
@@ -834,34 +864,39 @@
 <!-- Mobile Bottom Navigation Footer (Hidden on Laptop / Desktop screens >= 768px) -->
 <footer class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070b14]/95 backdrop-blur-lg border-t border-slate-800/90 max-w-md mx-auto" data-purpose="mobile-bottom-navigation">
   <nav class="flex items-center justify-around py-2 px-1">
-    <a class="flex flex-col items-center text-cyan-400 px-3 py-1 group" href="/">
+    <a class="flex flex-col items-center text-cyan-400 px-2 py-1 group" href="/">
       <div class="relative">
         <i class="fa-solid fa-gauge-high text-lg"></i>
         <span class="absolute -top-1 -right-1.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-sm"></span>
       </div>
-      <span class="text-[10px] font-semibold tracking-tight mt-1">Dashboard</span>
+      <span class="text-[10px] font-semibold tracking-tight mt-1">Dash</span>
     </a>
-    <a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-3 py-1 group transition-colors" href="/canvas">
+    <a class="flex flex-col items-center text-slate-400 hover:text-slate-200 px-2 py-1 group transition-colors" href="/canvas">
       <i class="fa-solid fa-graduation-cap text-lg group-hover:scale-110 transition-transform"></i>
       <span class="text-[10px] font-medium tracking-tight mt-1">Canvas</span>
     </a>
-    <a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-3 py-1 group transition-colors" href="/gym-pro">
+    <a class="flex flex-col items-center text-amber-500 hover:text-amber-400 px-2 py-1 group transition-colors" href="/gym-pro">
       <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
-      <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Gym Pro</span>
+      <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Gym</span>
     </a>
-    <a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-3 py-1 group transition-colors" href="/mind-os">
+    <a class="flex flex-col items-center text-purple-400 hover:text-purple-300 px-2 py-1 group transition-colors" href="/mind-os">
       <i class="fa-solid fa-brain text-lg group-hover:scale-110 transition-transform"></i>
-      <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Mind OS</span>
+      <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Mind</span>
     </a>
-    <a class="flex flex-col items-center text-cyan-400 hover:text-cyan-300 px-3 py-1 group transition-colors" href="/rythm.html">
+    <a class="flex flex-col items-center text-cyan-400 hover:text-cyan-300 px-2 py-1 group transition-colors" href="/rythm.html">
       <i class="fa-solid fa-sliders text-lg group-hover:scale-110 transition-transform"></i>
       <span class="text-[10px] font-medium tracking-tight mt-1 text-slate-400 group-hover:text-slate-200">Cadence</span>
     </a>
+    <button class="flex flex-col items-center text-slate-400 hover:text-white px-2 py-1 group transition-colors" id="mobile-more-btn" onclick="openModal('more-modules-modal')">
+      <i class="fa-solid fa-grid-2 text-lg group-hover:scale-110 transition-transform"></i>
+      <span class="text-[10px] font-medium tracking-tight mt-1">More</span>
+    </button>
   </nav>
 </footer>
 
 <!-- External Controller Scripts -->
 <script src="/static/dopamine_engine.js"></script>
 <script src="/static/dashboard_controller.js"></script>
+<script src="/static/launcher.js"></script>
 </body>
 </html>
