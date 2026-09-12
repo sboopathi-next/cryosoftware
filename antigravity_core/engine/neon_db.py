@@ -411,6 +411,49 @@ def neon_delete_workout_by_timestamp(timestamp: str):
             cur.execute("DELETE FROM pg_workout_log WHERE timestamp = %s", (timestamp,))
 
 
+# ─── Custom Workout Options ─────────────────────────────────────────────────────
+# Stored here (not the CSV) because the CSV lives on the read-only serverless FS
+# and any appended rows are lost the moment the function instance recycles.
+
+def _init_pg_custom_workouts_table(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_custom_workouts (
+            id SERIAL PRIMARY KEY,
+            category TEXT NOT NULL,
+            workout TEXT NOT NULL,
+            created_at TEXT,
+            UNIQUE (category, workout)
+        );
+    """)
+
+
+def neon_get_custom_workouts() -> dict:
+    """Return {category: [workout, ...]} for all custom workouts added on serverless."""
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_custom_workouts_table(cur)
+            cur.execute("SELECT category, workout FROM pg_custom_workouts ORDER BY id ASC")
+            rows = cur.fetchall()
+    categories: dict = {}
+    for r in rows:
+        categories.setdefault(r["category"], []).append(r["workout"])
+    return categories
+
+
+def neon_save_custom_workout(category: str, workout: str) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_custom_workouts_table(cur)
+            cur.execute("SELECT 1 FROM pg_custom_workouts WHERE category = %s AND workout = %s", (category, workout))
+            if cur.fetchone():
+                return {"status": "exists"}
+            cur.execute(
+                "INSERT INTO pg_custom_workouts (category, workout, created_at) VALUES (%s, %s, %s)",
+                (category, workout, _now())
+            )
+    return {"status": "success"}
+
+
 def neon_delete_study_entry(entry_id: int):
     with _conn() as conn:
         with conn.cursor() as cur:

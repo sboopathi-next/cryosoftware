@@ -1,0 +1,58 @@
+{
+  "packageId": "com.antigravity.os",
+  "host": "cryosoftware.vercel.app",
+  "name": "Antigravity OS",
+  "launcherName": "Antigravity",
+  "display": "standalone",
+  "themeColor": "#0A0F1D",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#0A0F1D",
+  "enableNotifications": true,
+  "startUrl": "/?source=pwa",
+  "iconUrl": "https://cryosoftware.vercel.app/static/icon-512.png",
+  "maskableIconUrl": "https://cryosoftware.vercel.app/static/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\sboopathi\\projects\\CryoSoftWare\\android-twa\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "2",
+  "appVersionCode": 2,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "shortName": "Dash",
+      "url": "https://cryosoftware.vercel.app/?source=shortcut",
+      "chosenIconUrl": "https://cryosoftware.vercel.app/static/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://cryosoftware.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://cryosoftware.vercel.app/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [
+    {
+      "value": "BE:87:6D:45:1E:71:90:02:47:AC:DF:A8:D9:A9:B6:7F:06:97:B8:48:BF:B6:2A:D3:2E:A6:8D:36:36:4C:31:BD"
+    }
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "2"
+}

@@ -50,10 +50,15 @@ state.json
 static/app-debug.apk
 *.apk
 *.aab
+*.idsig
 *.keystore
 *.jks
 android-twa/.gradle/
 android-twa/build/
 android-twa/app/build/
+
+# Machine-specific Android SDK path (regenerated per dev machine)
+local.properties
+**/local.properties
 # Syllabus & data files
 # syllabus.json included for online deployment

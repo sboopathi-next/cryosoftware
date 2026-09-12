@@ -1,0 +1,23 @@
+{
+  "packageId": "com.antigravity.os",
+  "host": "cryosoftware.vercel.app",
+  "name": "Antigravity OS",
+  "launcherName": "Antigravity",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#0a0f1d",
+  "backgroundColor": "#0a0f1d",
+  "startUrl": "/?source=twa",
+  "iconUrl": "https://cryosoftware.vercel.app/static/icon-512.png",
+  "maskableIconUrl": "https://cryosoftware.vercel.app/static/icon-512.png",
+  "monochromeIconUrl": "https://cryosoftware.vercel.app/static/icon-512.png",
+  "appVersion": "1",
+  "appVersionName": "1.0.0",
+  "shortcutItems": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://cryosoftware.vercel.app/manifest.json",
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 19,
+  "fingerprints": []
+}

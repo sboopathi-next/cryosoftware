@@ -1347,43 +1347,48 @@ def get_bad_experience_entries(date: Optional[str] = None, limit: int = 100):
 
 @app.get("/api/workouts/options")
 def get_workout_options():
-    """Load all workout options from gym_workouts_by_category.csv grouped by category."""
-    if not os.path.exists(GYM_WORKOUTS_CSV):
-        return {"categories": {}}
-    
+    """Load workout options from gym_workouts_by_category.csv, merged with any custom workouts added via the app."""
     categories = {}
+    if os.path.exists(GYM_WORKOUTS_CSV):
+        try:
+            with open(GYM_WORKOUTS_CSV, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cat = row["Category"].strip()
+                    workout = row["Workout"].strip()
+                    if cat and workout:
+                        categories.setdefault(cat, []).append(workout)
+        except Exception as e:
+            print(f"[API] Error reading workout CSV: {e}")
+
+    # Custom workouts are always persisted to Neon (CSV is read-only/ephemeral on serverless)
     try:
-        with open(GYM_WORKOUTS_CSV, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                cat = row["Category"].strip()
-                workout = row["Workout"].strip()
-                if cat and workout:
-                    categories.setdefault(cat, []).append(workout)
+        from engine.neon_db import neon_get_custom_workouts
+        for cat, workouts in neon_get_custom_workouts().items():
+            existing = categories.setdefault(cat, [])
+            for w in workouts:
+                if w not in existing:
+                    existing.append(w)
     except Exception as e:
-        print(f"[API] Error reading workout CSV: {e}")
-    
+        print(f"[API] Error reading custom workouts from Neon: {e}")
+
     return {"categories": categories}
 
 
 @app.post("/api/workouts/custom")
 def add_custom_workout(payload: CustomWorkoutPayload):
-    """Append a new custom workout to gym_workouts_by_category.csv."""
-    if not payload.category.strip() or not payload.workout.strip():
+    """Save a new custom workout to Neon DB (CSV is read-only/ephemeral on serverless, so writes there don't persist)."""
+    category = payload.category.strip()
+    workout = payload.workout.strip()
+    if not category or not workout:
         raise HTTPException(status_code=400, detail="Category and Workout name required.")
-    
+
     try:
-        # Check for duplicates
-        with open(GYM_WORKOUTS_CSV, "r", encoding="utf-8") as f:
-            content = f.read()
-        if payload.workout.strip() in content:
+        from engine.neon_db import neon_save_custom_workout
+        result = neon_save_custom_workout(category, workout)
+        if result.get("status") == "exists":
             return {"status": "exists", "message": "Workout already exists in the list."}
-        
-        with open(GYM_WORKOUTS_CSV, "a", encoding="utf-8", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([payload.category.strip(), payload.workout.strip()])
-        
-        return {"status": "success", "message": f"'{payload.workout}' added to category '{payload.category}'."}
+        return {"status": "success", "message": f"'{workout}' added to category '{category}'."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding workout: {e}")
 
