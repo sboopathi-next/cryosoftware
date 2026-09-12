@@ -482,12 +482,8 @@
     if (!mobileNav) {
       mobileNav = document.createElement('div');
       mobileNav.id = 'mobile-bottom-dock';
-      mobileNav.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-[#0e1320]/90 backdrop-blur-xl px-5 py-2.5 rounded-full border border-slate-700/60 shadow-2xl flex items-center gap-6 text-slate-300 text-sm';
+      mobileNav.className = 'fixed left-1/2 transform -translate-x-1/2 z-40 bg-[#0e1320]/90 backdrop-blur-xl px-4 py-2 rounded-full border border-slate-700/60 shadow-2xl flex items-center gap-4 text-slate-300 text-sm';
       mobileNav.innerHTML = `
-        <button id="dock-btn-home" class="hover:text-cyan-400 transition-colors flex flex-col items-center gap-0.5">
-          <i class="fa-solid fa-house text-base"></i>
-          <span class="text-[9px] font-mono">HOME</span>
-        </button>
         <button id="dock-btn-drawer" class="px-4 py-1.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-black font-bold flex items-center gap-1.5 transition-transform active:scale-95 shadow-lg shadow-cyan-500/20">
           <i class="fa-solid fa-grid-2 text-xs"></i>
           <span class="text-xs font-mono">APPS</span>
@@ -499,10 +495,20 @@
       `;
       document.body.appendChild(mobileNav);
 
-      document.getElementById('dock-btn-home').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
       document.getElementById('dock-btn-drawer').onclick = openAppDrawer;
       document.getElementById('dock-btn-settings').onclick = openLauncherSettings;
+
+      positionDockAboveFooterNav(mobileNav);
+      window.addEventListener('resize', () => positionDockAboveFooterNav(mobileNav));
+      setTimeout(() => positionDockAboveFooterNav(mobileNav), 300); // catches late Tailwind CDN reflow
     }
+  }
+
+  // Keeps the floating dock from overlapping whatever bottom nav the page already renders
+  function positionDockAboveFooterNav(dockEl) {
+    const existingNav = document.querySelector('[data-purpose="mobile-bottom-navigation"]') || document.querySelector('.mobile-bottom-nav');
+    const clearance = existingNav ? existingNav.getBoundingClientRect().height : 0;
+    dockEl.style.bottom = `calc(${clearance}px + env(safe-area-inset-bottom, 0px) + 10px)`;
   }
 
   function openAppDrawer() {
