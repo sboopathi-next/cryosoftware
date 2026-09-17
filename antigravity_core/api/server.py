@@ -671,27 +671,8 @@ def save_exam_scratchpad(payload: ExamSavePayload):
 @app.get("/api/news")
 def get_tech_news():
     try:
-        if not os.path.exists(ANTIGRAVITY_DB_PATH):
-            return {"status": "success", "news": {}}
-        conn = sqlite3.connect(ANTIGRAVITY_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        # Get latest 7 days of news, grouped by date
-        cutoff = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
-        rows = conn.execute(
-            "SELECT * FROM tech_news WHERE fetch_date >= ? ORDER BY fetch_date DESC, id ASC",
-            (cutoff,)
-        ).fetchall()
-        conn.close()
-
-        
-        # Group by date
-        grouped = {}
-        for r in rows:
-            d = r["fetch_date"]
-            if d not in grouped:
-                grouped[d] = []
-            grouped[d].append(dict(r))
-            
+        from engine.tech_news import get_recent_news_grouped
+        grouped = get_recent_news_grouped(days=7)
         return {"status": "success", "data": grouped}
     except Exception as e:
         return {"status": "error", "message": str(e)}

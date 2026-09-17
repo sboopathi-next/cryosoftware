@@ -80,7 +80,7 @@ async function loadNews() {
     container.innerHTML = '';
     
     if (json.status !== 'success' || !json.data || Object.keys(json.data).length === 0) {
-      container.innerHTML = `<div class="loading" style="color:var(--red);">No news available yet. Make sure Gemini API Key is set in settings!</div>`;
+      container.innerHTML = `<div class="loading" style="color:var(--red);">No news available right now. RSS sources may be unreachable, or the Groq API Key isn't set in settings.</div>`;
       return;
     }
     

@@ -349,6 +349,54 @@ def neon_save_study_journal(topic: str, notes: str, subject_id: str, item_id: st
     return {"id": new_id, "timestamp": ts}
 
 
+# ─── Tech News (serverless persistence — no background thread on Vercel) ──────
+
+def _ensure_tech_news_table(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_tech_news (
+            id SERIAL PRIMARY KEY,
+            fetch_date TEXT NOT NULL,
+            title TEXT NOT NULL,
+            summary TEXT,
+            source TEXT,
+            url TEXT,
+            icon TEXT,
+            created_at TEXT DEFAULT NOW()
+        )
+    """)
+
+
+def neon_has_news_for_today() -> bool:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _ensure_tech_news_table(cur)
+            cur.execute("SELECT COUNT(*) FROM pg_tech_news WHERE fetch_date = %s", (_today(),))
+            return cur.fetchone()[0] > 0
+
+
+def neon_store_tech_news(articles: list):
+    today = _today()
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _ensure_tech_news_table(cur)
+            for a in articles:
+                cur.execute(
+                    "INSERT INTO pg_tech_news (fetch_date, title, summary, source, url, icon) VALUES (%s,%s,%s,%s,%s,%s)",
+                    (today, a["title"], a.get("summary", ""), a.get("source", ""), a.get("url", ""), a.get("icon", "📰"))
+                )
+
+
+def neon_get_tech_news(cutoff: str) -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _ensure_tech_news_table(cur)
+            cur.execute(
+                "SELECT * FROM pg_tech_news WHERE fetch_date >= %s ORDER BY fetch_date DESC, id ASC",
+                (cutoff,)
+            )
+            return [dict(r) for r in cur.fetchall()]
+
+
 # ─── Workout Logs ──────────────────────────────────────────────────────────────
 
 def _init_pg_workout_log_table(cur):

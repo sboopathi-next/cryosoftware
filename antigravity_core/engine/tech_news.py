@@ -11,6 +11,13 @@ import json
 import datetime
 import xml.etree.ElementTree as ET
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+try:
+    from config import IS_SERVERLESS, DATABASE_URL
+except ImportError:
+    IS_SERVERLESS = bool(os.environ.get("VERCEL"))
+    DATABASE_URL = ""
 
 # ── RSS Sources ────────────────────────────────────────────────────────────
 RSS_FEEDS = [
@@ -47,6 +54,8 @@ def get_db():
 
 
 def init_tech_news_table():
+    if IS_SERVERLESS:
+        return  # pg_tech_news is lazily created by neon_db._ensure_tech_news_table
     conn = get_db()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS tech_news (
@@ -145,7 +154,7 @@ Return ONLY a JSON array of strings, one per headline, in the same order. No ext
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}"
             },
-            timeout=30
+            timeout=12
         )
         text = resp.json()["choices"][0]["message"]["content"]
         # Strip markdown code fences if present
@@ -163,6 +172,13 @@ Return ONLY a JSON array of strings, one per headline, in the same order. No ext
 
 
 def has_news_for_today() -> bool:
+    if IS_SERVERLESS:
+        try:
+            from engine.neon_db import neon_has_news_for_today
+            return neon_has_news_for_today()
+        except Exception as e:
+            print(f"[Tech News] Neon has_news_for_today error: {e}")
+            return False
     today = datetime.date.today().isoformat()
     conn = get_db()
     row = conn.execute("SELECT COUNT(*) as cnt FROM tech_news WHERE fetch_date = ?", (today,)).fetchone()
@@ -171,6 +187,13 @@ def has_news_for_today() -> bool:
 
 
 def store_news(articles: list[dict]):
+    if IS_SERVERLESS:
+        try:
+            from engine.neon_db import neon_store_tech_news
+            neon_store_tech_news(articles)
+        except Exception as e:
+            print(f"[Tech News] Neon store_news error: {e}")
+        return
     today = datetime.date.today().isoformat()
     conn = get_db()
     for a in articles:
@@ -183,17 +206,24 @@ def store_news(articles: list[dict]):
 
 
 def fetch_and_store_news(api_key: str = ""):
-    """Main pipeline: fetch RSS → deduplicate → AI summarize → store."""
+    """Main pipeline: fetch RSS (in parallel, so a request-time call stays fast) → AI summarize → store."""
     print("[Tech News] Starting daily fetch...")
     all_articles = []
 
-    for feed in RSS_FEEDS:
-        articles = fetch_rss(feed["url"])
-        for a in articles:
-            a["source"] = feed["name"]
-            a["icon"]   = feed["icon"]
-        all_articles.extend(articles)
-        print(f"[Tech News] {feed['name']}: {len(articles)} articles fetched.")
+    with ThreadPoolExecutor(max_workers=len(RSS_FEEDS)) as executor:
+        future_to_feed = {executor.submit(fetch_rss, feed["url"], 6): feed for feed in RSS_FEEDS}
+        for future in as_completed(future_to_feed):
+            feed = future_to_feed[future]
+            try:
+                articles = future.result()
+            except Exception as e:
+                print(f"[Tech News] {feed['name']} failed: {e}")
+                articles = []
+            for a in articles:
+                a["source"] = feed["name"]
+                a["icon"]   = feed["icon"]
+            all_articles.extend(articles)
+            print(f"[Tech News] {feed['name']}: {len(articles)} articles fetched.")
 
     if not all_articles:
         print("[Tech News] No articles fetched — network issue?")
@@ -210,7 +240,20 @@ def fetch_and_store_news(api_key: str = ""):
 
 
 def get_api_key_from_db() -> str:
-    """Read Groq API key from the database if it was saved by the frontend."""
+    """Read Groq API key from Neon (serverless) or SQLite (local); env var is the final fallback."""
+    if IS_SERVERLESS:
+        try:
+            import psycopg2
+            conn = psycopg2.connect(DATABASE_URL)
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM pg_settings WHERE key = 'groq_api_key'")
+                row = cur.fetchone()
+            conn.close()
+            if row and row[0]:
+                return row[0].strip()
+        except Exception as e:
+            print(f"[Tech News] Neon settings lookup error: {e}")
+        return os.environ.get("GROQ_API_KEY", "")
     try:
         conn = get_db()
         row = conn.execute("SELECT value FROM settings WHERE key = 'groq_api_key'").fetchone()
@@ -243,3 +286,38 @@ def run_tech_news_loop(stop_event: threading.Event):
                 fetch_and_store_news(api_key)
         except Exception as e:
             print(f"[Tech News] Loop error: {e}")
+
+
+def get_recent_news_grouped(days: int = 7) -> dict:
+    """
+    Return {date: [articles]} for the last `days` days.
+    Self-healing: serverless has no background daemon, so this fetches fresh
+    news on-demand the first time it's called for a given day.
+    """
+    init_tech_news_table()
+    if not IS_SERVERLESS:
+        purge_old_news()
+
+    if not has_news_for_today():
+        fetch_and_store_news(get_api_key_from_db())
+
+    cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+
+    if IS_SERVERLESS:
+        try:
+            from engine.neon_db import neon_get_tech_news
+            rows = neon_get_tech_news(cutoff)
+        except Exception as e:
+            print(f"[Tech News] Neon fetch error: {e}")
+            rows = []
+    else:
+        conn = get_db()
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM tech_news WHERE fetch_date >= ? ORDER BY fetch_date DESC, id ASC", (cutoff,)
+        ).fetchall()]
+        conn.close()
+
+    grouped: dict = {}
+    for r in rows:
+        grouped.setdefault(r["fetch_date"], []).append(r)
+    return grouped
