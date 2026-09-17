@@ -126,10 +126,10 @@
       const pct = Math.min(100, Math.max(0, (data.xp / data.xp_required) * 100));
       $('xp-progress-bar').style.width = `${pct.toFixed(1)}%`;
 
-      // Level ring (r=48 -> circumference = 301.6)
+      // Level ring (r=50 -> circumference = 314.2)
       const ring = $('level-ring-circle');
       if (ring) {
-        const offset = 301.6 - (301.6 * (pct / 100));
+        const offset = 314.2 - (314.2 * (pct / 100));
         ring.setAttribute('stroke-dashoffset', offset.toFixed(1));
       }
     }
@@ -156,6 +156,7 @@
     updateChecklistItem('chk-fit', data.health_completed || data.walk_completed);
     updateChecklistItem('chk-meditation', data.meditation_completed);
     updateChecklistItem('chk-semester', data.canvas_semester_completed);
+    updateChecklistItem('chk-mindos', data.mindos_completed);
   }
 
   function updateChecklistItem(elementId, isCompleted, subtitleOverride) {
@@ -209,10 +210,10 @@
     if ($('energy-capacity-tag')) $('energy-capacity-tag').textContent = `${cap} min Max Cap`;
     if ($('deep-blocks-tag')) $('deep-blocks-tag').textContent = `${deepBlocks} / 3`;
 
-    // Circular Gauge stroke dash offset (r=40 -> circumference = 251.2)
+    // Circular Gauge stroke dash offset (r=34 -> circumference = 213.6)
     const ring = $('energy-ring-circle');
     if (ring) {
-      const strokeOffset = 251.2 - (251.2 * (Math.max(0, Math.min(100, eVal)) / 100.0));
+      const strokeOffset = 213.6 - (213.6 * (Math.max(0, Math.min(100, eVal)) / 100.0));
       ring.setAttribute('stroke-dashoffset', strokeOffset.toFixed(1));
 
       // Color coding tier ring
@@ -263,15 +264,6 @@
     const isFitCompleted = steps >= 1000 || dist >= 0.5 || active >= 10 || data.health_completed || data.walk_completed;
     const subText = `Steps: ${steps.toLocaleString()} | ${dist.toFixed(1)} km | ${sleep.toFixed(1)}h sleep`;
     updateChecklistItem('chk-fit', isFitCompleted, subText);
-  }
-
-  // ─── 4. Fitness Telemetry UI Renderer ──────────────────────────────────────
-  function renderFitnessUI(data) {
-    if (!data) return;
-    if ($('fit-steps-val')) $('fit-steps-val').textContent = (data.steps || 0).toLocaleString();
-    if ($('fit-dist-val')) $('fit-dist-val').textContent = `${(data.distance_km || 0).toFixed(1)} km`;
-    if ($('fit-sleep-val')) $('fit-sleep-val').textContent = `${data.sleep_hours || 7.5} hrs`;
-    if ($('fit-mins-val')) $('fit-mins-val').textContent = `${data.active_minutes || 0} mins`;
   }
 
   // ─── 5. Accountability Tasks Handlers ─────────────────────────────────────
@@ -526,6 +518,12 @@
       } catch (e) {
         notify('Error triggering Canvas sync', 'err');
       }
+    });
+
+    // 11. Mind OS Reality Check (Opens /mind-os; updates automatically on CBT session completion)
+    $('chk-mindos')?.addEventListener('click', () => {
+      if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+      window.location.href = '/mind-os';
     });
   }
 

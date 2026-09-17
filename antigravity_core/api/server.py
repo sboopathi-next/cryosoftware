@@ -3553,10 +3553,11 @@ def log_gympro_workout(data: GymProLogPayload):
         if state:
             state["str"] = state.get("str", 10) + str_gain
             state["wil"] = state.get("wil", 10) + wil_gain
-            state["energy"] = min(100.0, state.get("energy", 100.0) + 20.0)
             state["gym_completed"] = 1
             save_state(state)
         add_xp(base_xp)
+        # Route through fatigue_governor (not a raw += ) so EnergyEngine/the dashboard ring stays in sync
+        update_daily_energy(study_hours=0.0, gym_hours=mins / 60.0, dopamine_rewards=0)
 
         log_activity_file("GymPro Workout Logged", f"{'Manual' if data.is_manual else 'Timer'} Workout: {data.workout_type} ({mins} mins). +{base_xp} XP, +{str_gain} STR, +{wil_gain} WIL.")
 
@@ -4279,34 +4280,6 @@ def api_canvas_today():
         }
     except Exception as e:
         return {"required_course": "Semester ML Track", "due_assignment": "Wk Assignment", "submission_status": "PENDING"}
-
-@app.post("/api/gympro/log_workout")
-@app.post("/api/workouts/log")
-def api_log_gym_workout(payload: WorkoutLogPayload):
-    try:
-        dur = payload.duration_minutes or 45
-        category = payload.category or "Gym_Pro"
-        workout = payload.workout or "Strength Session"
-        xp = 80
-        
-        state = get_state() or {}
-        state["str"] = state.get("str", 10) + 2
-        state["wil"] = state.get("wil", 10) + 1
-        state["gym_completed"] = 1
-        save_state(state)
-        add_xp(xp)
-        
-        try:
-            from engine.energy_engine import EnergyEngine
-            EnergyEngine().apply_recovery("WORKOUT_RECOVERY", dur)
-        except Exception:
-            pass
-            
-        log_activity_file("Gym Workout Logged", f"Logged workout '{workout}' ({category}, {dur}m). Awarded +80 XP, +2 STR, +1 WIL.")
-        return {"status": "SUCCESS", "message": f"Gym Workout Logged! +80 XP, +2 STR, +1 WIL", "xp_earned": xp}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CIRCADIAN ROUTINE & PUNCTUALITY ENGINE
