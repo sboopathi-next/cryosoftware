@@ -83,6 +83,36 @@
     }
   }
 
+  // ─── 1b. Semester Subject-of-the-Day (Task 10 + Active Quest banner) ──────
+  async function loadSemesterTask() {
+    try {
+      const r = await fetch('/api/semester/today');
+      if (!r.ok) return;
+      const d = await r.json();
+      const emoji = d.course_emoji || '📚';
+      const clockText = d.is_weekend ? 'WEEKEND' : `${d.hours_remaining}H ${d.mins_remaining}M`;
+
+      const lbl = $('semester-task-lbl');
+      if (lbl) lbl.textContent = `10. ${emoji} ${d.course_name}`;
+
+      const meta = $('semester-task-meta');
+      if (meta) meta.textContent = d.is_weekend
+        ? '🏖️ Weekend — DSA & System Audit mode'
+        : `Canvas: Videos + Quiz before 23:59 (+150 XP) · ${clockText} left`;
+
+      const questTitle = $('active-quest-title');
+      if (questTitle) questTitle.textContent = `${emoji} ${d.course_name} — Week ${d.week_number}/12`;
+
+      const rewardTag = $('quest-reward-tag');
+      if (rewardTag) rewardTag.textContent = d.audit_status === 'CLEARED' ? `+${d.xp_awarded} XP Earned` : '+150 XP • On-Time';
+
+      const clockTag = $('quest-clock-tag');
+      if (clockTag) clockTag.textContent = clockText;
+    } catch (e) {
+      console.warn('[Semester Task Warning]', e);
+    }
+  }
+
   // ─── 2. Stats & Attributes Renderer ───────────────────────────────────────
   function renderStatsUI(data) {
     if (!data) return;
@@ -481,16 +511,17 @@
       if (tag) tag.textContent = `+${mins * 4} XP • +2 STC • +1 WIL • +8 Energy`;
     };
 
-    // 10. Semester ML Track
+    // 10. Semester Subject-of-the-Day
     $('chk-semester')?.addEventListener('click', async () => {
       if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
-      notify('Syncing Semester ML Track...', 'info');
+      notify('Syncing Semester Subject...', 'info');
       try {
         const r = await fetch('/api/canvas/sync', { method: 'POST' });
         const d = await r.json();
         if (r.ok) {
           notify('Canvas LMS Sync Triggered!', 'ok');
           hydrateTelemetry();
+          loadSemesterTask();
         }
       } catch (e) {
         notify('Error triggering Canvas sync', 'err');
@@ -942,12 +973,14 @@
   // ─── 8. Initialization ────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     hydrateTelemetry();
+    loadSemesterTask();
     setupAccountabilityHandlers();
     setupSideDockControls();
     setupFormSubmitHandlers();
 
     // 8-second background polling
     setInterval(hydrateTelemetry, 8000);
+    setInterval(loadSemesterTask, 60000); // refresh subject-of-the-day countdown every minute
   });
 
 })();
