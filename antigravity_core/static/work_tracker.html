@@ -188,7 +188,10 @@ let currentCalMonth = new Date().getMonth(); // 0-indexed
 async function loadWorkTrackerReport() {
   try {
     const res = await fetch("/api/work_tracker/logs?limit=300");
-    if (!res.ok) return;
+    if (!res.ok) {
+      showWorkTrackerLoadError(`Server returned ${res.status} while loading work logs.`);
+      return;
+    }
     const data = await res.json();
     allWorkLogs = data.logs || [];
     processWorkData(data);
@@ -196,6 +199,15 @@ async function loadWorkTrackerReport() {
     renderWorkTrackerReport(data);
   } catch (e) {
     console.error("Failed to load work tracker logs report:", e);
+    showWorkTrackerLoadError("Network error — could not reach the server.");
+  }
+}
+
+function showWorkTrackerLoadError(message) {
+  renderCalendar();
+  const tbl = document.getElementById("pg-work-tbl");
+  if (tbl) {
+    tbl.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--red, #ef4444);">${escHTML(message)} Refresh to retry.</td></tr>`;
   }
 }
 

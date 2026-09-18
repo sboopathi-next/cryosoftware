@@ -329,6 +329,12 @@ function updateStats(data) {
   document.getElementById('stat-cals').innerHTML = `${cals.toLocaleString()} <span style="font-size:12px;color:var(--text3)">kcal</span>`;
 }
 
+function getDatePart(ts) {
+  // Handles both 'YYYY-MM-DD HH:MM:SS' and ISO 'YYYY-MM-DDTHH:MM:SS.ffffff' timestamp formats
+  if (!ts) return '';
+  return ts.split('T')[0].split(' ')[0];
+}
+
 function extractMaxWeight(setsStr) {
   // Example setsStr: "Set 1: 20kg x 30 reps, Set 2: 25kg x 10 reps"
   if (!setsStr || setsStr === "No sets recorded") return 0;
@@ -362,7 +368,7 @@ function updateLineChart(data, filter) {
     const freq = {};
     data.forEach(d => {
       if(!d.Timestamp) return;
-      const date = d.Timestamp.split(' ')[0];
+      const date = getDatePart(d.Timestamp);
       freq[date] = (freq[date] || 0) + 1;
     });
     labels = Object.keys(freq).sort();
@@ -372,7 +378,7 @@ function updateLineChart(data, filter) {
     // Show max weight for specific workout
     data.forEach(d => {
       if(!d.Timestamp) return;
-      labels.push(d.Timestamp.split(' ')[0]);
+      labels.push(getDatePart(d.Timestamp));
       dataset.push(extractMaxWeight(d.Sets));
     });
     labelName = "Max Weight (kg)";
@@ -449,7 +455,7 @@ function updateCalsChart(data) {
   const calsByDate = {};
   data.forEach(d => {
     if(!d.Timestamp) return;
-    const date = d.Timestamp.split(' ')[0];
+    const date = getDatePart(d.Timestamp);
     const dur = parseInt(d.Duration_Minutes) || 0;
     calsByDate[date] = (calsByDate[date] || 0) + (dur * 5); // 5 kcal per min
   });
@@ -500,7 +506,7 @@ function updateTable(data) {
   
   sorted.forEach(d => {
     const tr = document.createElement('tr');
-    const date = d.Timestamp ? d.Timestamp.split(' ')[0] : '-';
+    const date = d.Timestamp ? getDatePart(d.Timestamp) : '-';
     tr.innerHTML = `
       <td style="color:var(--text3);font-family:var(--ff-mono)">${date}</td>
       <td><span style="background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:4px;font-size:11px">${d.Category}</span></td>

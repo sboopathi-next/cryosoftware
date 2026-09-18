@@ -606,36 +606,6 @@ function toggleGuide() {
   }
 }
 
-// Build Sidebar navigation
-function renderSidebar() {
-  const currentPath = window.location.pathname;
-  const navItems = [
-    { href: "/", icon: "fa-gauge-high", text: "Dashboard" },
-    { href: "/syllabus", icon: "fa-book-open", text: "Study Path" },
-    { href: "/gym", icon: "fa-dumbbell", text: "Gym Tracker" },
-    { href: "/ai", icon: "fa-robot", text: "AI Coach" },
-    { href: "/journal", icon: "fa-pen-to-square", text: "Study Journal" },
-    { href: "/logs", icon: "fa-list-check", text: "Activity Logs" },
-    { href: "/badlog", icon: "fa-fire-flame-curved", text: "Rage Fuel", style: "color:#ef4444" },
-    { href: "/exam", icon: "fa-square-root-variable", text: "Exam Editor" },
-    { href: "/news", icon: "fa-newspaper", text: "Tech Affairs" },
-    { href: "/human", icon: "fa-heart", text: "Human Journal", style: "color:var(--rose)" },
-    { href: "/teach", icon: "fa-chalkboard-user", text: "Teaching Log", style: "color:#818cf8" },
-    { href: "/teacher", icon: "fa-graduation-cap", text: "AI Teacher", style: "color:#10b981" },
-    { href: "/stoic", icon: "fa-crown", text: "Stoic Log", style: "color:var(--amber)" },
-    { href: "/english", icon: "fa-language", text: "English Booster", style: "color:var(--cyan)" },
-    { href: "/mind-os", icon: "fa-brain", text: "Mind OS", style: "color:var(--purple)", badge: "CBT", active: true }
-  ];
-
-  const sidebarNav = document.getElementById("sidebar-nav");
-  sidebarNav.innerHTML = navItems.map(item => {
-    const activeClass = item.active || item.href === currentPath ? "class=\"active\"" : "";
-    const styleAttr = item.style ? `style="${item.style}"` : "";
-    const badgeHtml = item.badge ? `<span class="nav-badge" style="background:rgba(139,92,246,0.2);color:#c084fc;border-color:rgba(139,92,246,0.3)">${item.badge}</span>` : "";
-    return `<li><a href="${item.href}" ${activeClass}><i class="fa-solid ${item.icon}" ${styleAttr}></i><span>${item.text}</span>${badgeHtml}</a></li>`;
-  }).join("");
-}
-
 // Global State
 let userState = {};
 
@@ -1249,7 +1219,6 @@ function editRelationshipInForm(r) {
 }
 
 // Initial Setup
-renderSidebar();
 fetchStats();
 loadRealityChecks();
 loadMindSummary();

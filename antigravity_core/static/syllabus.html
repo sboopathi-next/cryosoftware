@@ -221,9 +221,18 @@ async function loadSyllabus() {
     const r = await fetch('/api/syllabus');
     syllabus = await r.json();
     buildCourseStrip();
-    // Set first course
-    const firstId = Object.keys(syllabus.courses)[0];
-    if (firstId) selectCourse(firstId);
+    // Default to today's active subject if available, otherwise the first course
+    let startId = Object.keys(syllabus.courses)[0];
+    try {
+      const statsRes = await fetch('/stats');
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        if (stats.active_subject && syllabus.courses[stats.active_subject]) {
+          startId = stats.active_subject;
+        }
+      }
+    } catch (_) { /* fall back to first course */ }
+    if (startId) selectCourse(startId);
   } catch(e) { console.error(e); }
 }
 

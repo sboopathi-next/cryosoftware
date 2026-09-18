@@ -587,6 +587,20 @@
 
     fetchRoutineStatus();
     setInterval(fetchRoutineStatus, 8000);
+
+    // Material Symbols render as icons visually but expose their raw ligature
+    // text (e.g. "military_tech") to screen readers unless hidden from a11y tree.
+    (function hideIconLigaturesFromA11y() {
+      const hide = (el) => el.setAttribute('aria-hidden', 'true');
+      document.querySelectorAll('.material-symbols-outlined').forEach(hide);
+      new MutationObserver((mutations) => {
+        mutations.forEach(m => m.addedNodes.forEach(node => {
+          if (node.nodeType !== 1) return;
+          if (node.classList?.contains('material-symbols-outlined')) hide(node);
+          node.querySelectorAll?.('.material-symbols-outlined').forEach(hide);
+        }));
+      }).observe(document.body, { childList: true, subtree: true });
+    })();
   </script>
 </body>
 </html>

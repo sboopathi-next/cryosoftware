@@ -111,7 +111,7 @@ body, .app { height: 100vh; overflow: hidden; }
     <div class="page-head">
       <div>
         <div class="page-title">AI Governance Coach</div>
-        <div class="page-sub">Powered by Gemini 1.5 Flash · Free · Knows your full system state</div>
+        <div class="page-sub">Powered by Groq LPU · Free · Knows your full system state</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openSettings()"><i class="fa-solid fa-key"></i> API Key</button>
     </div>
@@ -119,7 +119,7 @@ body, .app { height: 100vh; overflow: hidden; }
     <div id="key-notice" class="key-notice hidden">
       <i class="fa-solid fa-triangle-exclamation"></i>
       No API key found. <strong>Click "API Key"</strong> above, paste your free key from
-      <a href="https://aistudio.google.com" target="_blank" style="color:inherit;text-decoration:underline">aistudio.google.com</a>.
+      <a href="https://console.groq.com/keys" target="_blank" style="color:inherit;text-decoration:underline">console.groq.com/keys</a>.
     </div>
 
     <div class="chat-wrap">
@@ -132,7 +132,7 @@ body, .app { height: 100vh; overflow: hidden; }
               <strong>System online.</strong> I am your AI governance engine — trained to make you a Machine Learning Engineer and crush GATE 2028 DA.<br><br>
               I have full visibility into your stats (Level, XP, STR/INT/AGI/WIL, Energy, Streak, Active Course).<br><br>
               <strong>Ask me anything:</strong> Study plan, workout advice, which GATE topics to prioritize, motivation, or how to level up faster.<br><br>
-              <em>Set your free Gemini API key (gear icon) to activate.</em>
+              <em>Set your free Groq API key (gear icon) to activate.</em>
             </div>
           </div>
         </div>
@@ -161,19 +161,7 @@ body, .app { height: 100vh; overflow: hidden; }
   </main>
 </div>
 
-<div id="settings-modal" class="modal-mask hidden">
-  <div class="modal">
-    <div class="modal-hd">
-      <span><i class="fa-solid fa-key" style="color:var(--amber);margin-right:6px"></i>Gemini API Key</span>
-      <button class="modal-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <p class="text-muted">Free key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--cyan)">aistudio.google.com</a> → Get API Key → Create.</p>
-      <div class="field"><label>API Key</label><input type="password" id="api-key-inp" placeholder="AIza..."></div>
-      <button class="btn btn-primary btn-full" onclick="saveApiKey()"><i class="fa-solid fa-floppy-disk"></i> Save Key</button>
-    </div>
-  </div>
-</div>
+<div id="settings-modal" class="modal-mask hidden"></div>
 
 <script src="/static/shared.js?v=voice4"></script>
 <script>

@@ -1144,8 +1144,8 @@ def trigger_manual_sync():
 # ─── Activity Logs API ────────────────────────────────────────────────────────
 
 @app.get("/api/activity_logs")
-def get_activity_logs():
-    """Parses data/activity_log.md and returns logs in structured JSON format."""
+def get_activity_logs(limit: int = 100):
+    """Parses data/activity_log.md and returns the most recent `limit` logs in structured JSON format."""
     if not os.path.exists(ACTIVITY_LOG_PATH):
         return []
         
@@ -1165,11 +1165,11 @@ def get_activity_logs():
             accomplished = "N/A"
             for line in lines[1:]:
                 if "Current Activity" in line or "Doing" in line:
-                    curr_act = re.sub(r"^[-\s*\*\b]*Current Activity:\s*", "", line).strip()
-                    curr_act = re.sub(r"^[-\s*\*\b]*Doing:\s*", "", curr_act).strip()
+                    curr_act = re.sub(r"^[-\s]*\*{0,2}Current Activity\*{0,2}:\s*", "", line).strip()
+                    curr_act = re.sub(r"^[-\s]*\*{0,2}Doing\*{0,2}:\s*", "", curr_act).strip()
                 elif "Accomplished" in line or "Did" in line:
-                    accomplished = re.sub(r"^[-\s*\*\b]*Accomplished:\s*", "", line).strip()
-                    accomplished = re.sub(r"^[-\s*\*\b]*Did:\s*", "", accomplished).strip()
+                    accomplished = re.sub(r"^[-\s]*\*{0,2}Accomplished\*{0,2}:\s*", "", line).strip()
+                    accomplished = re.sub(r"^[-\s]*\*{0,2}Did\*{0,2}:\s*", "", accomplished).strip()
                     
             logs.append({
                 "timestamp": header,
@@ -1178,7 +1178,7 @@ def get_activity_logs():
             })
             
         logs.reverse()
-        return logs
+        return logs[:max(1, limit)]
     except Exception as e:
         print(f"[API] Error reading activity logs: {e}")
         return []

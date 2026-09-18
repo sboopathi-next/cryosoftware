@@ -870,7 +870,6 @@ function injectMobileNavigation() {
         <a href="/logs" class="sheet-grid-item"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a>
         <a href="/news" class="sheet-grid-item"><i class="fa-solid fa-newspaper" style="color:var(--blue)"></i><span>Tech News</span></a>
         <a href="/exam" class="sheet-grid-item"><i class="fa-solid fa-square-root-variable" style="color:var(--indigo)"></i><span>Exam Editor</span></a>
-        <a href="/teacher" class="sheet-grid-item"><i class="fa-solid fa-graduation-cap" style="color:#10b981"></i><span>AI Teacher</span></a>
         <a href="/teach" class="sheet-grid-item"><i class="fa-solid fa-chalkboard-user" style="color:#818cf8"></i><span>Teaching Log</span></a>
         <a href="/work-tracker" class="sheet-grid-item"><i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i><span>Work Tracker</span></a>
         <a href="#" onclick="openSettings(); return false;" class="sheet-grid-item"><i class="fa-solid fa-gear" style="color:var(--text2)"></i><span>Settings</span></a>
@@ -1296,6 +1295,16 @@ if ("serviceWorker" in navigator) {
 
   // ── Poll for new notifications every 60 seconds ───────────────────
   let _lastUnread = 0;
+  const TOASTED_KEY = 'ag_toasted_notif_ids';
+  function _getToastedIds() {
+    try { return new Set(JSON.parse(localStorage.getItem(TOASTED_KEY) || '[]')); }
+    catch (_) { return new Set(); }
+  }
+  function _markToasted(id) {
+    const ids = _getToastedIds();
+    ids.add(id);
+    localStorage.setItem(TOASTED_KEY, JSON.stringify([...ids].slice(-100)));
+  }
   async function _pollNotifications() {
     try {
       const r = await fetch('/api/notifications/count');
@@ -1304,13 +1313,15 @@ if ("serviceWorker" in navigator) {
       const count = d.unread_count || 0;
       _updateBadge(count);
 
-      // If new notifications appeared since last check → auto-toast danger ones
+      // If new notifications appeared since last check → auto-toast danger ones (once each, ever — not on every page load)
       if (count > _lastUnread) {
         const r2 = await fetch('/api/notifications?unread_only=true&limit=5');
         const d2 = await r2.json();
+        const toastedIds = _getToastedIds();
         (d2.notifications || []).forEach(n => {
-          if (n.level === 'danger' && !n.is_read) {
+          if (n.level === 'danger' && !n.is_read && !toastedIds.has(n.id)) {
             toast('🚨 ' + n.title + ' — ' + n.body.slice(0, 80), 'err');
+            _markToasted(n.id);
           }
         });
       }
