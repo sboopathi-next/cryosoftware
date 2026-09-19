@@ -795,7 +795,7 @@ def get_consistency_report() -> dict:
     }
 
 
-
+def backfill_task_daily_log() -> dict:
     """
     One-time backfill: reads all existing activity tables and populates
     task_daily_log / pg_task_daily_log with historical completion data.
