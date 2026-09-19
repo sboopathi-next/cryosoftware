@@ -1103,3 +1103,8 @@
     setInterval(autoSyncGoogleFit, 10 * 60000); // refresh live Google Fit numbers every 10 minutes
     setInterval(loadSemesterTask, 60000); // refresh subject-of-the-day countdown every minute
     setInterval(loadSemesterSubtasks, 10 * 60000); // refresh sub-task checklist every 10 minutes
+    setInterval(loadConsistencyReport, 300000); // refresh truth report every 5 minutes
+  });
+
+})();
+
