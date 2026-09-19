@@ -167,41 +167,6 @@ def neon_set_cached_json(cache_key: str, value: dict):
             """, (cache_key, json.dumps(value), _now()))
 
 
-# ─── Task 10 Sub-Task Manual Completion ─────────────────────────────────────────
-
-def _init_pg_subtask_completions(cur):
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS pg_subtask_completions (
-            log_date     TEXT NOT NULL,
-            course_code  TEXT NOT NULL,
-            item_title   TEXT NOT NULL,
-            completed    INTEGER DEFAULT 1,
-            UNIQUE(log_date, course_code, item_title)
-        )
-    """)
-
-def neon_get_subtask_completions(log_date: str, course_code: str) -> dict:
-    with _conn() as conn:
-        with conn.cursor() as cur:
-            _init_pg_subtask_completions(cur)
-            cur.execute(
-                "SELECT item_title FROM pg_subtask_completions WHERE log_date = %s AND course_code = %s AND completed = 1",
-                (log_date, course_code)
-            )
-            rows = cur.fetchall()
-    return {r[0]: True for r in rows}
-
-def neon_set_subtask_completion(log_date: str, course_code: str, item_title: str, completed: bool):
-    with _conn() as conn:
-        with conn.cursor() as cur:
-            _init_pg_subtask_completions(cur)
-            cur.execute("""
-                INSERT INTO pg_subtask_completions (log_date, course_code, item_title, completed)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (log_date, course_code, item_title) DO UPDATE SET completed = EXCLUDED.completed
-            """, (log_date, course_code, item_title, 1 if completed else 0))
-
-
 # ─── AI Chat History ───────────────────────────────────────────────────────────
 
 def neon_save_chat_message(role: str, message: str, bot_type: str = "coach"):
