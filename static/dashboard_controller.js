@@ -113,6 +113,73 @@
     }
   }
 
+  // ─── 1c. Weekly Truth Report ─── honest 7-day consistency across the 4 pillars
+  const TRUTH_CATEGORY_META = {
+    PHYSICAL:  { label: 'Physical',  color: '#f87171' },
+    MIND:      { label: 'Mind',      color: '#a78bfa' },
+    INTELLECT: { label: 'Intellect', color: '#38bdf8' },
+    LIFE:      { label: 'Life',      color: '#34d399' },
+  };
+
+  async function loadConsistencyReport() {
+    try {
+      const r = await fetch('/api/accountability/report');
+      if (!r.ok) return;
+      const d = await r.json();
+      const rep = d.report;
+      if (!rep) return;
+
+      const pctEl = $('truth-overall-pct');
+      if (pctEl) pctEl.textContent = `${Math.round(rep.overall_week_pct)}%`;
+
+      const trendEl = $('truth-trend-badge');
+      if (trendEl) {
+        const t = rep.trend_vs_last_week || 0;
+        const arrow = t > 0 ? '▲' : t < 0 ? '▼' : '—';
+        const color = t > 0 ? 'text-emerald-400 border-emerald-800' : t < 0 ? 'text-rose-400 border-rose-800' : 'text-slate-400 border-slate-700';
+        trendEl.className = `text-[10px] font-mono px-2 py-0.5 rounded border ${color}`;
+        trendEl.textContent = `${arrow} ${Math.abs(t).toFixed(1)}% vs last week`;
+      }
+
+      const catsEl = $('truth-categories');
+      if (catsEl) {
+        catsEl.innerHTML = Object.entries(rep.categories || {}).map(([key, c]) => {
+          const meta = TRUTH_CATEGORY_META[key] || { label: key, color: '#94a3b8' };
+          const pct = Math.round(c.week_pct || 0);
+          return `
+            <div>
+              <div class="flex justify-between text-[10px] font-mono mb-0.5">
+                <span class="text-slate-400">${meta.label}</span>
+                <span style="color:${meta.color}" class="font-bold">${pct}%</span>
+              </div>
+              <div class="w-full bg-slate-800/90 h-1.5 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%;background:${meta.color}"></div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      const calloutText = $('truth-callout-text');
+      const calloutIcon  = calloutText?.parentElement?.querySelector('i');
+      if (calloutText) {
+        if (rep.overall_week_pct >= 85) {
+          if (calloutIcon) calloutIcon.className = 'fa-solid fa-fire text-emerald-400 shrink-0';
+          calloutText.className = 'text-emerald-300';
+          calloutText.textContent = 'Elite consistency this week. Keep this up and nothing stops you.';
+        } else {
+          const weakest = rep.weakest_category;
+          const weakMeta = TRUTH_CATEGORY_META[weakest] || { label: weakest };
+          const weakPct = Math.round((rep.categories?.[weakest]?.week_pct) || 0);
+          if (calloutIcon) calloutIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400 shrink-0';
+          calloutText.className = 'text-amber-300';
+          calloutText.textContent = `Weakest link: ${weakMeta.label} (${weakPct}% this week). Fix this first.`;
+        }
+      }
+    } catch (e) {
+      console.warn('[Truth Report Warning]', e);
+    }
+  }
+
   // ─── 2. Stats & Attributes Renderer ───────────────────────────────────────
   function renderStatsUI(data) {
     if (!data) return;
@@ -972,6 +1039,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     hydrateTelemetry();
     loadSemesterTask();
+    loadConsistencyReport();
     setupAccountabilityHandlers();
     setupSideDockControls();
     setupFormSubmitHandlers();
@@ -979,6 +1047,7 @@
     // 8-second background polling
     setInterval(hydrateTelemetry, 8000);
     setInterval(loadSemesterTask, 60000); // refresh subject-of-the-day countdown every minute
+    setInterval(loadConsistencyReport, 300000); // refresh truth report every 5 minutes
   });
 
 })();

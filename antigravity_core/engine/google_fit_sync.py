@@ -127,8 +127,12 @@ def sync_daily_fitness() -> Dict[str, Any]:
             "setup_required": True
         }
 
-    now = datetime.datetime.now()
-    start_of_day = int(datetime.datetime(now.year, now.month, now.day, 0, 0, 0).timestamp() * 1000)
+    # Use IST (not server-local/UTC) so the "today" window matches the user's actual day —
+    # on Vercel the server clock is UTC, which previously shifted the day boundary by 5:30h
+    # and made step counts jump wildly between refreshes.
+    ist = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+    now = datetime.datetime.now(ist)
+    start_of_day = int(datetime.datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=ist).timestamp() * 1000)
     end_of_day   = int(now.timestamp() * 1000)
 
     # 1. Step Count — required. Any error returns exact error to UI.

@@ -318,7 +318,8 @@ const STOIC_PHRASE_BANKS = {
     "One more excuse. One less opportunity.",
     "The mind obeys the habits you train.",
     "Choose discomfort today or regret tomorrow.",
-    "Master yourself before trying to master anything else."
+    "Master yourself before trying to master anything else.",
+    "Hey Boopathi This is you, a Mathematician"
   ],
   MARCUS_STYLE: [
     "You control your effort, Boopathi, not the outcome.",

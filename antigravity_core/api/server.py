@@ -31,7 +31,7 @@ try:
 except ImportError:
     pass
 
-from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count
+from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, get_consistency_report, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count
 from config import IS_SERVERLESS, DATABASE_URL
 from engine.fatigue_governor import update_daily_energy
 
@@ -4074,6 +4074,19 @@ def api_get_task_streaks():
     try:
         streaks = get_task_streaks()
         return {"status": "success", "streaks": streaks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/accountability/report")
+def api_get_consistency_report():
+    """
+    Weekly Truth Report: honest 7-day/30-day consistency score across the
+    4 pillars (Physical/Mind/Intellect/Life), overall score, weakest pillar,
+    and trend vs last week. Powers the dashboard's consistency card.
+    """
+    try:
+        return {"status": "success", "report": get_consistency_report()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

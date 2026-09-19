@@ -743,7 +743,59 @@ def get_task_streaks() -> dict:
     return results
 
 
-def backfill_task_daily_log() -> dict:
+# Groups the 12 tracked tasks into the 4 pillars this whole system exists to build.
+CONSISTENCY_CATEGORIES = {
+    "PHYSICAL":  ["gym", "walk", "health"],
+    "MIND":      ["meditation", "mindos", "nopmo"],
+    "INTELLECT": ["study", "leetcode", "english", "canvas_semester", "reading"],
+    "LIFE":      ["cooking"],
+}
+
+
+def get_consistency_report() -> dict:
+    """
+    Aggregates get_task_streaks() into an honest weekly/monthly consistency
+    score per pillar (Physical/Mind/Intellect/Life), an overall score, the
+    single weakest pillar to focus on next, and trend vs the prior week.
+    No new tables needed — reuses task_daily_log/pg_task_daily_log via
+    get_task_streaks(), so it works identically on SQLite and Neon.
+    """
+    streaks = get_task_streaks()
+
+    def _pct(days):
+        return round(100 * sum(1 for d in days if d["done"]) / len(days), 1) if days else 0.0
+
+    categories = {}
+    for cat, keys in CONSISTENCY_CATEGORIES.items():
+        last7, last30, prev7 = [], [], []
+        for tk in keys:
+            days = streaks.get(tk, {}).get("last_30", [])
+            if not days:
+                continue
+            last30.extend(days)
+            last7.extend(days[-7:])
+            prev7.extend(days[-14:-7])
+        categories[cat] = {
+            "week_pct": _pct(last7),
+            "month_pct": _pct(last30),
+            "prev_week_pct": _pct(prev7),
+        }
+
+    overall_week      = round(sum(c["week_pct"] for c in categories.values()) / len(categories), 1)
+    overall_month      = round(sum(c["month_pct"] for c in categories.values()) / len(categories), 1)
+    overall_prev_week  = round(sum(c["prev_week_pct"] for c in categories.values()) / len(categories), 1)
+    weakest_category   = min(categories.items(), key=lambda kv: kv[1]["week_pct"])[0]
+
+    return {
+        "overall_week_pct":    overall_week,
+        "overall_month_pct":   overall_month,
+        "trend_vs_last_week":  round(overall_week - overall_prev_week, 1),
+        "weakest_category":    weakest_category,
+        "categories":          categories,
+    }
+
+
+
     """
     One-time backfill: reads all existing activity tables and populates
     task_daily_log / pg_task_daily_log with historical completion data.
@@ -1019,7 +1071,7 @@ def save_state(state: dict):
                 state.get("int", 10),
                 state.get("agi", 10),
                 state.get("wil", 10),
-                state.get("energy", 100.0),
+                state.get("energy", 50.0),
                 1 if state.get("lockout_active") else 0,
                 state.get("last_update", date.today().isoformat()),
                 state.get("streak_days", 0),
@@ -1518,12 +1570,13 @@ def toggle_teacher_topic(topic_name: str, completed: bool):
 
 def clear_teacher_topics():
     """Clear all topics from the checklist."""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    with _DB_WRITE_LOCK:
-        cursor.execute("DELETE FROM teacher_topics")
-        conn.commit()
-    conn.close()
+    """as of now it not required """
+    # conn = get_db_connection()
+    # cursor = conn.cursor()
+    # with _DB_WRITE_LOCK:
+    #     cursor.execute("DELETE FROM teacher_topics")
+    #     conn.commit()
+    # conn.close()
 
 def save_teaching_session(person: str, subject: str, topic: str, duration: str, outcome: str, notes: str, date: str, ts: str):
     """Log a teaching session."""
@@ -1900,8 +1953,9 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
     - Sleep Recovery: +35% Cognitive Energy if sleep >= 7.0 hrs (+15% if >= 5.5 hrs).
     - Resting HR: +1 HRT if resting HR in optimal range (50-70 bpm).
     """
-    from datetime import date
-    log_date = log_date or date.today().isoformat()
+    from datetime import datetime, timezone, timedelta
+    ist = timezone(timedelta(hours=5, minutes=30))
+    log_date = log_date or datetime.now(ist).date().isoformat()
 
     step_xp    = (steps // 1000) * 10
     wil_gained = steps // 1000
@@ -1996,15 +2050,20 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
     }
 
 def get_health_sync_today() -> dict:
-    from datetime import date
-    today_str = date.today().isoformat()
+    """Return today's health log only. Never falls back to a stale prior day's
+    row — doing so previously misled the UI into showing yesterday's step count
+    as if it were today's live sync. Uses IST (not server-local/UTC) so "today"
+    matches the log_date written by process_health_sync/google_fit_sync."""
+    from datetime import datetime, timezone, timedelta
+    ist = timezone(timedelta(hours=5, minutes=30))
+    today_str = datetime.now(ist).date().isoformat()
     if IS_SERVERLESS:
         from engine.neon_db import neon_get_health_logs
         logs = neon_get_health_logs(limit=10)
         for l in logs:
             if l.get("log_date") == today_str:
                 return l
-        return logs[0] if logs else {}
+        return {}
     conn = get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -2027,9 +2086,6 @@ def get_health_sync_today() -> dict:
     """)
     cursor.execute("SELECT * FROM health_sync_logs WHERE log_date = ? ORDER BY id DESC LIMIT 1", (today_str,))
     row = cursor.fetchone()
-    if not row:
-        cursor.execute("SELECT * FROM health_sync_logs ORDER BY id DESC LIMIT 1")
-        row = cursor.fetchone()
     conn.close()
     return dict(row) if row else {}
 
