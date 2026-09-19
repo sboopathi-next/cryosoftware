@@ -141,6 +141,22 @@
     Reflection: 'fa-brain', Planning: 'fa-list-check'
   };
 
+  function _escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  async function toggleSubtask(title, completed) {
+    try {
+      await fetch('/api/semester/today/subtasks/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, completed })
+      });
+    } catch (e) {
+      console.warn('[Subtask Toggle Warning]', e);
+    }
+  }
+
   async function loadSemesterSubtasks() {
     const box = $('semester-subtasks');
     if (!box) return;
@@ -153,12 +169,46 @@
 
       box.innerHTML = items.map(it => {
         const icon = SUBTASK_TYPE_ICON[it.type] || 'fa-circle-play';
+        const title = _escHtml(it.title);
         return `
-          <div class="flex items-center gap-2 text-[10px] font-mono ${it.completed ? 'text-emerald-400' : 'text-slate-400'}">
-            <i class="fa-solid ${it.completed ? 'fa-circle-check' : icon} text-[9px] ${it.completed ? '' : 'opacity-60'}"></i>
-            <span class="${it.completed ? 'line-through opacity-70' : ''}">${it.title}</span>
+          <div class="subtask-row flex items-center gap-2 text-[10px] font-mono cursor-pointer ${it.completed ? 'text-emerald-400' : 'text-slate-400'}" data-title="${title}" data-completed="${it.completed ? '1' : '0'}">
+            <div class="subtask-box w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${it.completed ? 'bg-emerald-600 border-emerald-500' : 'border-slate-600 bg-slate-900/50'}">
+              <i class="fa-solid fa-check text-[7px] ${it.completed ? 'text-white' : 'opacity-0'}"></i>
+            </div>
+            <i class="fa-solid ${icon} text-[9px] opacity-60"></i>
+            <span class="${it.completed ? 'line-through opacity-70' : ''}">${title}</span>
           </div>`;
       }).join('');
+
+      // Event delegation bound once — re-renders just replace innerHTML, no rebind needed.
+      if (!box.dataset.bound) {
+        box.dataset.bound = '1';
+        box.addEventListener('click', async (e) => {
+          e.stopPropagation(); // don't let this bubble up into #chk-semester's Canvas-sync click handler
+          const row = e.target.closest('.subtask-row');
+          if (!row) return;
+
+          const title = row.dataset.title;
+          const nowCompleted = row.dataset.completed !== '1';
+          row.dataset.completed = nowCompleted ? '1' : '0';
+
+          row.classList.toggle('text-emerald-400', nowCompleted);
+          row.classList.toggle('text-slate-400', !nowCompleted);
+          const boxEl = row.querySelector('.subtask-box');
+          const checkIcon = boxEl?.querySelector('i');
+          const label = row.querySelector('span');
+          boxEl?.classList.toggle('bg-emerald-600', nowCompleted);
+          boxEl?.classList.toggle('border-emerald-500', nowCompleted);
+          boxEl?.classList.toggle('border-slate-600', !nowCompleted);
+          boxEl?.classList.toggle('bg-slate-900/50', !nowCompleted);
+          checkIcon?.classList.toggle('opacity-0', !nowCompleted);
+          checkIcon?.classList.toggle('text-white', nowCompleted);
+          label?.classList.toggle('line-through', nowCompleted);
+          label?.classList.toggle('opacity-70', nowCompleted);
+
+          await toggleSubtask(title, nowCompleted);
+        });
+      }
     } catch (e) {
       console.warn('[Semester Subtasks Warning]', e);
     }

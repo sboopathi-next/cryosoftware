@@ -1548,6 +1548,61 @@ def set_cached_json(cache_key: str, value: dict):
         conn.commit()
     conn.close()
 
+# ─── Task 10 Sub-Task Manual Completion ────────────────────────────────────────
+# Canvas's own completion_requirement flag is unreliable for this LMS (always
+# False), so the user checks sub-tasks off manually here instead.
+
+def get_subtask_completions(log_date: str, course_code: str) -> dict:
+    """Returns {title: True} for sub-tasks manually checked off on log_date/course_code."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_subtask_completions
+        return neon_get_subtask_completions(log_date, course_code)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS subtask_completions (
+            log_date     TEXT NOT NULL,
+            course_code  TEXT NOT NULL,
+            item_title   TEXT NOT NULL,
+            completed    INTEGER DEFAULT 1,
+            UNIQUE(log_date, course_code, item_title)
+        )
+    """)
+    cursor.execute(
+        "SELECT item_title FROM subtask_completions WHERE log_date = ? AND course_code = ? AND completed = 1",
+        (log_date, course_code)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return {r[0]: True for r in rows}
+
+def set_subtask_completion(log_date: str, course_code: str, item_title: str, completed: bool):
+    """Manually check/uncheck a Task 10 sub-task for log_date/course_code."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_set_subtask_completion
+        return neon_set_subtask_completion(log_date, course_code, item_title, completed)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    with _DB_WRITE_LOCK:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS subtask_completions (
+                log_date     TEXT NOT NULL,
+                course_code  TEXT NOT NULL,
+                item_title   TEXT NOT NULL,
+                completed    INTEGER DEFAULT 1,
+                UNIQUE(log_date, course_code, item_title)
+            )
+        """)
+        cursor.execute(
+            "INSERT OR REPLACE INTO subtask_completions (log_date, course_code, item_title, completed) VALUES (?, ?, ?, ?)",
+            (log_date, course_code, item_title, 1 if completed else 0)
+        )
+        conn.commit()
+    conn.close()
+    conn.close()
+
 def get_cached_daily_lesson(date_str: str) -> dict:
     """Retrieve the cached daily lesson for a given date if it exists."""
     conn = get_db_connection()

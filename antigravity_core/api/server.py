@@ -4018,24 +4018,50 @@ def api_semester_today_subtasks():
     Breaks Task 10 into its real 4-8 sub-items (videos + quiz/assignment).
     Cached in the DB for 15 min — the live Canvas API call is the single
     slowest part of loading the dashboard, so most page loads should hit
-    this cache instead of re-querying Canvas.
+    this cache instead of re-querying Canvas. Manual checkbox state is
+    overlaid fresh on every request (never cached) so ticking a box always
+    reflects immediately regardless of the Canvas cache TTL.
     """
     try:
         from engine.semester_enforcer import get_today_course_subtasks, get_today_target
-        from engine.database import get_cached_json, set_cached_json
+        from engine.database import get_cached_json, set_cached_json, get_subtask_completions
 
         today = get_today_target()
         cache_key = f"semester_subtasks_{today['date']}_{today['course_code']}"
 
         cached = get_cached_json(cache_key, max_age_seconds=900)
         if cached:
-            cached["cached"] = True
-            return cached
+            result = cached
+            result["cached"] = True
+        else:
+            result = get_today_course_subtasks()
+            result["cached"] = False
+            set_cached_json(cache_key, result)
 
-        result = get_today_course_subtasks()
-        result["cached"] = False
-        set_cached_json(cache_key, result)
+        manual = get_subtask_completions(today["date"], today["course_code"])
+        for it in result.get("items", []):
+            if manual.get(it["title"]):
+                it["completed"] = True
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SubtaskTogglePayload(BaseModel):
+    title: str
+    completed: bool = True
+
+
+@app.post("/api/semester/today/subtasks/toggle")
+def api_semester_today_subtasks_toggle(payload: SubtaskTogglePayload):
+    """Manually check/uncheck a Task 10 sub-task (Canvas completion tracking is unreliable)."""
+    try:
+        from engine.semester_enforcer import get_today_target
+        from engine.database import set_subtask_completion
+
+        today = get_today_target()
+        set_subtask_completion(today["date"], today["course_code"], payload.title, payload.completed)
+        return {"status": "success", "title": payload.title, "completed": payload.completed}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
