@@ -1431,7 +1431,13 @@ def log_workout(payload: WorkoutLogPayload):
     state = update_daily_energy(study_hours=0.0, gym_hours=gym_hours, dopamine_rewards=0)
     state["gym_completed"] = 1
     save_state(state)
-    
+
+    # Powers the PHYSICAL pillar in the weekly consistency report
+    try:
+        log_task_completion("gym", True)
+    except Exception as _te:
+        print(f"[Workout Log] task_daily_log write error: {_te}")
+
     log_activity_file(
         doing=f"Logged Gym Workout: {payload.workout}",
         accomplished=f"Category: {payload.category}. Sets: {sets_summary}. Duration: {payload.duration_minutes or 30} mins. Awarded +{xp_reward} XP, +1 STR, +1 AGI."

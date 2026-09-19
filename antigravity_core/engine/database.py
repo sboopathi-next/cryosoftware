@@ -1984,6 +1984,14 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
             state["energy"] = min(100.0, state.get("energy", 100.0) + energy_restored)
         save_state(state)
 
+    # Powers the PHYSICAL pillar in the weekly consistency report
+    try:
+        log_task_completion("health", True, log_date)
+        if steps >= 1000 or distance_km >= 0.5 or active_minutes >= 10:
+            log_task_completion("walk", True, log_date)
+    except Exception as _te:
+        print(f"[Health Sync] task_daily_log write error: {_te}")
+
     if IS_SERVERLESS:
         from engine.neon_db import neon_save_health_log
         neon_save_health_log(log_date, steps, distance_km, active_minutes, sleep_hours, resting_hr or 0, total_xp, wil_gained, str_gained, hrt_gained, energy_restored)
