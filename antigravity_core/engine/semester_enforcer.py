@@ -390,20 +390,27 @@ def get_today_target() -> dict:
 def get_today_course_subtasks() -> dict:
     """
     Breaks today's required course into individual checkable items (live Canvas
-    module videos/pages + the module's quiz/assignment). Falls back to a fixed
-    generic checklist when Canvas is unreachable or today is a non-Canvas
+    module videos + real quiz/assignment for THIS semester week). Falls back to
+    a fixed generic checklist when Canvas is unreachable or today is a non-Canvas
     cadence day (DSA/buffer), so the UI always has a concrete list to show.
     """
     target      = get_today_target()
     course_code = target["course_code"]
     course_name = target["course_name"]
+    week_number = target["week_number"]
 
     if course_code in ("DSA_LEETCODE", "MIND_OS"):
         if course_code == "DSA_LEETCODE":
+            solved_today = False
+            try:
+                from engine.leetcode_sync import has_solved_leetcode_today
+                solved_today = has_solved_leetcode_today()
+            except Exception:
+                pass
             items = [
-                {"title": "Solve 2 LeetCode problems (Easy/Medium mix)", "type": "Practice", "completed": False},
-                {"title": "Review yesterday's wrong/slow submissions",   "type": "Review",   "completed": False},
-                {"title": "Read 1 editorial or pattern note",            "type": "Study",    "completed": False},
+                {"title": "Solve today's LeetCode problem",            "type": "Practice", "completed": solved_today},
+                {"title": "Review yesterday's wrong/slow submissions", "type": "Review",   "completed": False},
+                {"title": "Read 1 editorial or pattern note",          "type": "Study",    "completed": False},
             ]
         else:
             items = [
@@ -430,32 +437,37 @@ def get_today_course_subtasks() -> dict:
             raise RuntimeError(f"No active Canvas course matched '{course_name}'")
 
         modules = canvas.get_course_modules(match["id"]) or []
+        if not modules:
+            raise RuntimeError("No modules found for this course")
 
-        # Prefer the module currently in progress (some but not all items done),
-        # else the first module with any incomplete item, else just the first module.
-        chosen = None
-        for m in modules:
-            reqs = [it for it in m.get("items", []) if it.get("completion_requirement")]
-            done = sum(1 for it in reqs if it.get("completion_requirement", {}).get("completed"))
-            if reqs and 0 < done < len(reqs):
-                chosen = m
-                break
-        if not chosen:
+        # VIT's Canvas doesn't reliably report per-item completion for this
+        # token, so module selection can't trust completion_requirement.
+        # Instead match the module named for THIS semester week (e.g. "Week 6:
+        # Unsupervised Learning"), preferring the one with the most requirement
+        # items over its "Live Session Recordings" sibling of the same name.
+        import re
+        week_re = re.compile(rf"week\s*0*{week_number}\b", re.IGNORECASE)
+        week_matches = [m for m in modules if week_re.search(m.get("name") or "")]
+        if week_matches:
+            chosen = max(week_matches, key=lambda m: len(m.get("items", [])))
+        else:
+            chosen = None
             for m in modules:
                 reqs = [it for it in m.get("items", []) if it.get("completion_requirement")]
                 if reqs and any(not it.get("completion_requirement", {}).get("completed") for it in reqs):
                     chosen = m
                     break
-        if not chosen and modules:
-            chosen = modules[0]
-        if not chosen:
-            raise RuntimeError("No modules found for this course")
+            chosen = chosen or modules[0]
 
         raw_items = chosen.get("items", [])
-        videos = [it for it in raw_items if it.get("type") in ("Page", "File", "ExternalUrl", "ExternalTool")]
-        others = [it for it in raw_items if it.get("type") in ("Assignment", "Quiz")]
-        if not videos and not others:
-            raise RuntimeError("Module has no listable items")
+        videos = [it for it in raw_items if it.get("type") == "Page" and "video" in (it.get("title") or "").lower()]
+        assessments = [
+            it for it in raw_items
+            if it.get("type") in ("Assignment", "Quiz")
+            and "feedback survey" not in (it.get("title") or "").lower()
+        ]
+        if not videos and not assessments:
+            raise RuntimeError(f"Module '{chosen.get('name')}' has no videos or assessments")
 
         items = [
             {
@@ -471,7 +483,7 @@ def get_today_course_subtasks() -> dict:
                 "type": it.get("type", "Assignment"),
                 "completed": bool(it.get("completion_requirement", {}).get("completed")),
             }
-            for it in others[:2]
+            for it in assessments[:2]
         ]
 
         return {
@@ -481,13 +493,18 @@ def get_today_course_subtasks() -> dict:
             "source": "canvas_live",
         }
     except Exception as e:
+        # Honest fallback — never invent a specific named quiz/assignment that
+        # may not actually exist this week; just point back to Canvas for it.
         target_videos = target.get("target_videos", 4)
         items = [
             {"title": f"Watch Lecture Video {i + 1}", "type": "Video", "completed": i < target.get("videos_done", 0)}
             for i in range(target_videos)
         ]
-        items.append({"title": "Complete Weekly Quiz",      "type": "Quiz",       "completed": target.get("quizzes_done", 0) > 0})
-        items.append({"title": "Submit Weekly Assignment",  "type": "Assignment", "completed": target.get("assignments_done", 0) > 0})
+        items.append({
+            "title": "Check Canvas for this week's quiz/assignment (if any)",
+            "type": "Quiz",
+            "completed": target.get("quizzes_done", 0) > 0 or target.get("assignments_done", 0) > 0,
+        })
         return {
             "course_name": course_name,
             "module_name": None,
