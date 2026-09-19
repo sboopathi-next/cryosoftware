@@ -125,6 +125,48 @@ def neon_save_bad_experience(title: str, who: str, what_happened: str, my_lesson
     return {"id": new_id, "timestamp": ts, "date": today}
 
 
+# ─── Generic DB-Backed Cache ────────────────────────────────────────────────────
+# Avoids hitting slow external APIs (Canvas, etc.) on every dashboard load —
+# callers cache a JSON-able result here and re-read it until it goes stale.
+
+def _init_pg_app_cache(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_app_cache (
+            cache_key   TEXT PRIMARY KEY,
+            value       TEXT NOT NULL,
+            updated_at  TEXT NOT NULL
+        )
+    """)
+
+def neon_get_cached_json(cache_key: str, max_age_seconds: int = 900):
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_app_cache(cur)
+            cur.execute("SELECT value, updated_at FROM pg_app_cache WHERE cache_key = %s", (cache_key,))
+            row = cur.fetchone()
+    if not row:
+        return None
+    value, updated_at = row
+    try:
+        age = (datetime.datetime.now() - datetime.datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")).total_seconds()
+        if age > max_age_seconds:
+            return None
+        import json
+        return json.loads(value)
+    except Exception:
+        return None
+
+def neon_set_cached_json(cache_key: str, value: dict):
+    import json
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_app_cache(cur)
+            cur.execute("""
+                INSERT INTO pg_app_cache (cache_key, value, updated_at) VALUES (%s, %s, %s)
+                ON CONFLICT (cache_key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at
+            """, (cache_key, json.dumps(value), _now()))
+
+
 # ─── AI Chat History ───────────────────────────────────────────────────────────
 
 def neon_save_chat_message(role: str, message: str, bot_type: str = "coach"):

@@ -4014,10 +4014,28 @@ def api_semester_today():
 
 @app.get("/api/semester/today/subtasks")
 def api_semester_today_subtasks():
-    """Breaks Task 10 into its real 4-8 sub-items (videos + quiz/assignment)."""
+    """
+    Breaks Task 10 into its real 4-8 sub-items (videos + quiz/assignment).
+    Cached in the DB for 15 min — the live Canvas API call is the single
+    slowest part of loading the dashboard, so most page loads should hit
+    this cache instead of re-querying Canvas.
+    """
     try:
-        from engine.semester_enforcer import get_today_course_subtasks
-        return get_today_course_subtasks()
+        from engine.semester_enforcer import get_today_course_subtasks, get_today_target
+        from engine.database import get_cached_json, set_cached_json
+
+        today = get_today_target()
+        cache_key = f"semester_subtasks_{today['date']}_{today['course_code']}"
+
+        cached = get_cached_json(cache_key, max_age_seconds=900)
+        if cached:
+            cached["cached"] = True
+            return cached
+
+        result = get_today_course_subtasks()
+        result["cached"] = False
+        set_cached_json(cache_key, result)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

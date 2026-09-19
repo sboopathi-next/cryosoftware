@@ -1488,6 +1488,66 @@ def get_translation_history(limit: int = 50) -> list:
     conn.close()
     return [dict(r) for r in rows]
 
+# ─── Generic DB-Backed Cache ───────────────────────────────────────────────────
+# Avoids hitting slow external APIs (Canvas, etc.) on every dashboard load —
+# callers cache a JSON-able result here and re-read it until it goes stale.
+
+def get_cached_json(cache_key: str, max_age_seconds: int = 900):
+    """Return the cached value for cache_key if it exists and is fresher than max_age_seconds, else None."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_cached_json
+        return neon_get_cached_json(cache_key, max_age_seconds)
+
+    import json
+    from datetime import datetime as _dt
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS app_cache (
+            cache_key   TEXT PRIMARY KEY,
+            value       TEXT NOT NULL,
+            updated_at  TEXT NOT NULL
+        )
+    """)
+    cursor.execute("SELECT value, updated_at FROM app_cache WHERE cache_key = ?", (cache_key,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    value, updated_at = row
+    try:
+        age = (_dt.now() - _dt.strptime(updated_at, "%Y-%m-%d %H:%M:%S")).total_seconds()
+        if age > max_age_seconds:
+            return None
+        return json.loads(value)
+    except Exception:
+        return None
+
+def set_cached_json(cache_key: str, value: dict):
+    """Store value under cache_key for later get_cached_json() reads."""
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_set_cached_json
+        return neon_set_cached_json(cache_key, value)
+
+    import json
+    from datetime import datetime as _dt
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    with _DB_WRITE_LOCK:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS app_cache (
+                cache_key   TEXT PRIMARY KEY,
+                value       TEXT NOT NULL,
+                updated_at  TEXT NOT NULL
+            )
+        """)
+        cursor.execute(
+            "INSERT OR REPLACE INTO app_cache (cache_key, value, updated_at) VALUES (?, ?, ?)",
+            (cache_key, json.dumps(value), _dt.now().strftime("%Y-%m-%d %H:%M:%S"))
+        )
+        conn.commit()
+    conn.close()
+
 def get_cached_daily_lesson(date_str: str) -> dict:
     """Retrieve the cached daily lesson for a given date if it exists."""
     conn = get_db_connection()
