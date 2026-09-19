@@ -383,6 +383,120 @@ def get_today_target() -> dict:
     }
 
 
+# ── Task 10 Sub-Task Breakdown ──────────────────────────────────────────────
+# "Semester Track" feels impossible as one giant blob — this splits it into
+# the 4-8 concrete things it actually is: a handful of videos + one assessment.
+
+def get_today_course_subtasks() -> dict:
+    """
+    Breaks today's required course into individual checkable items (live Canvas
+    module videos/pages + the module's quiz/assignment). Falls back to a fixed
+    generic checklist when Canvas is unreachable or today is a non-Canvas
+    cadence day (DSA/buffer), so the UI always has a concrete list to show.
+    """
+    target      = get_today_target()
+    course_code = target["course_code"]
+    course_name = target["course_name"]
+
+    if course_code in ("DSA_LEETCODE", "MIND_OS"):
+        if course_code == "DSA_LEETCODE":
+            items = [
+                {"title": "Solve 2 LeetCode problems (Easy/Medium mix)", "type": "Practice", "completed": False},
+                {"title": "Review yesterday's wrong/slow submissions",   "type": "Review",   "completed": False},
+                {"title": "Read 1 editorial or pattern note",            "type": "Study",    "completed": False},
+            ]
+        else:
+            items = [
+                {"title": "Weekly system audit — review missed days", "type": "Review",     "completed": False},
+                {"title": "Mind OS journal / reality check",          "type": "Reflection", "completed": False},
+                {"title": "Plan next week's cadence",                 "type": "Planning",   "completed": False},
+            ]
+        return {"course_name": course_name, "module_name": None, "items": items, "source": "template"}
+
+    try:
+        from engine.canvas_sync import CanvasLMSSync
+        canvas = CanvasLMSSync()
+        if not canvas.token:
+            raise RuntimeError("Canvas token not configured")
+
+        match = None
+        for c in (canvas.get_active_courses() or []):
+            name = (c.get("name") or "")
+            code = (c.get("course_code") or "")
+            if course_name.lower() in name.lower() or course_code.lower() in code.lower():
+                match = c
+                break
+        if not match:
+            raise RuntimeError(f"No active Canvas course matched '{course_name}'")
+
+        modules = canvas.get_course_modules(match["id"]) or []
+
+        # Prefer the module currently in progress (some but not all items done),
+        # else the first module with any incomplete item, else just the first module.
+        chosen = None
+        for m in modules:
+            reqs = [it for it in m.get("items", []) if it.get("completion_requirement")]
+            done = sum(1 for it in reqs if it.get("completion_requirement", {}).get("completed"))
+            if reqs and 0 < done < len(reqs):
+                chosen = m
+                break
+        if not chosen:
+            for m in modules:
+                reqs = [it for it in m.get("items", []) if it.get("completion_requirement")]
+                if reqs and any(not it.get("completion_requirement", {}).get("completed") for it in reqs):
+                    chosen = m
+                    break
+        if not chosen and modules:
+            chosen = modules[0]
+        if not chosen:
+            raise RuntimeError("No modules found for this course")
+
+        raw_items = chosen.get("items", [])
+        videos = [it for it in raw_items if it.get("type") in ("Page", "File", "ExternalUrl", "ExternalTool")]
+        others = [it for it in raw_items if it.get("type") in ("Assignment", "Quiz")]
+        if not videos and not others:
+            raise RuntimeError("Module has no listable items")
+
+        items = [
+            {
+                "title": it.get("title", "Lecture"),
+                "type": "Video",
+                "completed": bool(it.get("completion_requirement", {}).get("completed")),
+            }
+            for it in videos[:6]
+        ]
+        items += [
+            {
+                "title": it.get("title", "Assessment"),
+                "type": it.get("type", "Assignment"),
+                "completed": bool(it.get("completion_requirement", {}).get("completed")),
+            }
+            for it in others[:2]
+        ]
+
+        return {
+            "course_name": course_name,
+            "module_name": chosen.get("name"),
+            "items": items,
+            "source": "canvas_live",
+        }
+    except Exception as e:
+        target_videos = target.get("target_videos", 4)
+        items = [
+            {"title": f"Watch Lecture Video {i + 1}", "type": "Video", "completed": i < target.get("videos_done", 0)}
+            for i in range(target_videos)
+        ]
+        items.append({"title": "Complete Weekly Quiz",      "type": "Quiz",       "completed": target.get("quizzes_done", 0) > 0})
+        items.append({"title": "Submit Weekly Assignment",  "type": "Assignment", "completed": target.get("assignments_done", 0) > 0})
+        return {
+            "course_name": course_name,
+            "module_name": None,
+            "items": items,
+            "source": "fallback",
+            "note": str(e),
+        }
+
+
 # ── Daily Audit Engine ───────────────────────────────────────────────────────────
 
 def run_daily_audit(force: bool = False) -> dict:

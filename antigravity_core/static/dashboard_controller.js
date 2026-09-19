@@ -132,6 +132,38 @@
     }
   }
 
+  // Breaks "Task 10" into its real 4-8 sub-items (videos + quiz/assignment) so
+  // it stops feeling like one giant unfinishable blob.
+  const SUBTASK_TYPE_ICON = {
+    Video: 'fa-circle-play', Page: 'fa-circle-play',
+    Quiz: 'fa-file-circle-question', Assignment: 'fa-file-pen',
+    Practice: 'fa-code', Review: 'fa-magnifying-glass', Study: 'fa-book',
+    Reflection: 'fa-brain', Planning: 'fa-list-check'
+  };
+
+  async function loadSemesterSubtasks() {
+    const box = $('semester-subtasks');
+    if (!box) return;
+    try {
+      const r = await fetch('/api/semester/today/subtasks');
+      if (!r.ok) return;
+      const d = await r.json();
+      const items = d.items || [];
+      if (!items.length) { box.innerHTML = ''; return; }
+
+      box.innerHTML = items.map(it => {
+        const icon = SUBTASK_TYPE_ICON[it.type] || 'fa-circle-play';
+        return `
+          <div class="flex items-center gap-2 text-[10px] font-mono ${it.completed ? 'text-emerald-400' : 'text-slate-400'}">
+            <i class="fa-solid ${it.completed ? 'fa-circle-check' : icon} text-[9px] ${it.completed ? '' : 'opacity-60'}"></i>
+            <span class="${it.completed ? 'line-through opacity-70' : ''}">${it.title}</span>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      console.warn('[Semester Subtasks Warning]', e);
+    }
+  }
+
   // ─── 1c. Weekly Truth Report ─── honest 7-day consistency across the 4 pillars
   const TRUTH_CATEGORY_META = {
     PHYSICAL:  { label: 'Physical',  color: '#f87171' },
@@ -600,6 +632,7 @@
           notify('Canvas LMS Sync Triggered!', 'ok');
           hydrateTelemetry();
           loadSemesterTask();
+          loadSemesterSubtasks();
         }
       } catch (e) {
         notify('Error triggering Canvas sync', 'err');
@@ -1059,6 +1092,7 @@
     hydrateTelemetry();
     autoSyncGoogleFit();
     loadSemesterTask();
+    loadSemesterSubtasks();
     loadConsistencyReport();
     setupAccountabilityHandlers();
     setupSideDockControls();
@@ -1068,7 +1102,4 @@
     setInterval(hydrateTelemetry, 8000);
     setInterval(autoSyncGoogleFit, 10 * 60000); // refresh live Google Fit numbers every 10 minutes
     setInterval(loadSemesterTask, 60000); // refresh subject-of-the-day countdown every minute
-    setInterval(loadConsistencyReport, 300000); // refresh truth report every 5 minutes
-  });
-
-})();
+    setInterval(loadSemesterSubtasks, 10 * 60000); // refresh sub-task checklist every 10 minutes

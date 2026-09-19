@@ -4012,6 +4012,16 @@ def api_semester_today():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/semester/today/subtasks")
+def api_semester_today_subtasks():
+    """Breaks Task 10 into its real 4-8 sub-items (videos + quiz/assignment)."""
+    try:
+        from engine.semester_enforcer import get_today_course_subtasks
+        return get_today_course_subtasks()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/semester/audit")
 def api_semester_audit(force: bool = True):
     """Manually trigger the nightly audit (force rerun)."""
