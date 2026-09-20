@@ -101,7 +101,8 @@ class RoutineEngine:
         including triggered status, current potential XP yield, delay hours, and overall synchrony %.
         """
         init_routine_tables()
-        now = datetime.datetime.now()
+        ist = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+        now = datetime.datetime.now(ist).replace(tzinfo=None)
         today_date = now.strftime("%Y-%m-%d")
 
         # Fetch today's triggers from DB (SQLite local or Neon serverless)
@@ -207,7 +208,8 @@ class RoutineEngine:
         and logs the trigger event.
         """
         init_routine_tables()
-        now = datetime.datetime.now()
+        ist = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+        now = datetime.datetime.now(ist).replace(tzinfo=None)
         today_date = now.strftime("%Y-%m-%d")
 
         # Check milestone definition
