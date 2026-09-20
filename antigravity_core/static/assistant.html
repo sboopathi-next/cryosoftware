@@ -43,10 +43,25 @@
     }
     #micBtn.listening { border-color: #f43f5e; color: #f43f5e; }
     #banner { font-size: 12px; color: #f87171; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); border-radius: 10px; padding: 10px 14px; max-width: 380px; display: none; }
+    #enableOverlay {
+      position: fixed; inset: 0; background: rgba(10,15,29,0.97); z-index: 50;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center;
+    }
+    #enableOverlay.hidden { display: none; }
+    #enableBtn {
+      min-height: 64px; padding: 0 32px; border-radius: 999px; background: linear-gradient(135deg,#06b6d4,#4f46e5);
+      color: #fff; font-weight: 700; font-size: 14px; border: none; display: flex; align-items: center; gap: 10px; cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <a class="back-link" href="/"><i class="fa-solid fa-arrow-left"></i></a>
+
+  <div id="enableOverlay">
+    <i class="fa-solid fa-microphone-lines" style="font-size:40px;color:#4cd7f6;"></i>
+    <p style="font-size:14px;max-width:300px;line-height:1.5;">Tap once to let this page listen automatically — after that, it'll speak your status and start listening for your voice every time you open it.</p>
+    <button id="enableBtn" type="button"><i class="fa-solid fa-microphone"></i><span>Enable Voice Assistant</span></button>
+  </div>
 
   <div class="ring" id="ring"><span id="ringLevel">--</span></div>
   <h1>Quick Status</h1>
@@ -72,13 +87,18 @@
 
     let lastStats = null;
 
-    function speak(text) {
+    function speak(text, onDone) {
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.rate = 1.02;
+        if (onDone) { u.onend = onDone; u.onerror = onDone; }
         window.speechSynthesis.speak(u);
-      } catch (e) { /* speechSynthesis unavailable — text is still shown on screen */ }
+        // Some browsers never fire onend reliably — fall back after a timeout matched to text length.
+        if (onDone) setTimeout(onDone, Math.min(12000, 1200 + text.length * 55));
+      } catch (e) {
+        if (onDone) onDone();
+      }
     }
 
     function buildSummary(d) {
@@ -109,7 +129,10 @@
           ? pending.map(p => `<div class="pending-item"><i class="fa-solid fa-circle-exclamation" style="color:#f59e0b;margin-right:8px;"></i>${p}</div>`).join('')
           : `<div class="all-done"><i class="fa-solid fa-circle-check"></i> All caught up for today!</div>`;
 
-        if (andSpeak) speak(text);
+        if (andSpeak) {
+          // Speak first, THEN start listening — otherwise the mic picks up the app's own voice.
+          speak(text, () => startListening());
+        }
       } catch (e) {
         document.getElementById('summaryText').textContent = 'Could not load status — check your connection.';
       }
@@ -118,19 +141,27 @@
     // ─── Voice command: say "Hi" / ask about level / pending tasks ──────────
     let recognizer = null;
     let isListening = false;
+    let voiceLoopActive = false;
 
     function respondToCommand(transcript) {
       const t = transcript.toLowerCase();
-      if (!lastStats) { speak("Still loading your status, one second."); return; }
+      if (!lastStats) { speak("Still loading your status, one second.", () => startListening()); return; }
       const { text, pending } = buildSummary(lastStats);
 
+      let reply;
       if (t.includes('pending') || t.includes('task') || t.includes('todo')) {
-        speak(pending.length ? `Pending: ${pending.join(', ')}.` : "You're all caught up — nothing pending today.");
+        reply = pending.length ? `Pending: ${pending.join(', ')}.` : "You're all caught up — nothing pending today.";
       } else if (t.includes('level') || t.includes('xp') || t.includes('streak')) {
-        speak(`You're level ${lastStats.level}, ${lastStats.xp} XP, ${lastStats.streak_days}-day streak.`);
+        reply = `You're level ${lastStats.level}, ${lastStats.xp} XP, ${lastStats.streak_days}-day streak.`;
+      } else if (t.includes('stop') || t.includes('bye') || t.includes('goodbye')) {
+        voiceLoopActive = false;
+        speak("Okay, signing off.");
+        return;
       } else {
-        speak(text);
+        reply = text;
       }
+      // Keep the conversation going — listen again after replying.
+      speak(reply, () => { if (voiceLoopActive) startListening(); });
     }
 
     function initMic() {
@@ -142,7 +173,8 @@
         btn.style.opacity = '0.5';
         banner.style.display = 'block';
         banner.textContent = "Voice commands aren't supported in this browser — the status above still loads and reads itself aloud automatically.";
-        return;
+        document.getElementById('enableOverlay').classList.add('hidden');
+        return true;
       }
       recognizer = new SR();
       recognizer.continuous = false;
@@ -153,13 +185,32 @@
         const said = e.results[e.results.length - 1][0].transcript;
         respondToCommand(said);
       };
-      recognizer.onerror = () => { setListening(false); };
+      recognizer.onerror = (e) => {
+        setListening(false);
+        if (e.error === 'not-allowed' || e.error === 'permission-denied' || e.error === 'service-not-allowed') {
+          voiceLoopActive = false;
+          document.getElementById('enableOverlay').classList.remove('hidden');
+          banner.style.display = 'block';
+          banner.textContent = 'Microphone access was blocked. Tap "Enable Voice Assistant" and allow the permission prompt.';
+        } else if (e.error === 'no-speech' && voiceLoopActive) {
+          // Silence timeout — just keep the loop alive quietly.
+          startListening();
+        }
+      };
       recognizer.onend = () => { setListening(false); };
 
       btn.addEventListener('click', () => {
-        if (isListening) { recognizer.stop(); return; }
-        try { recognizer.start(); setListening(true); } catch (e) { /* already running */ }
+        if (isListening) { voiceLoopActive = false; recognizer.stop(); return; }
+        voiceLoopActive = true;
+        startListening();
       });
+      return true;
+    }
+
+    function startListening() {
+      if (!recognizer || isListening) return;
+      try { recognizer.start(); setListening(true); }
+      catch (e) { /* already running, or blocked — onerror handles the latter */ }
     }
 
     function setListening(on) {
@@ -168,9 +219,33 @@
       document.getElementById('micBtn').classList.toggle('listening', on);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      initMic();
-      loadStatus(true); // opening this page IS the "Hi" — reads status aloud immediately
+    document.addEventListener('DOMContentLoaded', async () => {
+      const hasMic = initMic();
+      await loadStatus(false);
+
+      const overlay = document.getElementById('enableOverlay');
+      const enableBtn = document.getElementById('enableBtn');
+
+      if (!hasMic || !recognizer) {
+        overlay.classList.add('hidden');
+        const { text } = buildSummary(lastStats || {});
+        speak(text);
+        return;
+      }
+
+      // Speak first (always works, no permission needed), then try to auto-start
+      // listening. If the browser blocks a mic-permission prompt without a prior
+      // tap, recognizer.onerror('not-allowed') fires and reveals the enable button.
+      overlay.classList.add('hidden');
+      voiceLoopActive = true;
+      const { text } = buildSummary(lastStats || {});
+      speak(text, () => startListening());
+
+      enableBtn.addEventListener('click', () => {
+        overlay.classList.add('hidden');
+        voiceLoopActive = true;
+        startListening();
+      });
     });
   </script>
 </body>
