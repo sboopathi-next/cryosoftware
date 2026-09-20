@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+  <title>Antigravity — Quick Status</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 100vw; min-height: 100vh; background: #0a0f1d; overscroll-behavior: none; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #dfe2f1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+      gap: 18px;
+    }
+    .back-link { position: fixed; top: 16px; left: 16px; color: #64748b; font-size: 20px; text-decoration: none; }
+    .ring {
+      width: 96px; height: 96px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle, rgba(6,182,212,0.15), transparent 70%);
+      border: 2px solid #06b6d4;
+      font-size: 12px; font-weight: 700; color: #4cd7f6;
+    }
+    .ring.listening { animation: pulse 1.2s infinite; border-color: #f43f5e; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.4); } 50% { box-shadow: 0 0 0 14px rgba(244,63,94,0); } }
+    h1 { font-size: 15px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #64748b; margin: 0; }
+    #summaryText { font-size: 17px; line-height: 1.6; font-weight: 600; color: #fff; max-width: 420px; min-height: 60px; }
+    #pendingList { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 380px; }
+    .pending-item { background: #171b26; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; font-size: 13px; text-align: left; color: #cbd5e1; }
+    .all-done { color: #34d399; font-weight: 700; font-size: 14px; }
+    #micBtn {
+      margin-top: 8px; min-height: 54px; padding: 0 28px; border-radius: 999px;
+      background: #171b26; border: 2px solid #334155; color: #cbd5e1;
+      font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+    }
+    #micBtn.listening { border-color: #f43f5e; color: #f43f5e; }
+    #banner { font-size: 12px; color: #f87171; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); border-radius: 10px; padding: 10px 14px; max-width: 380px; display: none; }
+  </style>
+</head>
+<body>
+  <a class="back-link" href="/"><i class="fa-solid fa-arrow-left"></i></a>
+
+  <div class="ring" id="ring"><span id="ringLevel">--</span></div>
+  <h1>Quick Status</h1>
+  <p id="summaryText">Loading your status…</p>
+  <div id="pendingList"></div>
+  <button id="micBtn" type="button"><i class="fa-solid fa-microphone"></i><span>Ask "What's pending?"</span></button>
+  <p id="banner"></p>
+
+  <script>
+    const TASK_LABELS = {
+      study_completed: "Daily study target",
+      leetcode_completed: "LeetCode problem",
+      gym_completed: "Gym workout",
+      english_completed: "English practice",
+      cooking_completed: "Home cooking / meal prep",
+      nopmo_completed: "NoPMO discipline",
+      reading_completed: "Reading",
+      health_completed: "Google Fit health sync",
+      meditation_completed: "5-min meditation",
+      canvas_semester_completed: "Semester course work",
+      mindos_completed: "Mind OS reality check"
+    };
+
+    let lastStats = null;
+
+    function speak(text) {
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 1.02;
+        window.speechSynthesis.speak(u);
+      } catch (e) { /* speechSynthesis unavailable — text is still shown on screen */ }
+    }
+
+    function buildSummary(d) {
+      const pending = Object.entries(TASK_LABELS).filter(([key]) => !d[key]).map(([, label]) => label);
+      const level = d.level ?? '--';
+      const xp = d.xp ?? 0;
+      const streak = d.streak_days ?? 0;
+
+      let text = `Hey! You're level ${level} with ${xp} XP, and a ${streak}-day streak. `;
+      text += pending.length
+        ? `You still have ${pending.length} thing${pending.length === 1 ? '' : 's'} pending today: ${pending.join(', ')}.`
+        : `You've cleared everything on today's checklist — nice work.`;
+      return { text, pending };
+    }
+
+    async function loadStatus(andSpeak) {
+      try {
+        const r = await fetch('/stats');
+        const d = await r.json();
+        lastStats = d;
+
+        document.getElementById('ringLevel').textContent = `LV ${d.level ?? '--'}`;
+        const { text, pending } = buildSummary(d);
+        document.getElementById('summaryText').textContent = text;
+
+        const list = document.getElementById('pendingList');
+        list.innerHTML = pending.length
+          ? pending.map(p => `<div class="pending-item"><i class="fa-solid fa-circle-exclamation" style="color:#f59e0b;margin-right:8px;"></i>${p}</div>`).join('')
+          : `<div class="all-done"><i class="fa-solid fa-circle-check"></i> All caught up for today!</div>`;
+
+        if (andSpeak) speak(text);
+      } catch (e) {
+        document.getElementById('summaryText').textContent = 'Could not load status — check your connection.';
+      }
+    }
+
+    // ─── Voice command: say "Hi" / ask about level / pending tasks ──────────
+    let recognizer = null;
+    let isListening = false;
+
+    function respondToCommand(transcript) {
+      const t = transcript.toLowerCase();
+      if (!lastStats) { speak("Still loading your status, one second."); return; }
+      const { text, pending } = buildSummary(lastStats);
+
+      if (t.includes('pending') || t.includes('task') || t.includes('todo')) {
+        speak(pending.length ? `Pending: ${pending.join(', ')}.` : "You're all caught up — nothing pending today.");
+      } else if (t.includes('level') || t.includes('xp') || t.includes('streak')) {
+        speak(`You're level ${lastStats.level}, ${lastStats.xp} XP, ${lastStats.streak_days}-day streak.`);
+      } else {
+        speak(text);
+      }
+    }
+
+    function initMic() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const btn = document.getElementById('micBtn');
+      const banner = document.getElementById('banner');
+      if (!SR) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        banner.style.display = 'block';
+        banner.textContent = "Voice commands aren't supported in this browser — the status above still loads and reads itself aloud automatically.";
+        return;
+      }
+      recognizer = new SR();
+      recognizer.continuous = false;
+      recognizer.interimResults = false;
+      recognizer.lang = 'en-US';
+
+      recognizer.onresult = (e) => {
+        const said = e.results[e.results.length - 1][0].transcript;
+        respondToCommand(said);
+      };
+      recognizer.onerror = () => { setListening(false); };
+      recognizer.onend = () => { setListening(false); };
+
+      btn.addEventListener('click', () => {
+        if (isListening) { recognizer.stop(); return; }
+        try { recognizer.start(); setListening(true); } catch (e) { /* already running */ }
+      });
+    }
+
+    function setListening(on) {
+      isListening = on;
+      document.getElementById('ring').classList.toggle('listening', on);
+      document.getElementById('micBtn').classList.toggle('listening', on);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initMic();
+      loadStatus(true); // opening this page IS the "Hi" — reads status aloud immediately
+    });
+  </script>
+</body>
+</html>

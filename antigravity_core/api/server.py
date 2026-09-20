@@ -1598,6 +1598,11 @@ def update_workout_entry(payload: WorkoutUpdatePayload):
 def get_gym_pro_page():
     return FileResponse(os.path.join(STATIC_DIR, "gym_pro.html"))
 
+@app.get("/assistant")
+def get_assistant_page():
+    """Quick-glance voice status page — level/XP/pending tasks, read aloud on open."""
+    return FileResponse(os.path.join(STATIC_DIR, "assistant.html"))
+
 
 # ─── Workout Analytics API ────────────────────────────────────────────────────
 

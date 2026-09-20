@@ -27,5 +27,14 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Status",
+      "short_name": "Status",
+      "description": "Level, XP, streak and pending tasks — read aloud instantly",
+      "url": "/assistant",
+      "icons": [{ "src": "/static/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
