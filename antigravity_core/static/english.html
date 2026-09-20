@@ -289,10 +289,11 @@
           <span class="font-mono text-[9px] text-slate-500" id="micStatusTag">Mic idle</span>
         </div>
         <textarea id="transcriptInput" rows="4" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl p-3 text-xs text-white focus:border-cyan-400 focus:outline-none font-sans" placeholder="Type here, or tap the mic below to speak your response..."></textarea>
-        <button type="button" id="micToggleBtn" class="w-full py-2.5 rounded-xl bg-[#171b26] border border-slate-700 hover:border-cyan-500 text-slate-300 font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-98">
-          <i class="fa-solid fa-microphone text-cyan-400"></i>
+        <button type="button" id="micToggleBtn" class="w-full min-h-[52px] py-3 rounded-xl bg-[#171b26] border-2 border-slate-700 hover:border-cyan-500 text-slate-300 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-98">
+          <i class="fa-solid fa-microphone text-cyan-400 text-base"></i>
           <span>Start Speaking</span>
         </button>
+        <p class="hidden text-[10px] font-mono text-rose-400 bg-rose-950/40 border border-rose-600/30 rounded-lg px-3 py-2 leading-snug" id="micSupportBanner"></p>
       </div>
     </div>
 
@@ -505,10 +506,20 @@
     function initSpeechRecognition() {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const micBtn = document.getElementById('micToggleBtn');
-      if (!SR) {
+      const banner = document.getElementById('micSupportBanner');
+      const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+
+      if (!SR || !isSecure) {
         if (micBtn) {
           micBtn.disabled = true;
-          micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash text-slate-500"></i> <span>Voice input not supported in this browser — please type instead</span>';
+          micBtn.classList.add('opacity-50');
+          micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash text-slate-500"></i> <span>Voice input unavailable</span>';
+        }
+        if (banner) {
+          banner.classList.remove('hidden');
+          banner.textContent = !isSecure
+            ? 'Voice input needs a secure (https) connection.'
+            : 'Your browser doesn\'t support voice input (common on iOS Safari/Chrome-for-iOS). Use Chrome or Edge on Android/desktop, or just type your answer above.';
         }
         return;
       }
@@ -542,8 +553,15 @@
       };
 
       recognizer.onerror = (event) => {
-        const confTag = document.getElementById('sttConfidenceTag');
-        if (confTag) confTag.textContent = `MIC ERROR: ${event.error}`;
+        const banner = document.getElementById('micSupportBanner');
+        if (banner) {
+          banner.classList.remove('hidden');
+          banner.textContent = event.error === 'not-allowed' || event.error === 'permission-denied'
+            ? 'Microphone permission was denied. Allow mic access in your browser/site settings, then tap Start Speaking again.'
+            : event.error === 'no-speech'
+              ? 'No speech detected — check your mic is unmuted and try again.'
+              : `Mic error: ${event.error}. Try again or type your answer instead.`;
+        }
         stopListening();
       };
 
@@ -563,6 +581,7 @@
       speechStartedAt = Date.now();
       try { recognizer.start(); } catch (e) { /* already started */ }
 
+      document.getElementById('micSupportBanner')?.classList.add('hidden');
       const btn = document.getElementById('micToggleBtn');
       if (btn) {
         btn.classList.add('border-rose-500', 'text-rose-400');
