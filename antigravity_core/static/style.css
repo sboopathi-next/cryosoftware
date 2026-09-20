@@ -938,7 +938,10 @@ select, input, textarea { font-family: var(--ff-body); }
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    height: 64px !important;
+    /* min-height (not a hard height) so the safe-area padding below adds real
+       clearance from the gesture bar/nav buttons instead of eating into the
+       64px the icons need, which squeezed them on devices with a tall inset */
+    min-height: 64px !important;
     background: rgba(10, 15, 29, 0.98) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
@@ -1315,8 +1318,8 @@ select, input, textarea { font-family: var(--ff-body); }
     height: 100vh !important;
   }
   .main {
-    height: calc(100dvh - 65px - env(safe-area-inset-bottom)) !important;
-    height: calc(100vh - 65px - env(safe-area-inset-bottom)) !important;
+    height: calc(100dvh - 64px - env(safe-area-inset-bottom)) !important;
+    height: calc(100vh - 64px - env(safe-area-inset-bottom)) !important;
     padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
     box-sizing: border-box !important;
   }
