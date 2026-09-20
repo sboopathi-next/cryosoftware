@@ -17,6 +17,9 @@
       .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
     }
     ::-webkit-scrollbar { display: none; }
+    /* Bars only actually pulse while the mic is really listening — no more fake always-on animation */
+    #spectralBars span { animation-play-state: paused; opacity: 0.25; transition: opacity 0.2s; }
+    #spectralBars.listening span { animation-play-state: running; opacity: 1; }
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script id="tailwind-config">
@@ -256,9 +259,9 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-waveform text-cyan-400 text-xs"></i>
-          <span class="font-mono text-[11px] font-bold text-cyan-400 uppercase">Spectral Telemetry & Whisper STT Stream</span>
+          <span class="font-mono text-[11px] font-bold text-cyan-400 uppercase">Spectral Telemetry & Voice Input Stream</span>
         </div>
-        <span class="font-mono text-[10px] text-emerald-400">CONFIDENCE 98.6%</span>
+        <span class="font-mono text-[10px] text-emerald-400" id="sttConfidenceTag">MIC IDLE</span>
       </div>
 
       <!-- Equalizer Bar Waves -->
@@ -281,8 +284,15 @@
 
       <!-- Live Speech Input / Transcript Area -->
       <div class="space-y-1.5">
-        <label class="block font-mono text-[10px] text-slate-400">Candidate Speech Input / STT Stream Transcript</label>
-        <textarea id="transcriptInput" rows="4" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl p-3 text-xs text-white focus:border-cyan-400 focus:outline-none font-sans" placeholder="Type or speak your IELTS response here... (e.g. Without hesitation, I would highlight autonomous multimodal RAG frameworks...)"></textarea>
+        <div class="flex items-center justify-between">
+          <label class="block font-mono text-[10px] text-slate-400">Candidate Speech Input / STT Stream Transcript</label>
+          <span class="font-mono text-[9px] text-slate-500" id="micStatusTag">Mic idle</span>
+        </div>
+        <textarea id="transcriptInput" rows="4" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl p-3 text-xs text-white focus:border-cyan-400 focus:outline-none font-sans" placeholder="Type here, or tap the mic below to speak your response..."></textarea>
+        <button type="button" id="micToggleBtn" class="w-full py-2.5 rounded-xl bg-[#171b26] border border-slate-700 hover:border-cyan-500 text-slate-300 font-mono text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-98">
+          <i class="fa-solid fa-microphone text-cyan-400"></i>
+          <span>Start Speaking</span>
+        </button>
       </div>
     </div>
 
@@ -482,6 +492,110 @@
     let sessionTimerSec = 600;
     let timerInterval = null;
 
+    // ─── Real Browser Speech Recognition (Web Speech API) ──────────────────
+    // No server/API key needed — Chrome/Edge/Safari transcribe locally via
+    // the browser's built-in engine. This replaces the old fake "STT Stream"
+    // UI that never actually listened to anything.
+    let recognizer = null;
+    let isListening = false;
+    let finalTranscript = '';
+    let speechStartedAt = null;
+    let speechTotalSeconds = 0;
+
+    function initSpeechRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const micBtn = document.getElementById('micToggleBtn');
+      if (!SR) {
+        if (micBtn) {
+          micBtn.disabled = true;
+          micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash text-slate-500"></i> <span>Voice input not supported in this browser — please type instead</span>';
+        }
+        return;
+      }
+      recognizer = new SR();
+      recognizer.continuous = true;
+      recognizer.interimResults = true;
+      recognizer.lang = 'en-US';
+
+      recognizer.onresult = (event) => {
+        let interim = '';
+        let confidence = 0;
+        let confCount = 0;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalTranscript += (finalTranscript ? ' ' : '') + res[0].transcript.trim();
+          } else {
+            interim += res[0].transcript;
+          }
+          if (res[0].confidence) { confidence += res[0].confidence; confCount++; }
+        }
+        const box = document.getElementById('transcriptInput');
+        if (box) {
+          box.value = (finalTranscript + ' ' + interim).trim();
+          updateRealtimeTelemetry();
+        }
+        const confTag = document.getElementById('sttConfidenceTag');
+        if (confTag && confCount > 0) {
+          confTag.textContent = `CONFIDENCE ${Math.round((confidence / confCount) * 100)}%`;
+        }
+      };
+
+      recognizer.onerror = (event) => {
+        const confTag = document.getElementById('sttConfidenceTag');
+        if (confTag) confTag.textContent = `MIC ERROR: ${event.error}`;
+        stopListening();
+      };
+
+      recognizer.onend = () => {
+        // Browsers auto-stop the recognizer after a pause — restart seamlessly
+        // if the user hasn't explicitly tapped "Stop" yet.
+        if (isListening) {
+          try { recognizer.start(); } catch (e) { /* already running */ }
+        }
+      };
+    }
+
+    function startListening() {
+      if (!recognizer) return;
+      finalTranscript = document.getElementById('transcriptInput').value.trim();
+      isListening = true;
+      speechStartedAt = Date.now();
+      try { recognizer.start(); } catch (e) { /* already started */ }
+
+      const btn = document.getElementById('micToggleBtn');
+      if (btn) {
+        btn.classList.add('border-rose-500', 'text-rose-400');
+        btn.innerHTML = '<i class="fa-solid fa-stop text-rose-400"></i> <span>Stop Recording</span>';
+      }
+      document.getElementById('spectralBars')?.classList.add('listening');
+      const tag = document.getElementById('micStatusTag');
+      if (tag) tag.textContent = 'Listening…';
+    }
+
+    function stopListening() {
+      isListening = false;
+      if (recognizer) { try { recognizer.stop(); } catch (e) { /* already stopped */ } }
+      if (speechStartedAt) {
+        speechTotalSeconds += (Date.now() - speechStartedAt) / 1000;
+        speechStartedAt = null;
+      }
+
+      const btn = document.getElementById('micToggleBtn');
+      if (btn) {
+        btn.classList.remove('border-rose-500', 'text-rose-400');
+        btn.innerHTML = '<i class="fa-solid fa-microphone text-cyan-400"></i> <span>Start Speaking</span>';
+      }
+      document.getElementById('spectralBars')?.classList.remove('listening');
+      const tag = document.getElementById('micStatusTag');
+      if (tag) tag.textContent = 'Mic idle';
+    }
+
+    function toggleMic() {
+      if (isListening) stopListening();
+      else startListening();
+    }
+
     function startMasterTimer() {
       if (timerInterval) return;
       timerInterval = setInterval(() => {
@@ -522,6 +636,10 @@
       loadPhraseVault();
       checkEnglishStatus();
       startMasterTimer();
+      initSpeechRecognition();
+
+      const micBtn = document.getElementById('micToggleBtn');
+      if (micBtn) micBtn.addEventListener('click', toggleMic);
 
       // Real-time transcript listener for live telemetry updates
       const tInput = document.getElementById('transcriptInput');
@@ -692,12 +810,17 @@
     }
 
     async function submitSpeechEvaluation() {
-      const transcript = document.getElementById('transcriptInput').value.trim() || 
-        "Without hesitation, I would highlight autonomous multimodal RAG frameworks. The imperative justification lies in bypassing volatile memory limits during deep research. For instance, synthesizing 80 medical patents in 40 seconds with zero hallucination rate. Consequently, this represents an indispensable intellectual exoskeleton.";
+      if (isListening) stopListening();
+      const transcript = document.getElementById('transcriptInput').value.trim();
+      if (!transcript) {
+        alert('Speak or type your response before evaluating — nothing was recorded yet.');
+        return;
+      }
 
       const topicText = currentTopicObj ? currentTopicObj.title : document.getElementById('topicTitle').textContent;
       const btn = document.getElementById('evaluateBtn');
       const origText = btn.innerHTML;
+      const durationSeconds = speechTotalSeconds > 0 ? Math.round(speechTotalSeconds) : Math.max(20, transcript.split(/\s+/).length / 2.3);
 
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>Evaluating Speech via AI Telemetry...</span>';
       btn.disabled = true;
@@ -709,7 +832,7 @@
           body: JSON.stringify({
             topic: topicText,
             transcript: transcript,
-            duration_seconds: 65.0,
+            duration_seconds: durationSeconds,
             test_type: 'IELTS_PART_2'
           })
         });
