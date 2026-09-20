@@ -4047,7 +4047,7 @@ def api_semester_today_subtasks():
         from engine.database import get_cached_json, set_cached_json
 
         today = get_today_target()
-        cache_key = f"semester_subtasks_{today['date']}_{today['course_code']}"
+        cache_key = f"semester_subtasks_{today['date']}_{today['course_code']}_wk{today['week_number']}"
 
         cached = get_cached_json(cache_key, max_age_seconds=900)
         if cached:
