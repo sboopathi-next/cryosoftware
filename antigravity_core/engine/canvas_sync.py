@@ -619,13 +619,22 @@ class CanvasLMSSync:
         # ── Award total XP and Stat Boosts to player ───────────────────────────
         if total_new_xp > 0:
             try:
-                from engine.database import add_xp, get_state, save_state
+                from engine.database import add_xp, get_state, save_state, apply_energy_action
                 add_xp(total_new_xp)
                 state = get_state()
                 if state:
                     state["int"] = state.get("int", 10) + total_int_gained
                     state["agi"] = state.get("agi", 10) + total_agi_gained
                     state["wil"] = state.get("wil", 10) + total_wil_gained
+
+                    # Cognitive Energy: each auto-synced video/quiz is real mental exertion
+                    video_count = sum(1 for c in new_completions if c.get("type") in ("Page", "Video"))
+                    quiz_count  = sum(1 for c in new_completions if c.get("type") in ("Quiz", "Assignment"))
+                    for _ in range(video_count):
+                        state = apply_energy_action(state, "canvas_video")
+                    for _ in range(quiz_count):
+                        state = apply_energy_action(state, "canvas_quiz")
+
                     save_state(state)
                 print(f"[Canvas] 🎉 Total XP awarded: +{total_new_xp} | STAT BOOSTS: +{total_int_gained} INT, +{total_agi_gained} AGI, +{total_wil_gained} WIL")
             except Exception as e:

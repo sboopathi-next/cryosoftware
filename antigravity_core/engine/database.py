@@ -1122,6 +1122,20 @@ def add_xp(amount: int) -> dict:
     save_state(state)
     return state
 
+def apply_energy_action(state: dict, action_key: str, reverse: bool = False) -> dict:
+    """
+    Applies a Cognitive Energy delta for a real logged action (see
+    config.ENERGY_ACTION_DELTAS) — this is what makes energy actually move
+    instead of sitting at 100 forever. reverse=True undoes it (e.g. a
+    checklist item un-toggled), clamped to [0, 100].
+    """
+    from config import ENERGY_ACTION_DELTAS
+    delta = ENERGY_ACTION_DELTAS.get(action_key, 0.0)
+    if reverse:
+        delta = -delta
+    state["energy"] = max(0.0, min(100.0, state.get("energy", 80.0) + delta))
+    return state
+
 def update_stat(stat_name: str, amount: float) -> dict:
     """Dynamically update any core stat (XP, STR, INT, AGI, WIL, ENERGY, HEART)"""
     stat_name = stat_name.lower()
@@ -1783,6 +1797,7 @@ def save_reality_check(trigger_event: str, my_interpretation: str, evidence_for:
         state = get_state()
         if state:
             state["mindos_completed"] = 1
+            state = apply_energy_action(state, "mindos")
             save_state(state)
         log_activity_file("CBT Reality Check Completed", f"Reframed thought: '{my_interpretation}' -> '{alternative_explanation}'. Awarded +15 XP.")
         return {"status": "success", "id": result["id"], "earned_xp": 15}
@@ -1804,6 +1819,7 @@ def save_reality_check(trigger_event: str, my_interpretation: str, evidence_for:
     state = get_state()
     if state:
         state["mindos_completed"] = 1
+        state = apply_energy_action(state, "mindos")
         save_state(state)
     log_activity_file("CBT Reality Check Completed", f"Reframed thought: '{my_interpretation}' -> '{alternative_explanation}'. Awarded +15 XP.")
     return {"status": "success", "id": new_id, "earned_xp": 15}
@@ -1838,6 +1854,7 @@ def save_rumination_log(trigger_convo: str, intensity: int, duration_mins: int, 
         state = get_state()
         if state:
             state["mindos_completed"] = 1
+            state = apply_energy_action(state, "mindos")
             save_state(state)
         log_activity_file("Rumination Grounded", f"Managed mental replay. Gained +2 STC, +10 XP.")
         return {"status": "success", "id": result["id"], "earned_stc": 2, "earned_xp": 10}
@@ -1860,6 +1877,7 @@ def save_rumination_log(trigger_convo: str, intensity: int, duration_mins: int, 
     state = get_state()
     if state:
         state["mindos_completed"] = 1
+        state = apply_energy_action(state, "mindos")
         save_state(state)
     log_activity_file("Rumination Grounded", f"Managed mental replay from conversation: '{trigger_convo}'. Gained +2 STC, +10 XP.")
     return {"status": "success", "id": new_id, "earned_stc": 2, "earned_xp": 10}
@@ -1883,6 +1901,7 @@ def save_relationship(person_name: str, trust_score: int, leave_urge: int, close
         state = get_state()
         if state:
             state["mindos_completed"] = 1
+            state = apply_energy_action(state, "mindos")
             save_state(state)
         log_activity_file("Relationship Profile Updated", f"Updated alignment for {person_name}. Trust: {trust_score}/10.")
         return {"status": "success", "person_name": person_name}
@@ -1902,6 +1921,7 @@ def save_relationship(person_name: str, trust_score: int, leave_urge: int, close
     state = get_state()
     if state:
         state["mindos_completed"] = 1
+        state = apply_energy_action(state, "mindos")
         save_state(state)
     log_activity_file("Relationship Profile Updated", f"Updated alignment for {person_name}. Trust: {trust_score}/10, Leave Urge: {leave_urge}/10, Closeness: {closeness}/10.")
     return {"status": "success", "person_name": person_name}
@@ -1961,6 +1981,7 @@ def save_meditation_log(duration_mins: int, track_name: str) -> dict:
         if state:
             state["meditation_completed"] = 1
             state["mindos_completed"] = 1
+            state = apply_energy_action(state, "meditation")
             save_state(state)
         new_state = update_stat("xp", 20)
         log_activity_file("Meditation Session Completed", f"Completed {duration_mins} mins. +20 XP, +2 STC, +1 WIL.")
@@ -1985,6 +2006,7 @@ def save_meditation_log(duration_mins: int, track_name: str) -> dict:
     if state:
         state["meditation_completed"] = 1
         state["mindos_completed"] = 1
+        state = apply_energy_action(state, "meditation")
         save_state(state)
     new_state = update_stat("xp", 20)
     log_activity_file("Meditation Session Completed", f"Completed {duration_mins} minutes of focused meditation listening to '{track_name}'. Awarded +20 XP, +2 STC, +1 WIL.")
@@ -2008,26 +2030,41 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
     """
     Processes health metrics from Google Health Connect / MacroDroid / Termux / Manual Logger.
     Calculates:
-    - Step Count: +10 XP & +1 WIL per 1,000 steps.
-    - Active Workout Minutes: +2 STR & +15 XP per 10 active mins (+2 XP / min).
-    - Sleep Recovery: +35% Cognitive Energy if sleep >= 7.0 hrs (+15% if >= 5.5 hrs).
+    - Step Count: +10 XP & +1 WIL per 1,000 NEW steps since today's last recorded sync.
+    - Active Workout Minutes: +2 STR & +2 XP/min for NEW active minutes since last sync.
+    - Sleep Recovery: +35%/+15% Cognitive Energy, granted once per day (not per sync).
     - Resting HR: +1 HRT if resting HR in optimal range (50-70 bpm).
+
+    Rewards are delta-based against today's already-recorded values because this
+    gets called every ~10 min by the live Google Fit auto-sync — without this,
+    the same steps/sleep would be re-awarded on every call, which is exactly why
+    XP/energy used to inflate to the max within minutes of any activity.
     """
     from datetime import datetime, timezone, timedelta
     ist = timezone(timedelta(hours=5, minutes=30))
     log_date = log_date or datetime.now(ist).date().isoformat()
 
-    step_xp    = (steps // 1000) * 10
-    wil_gained = steps // 1000
-    str_gained = (active_minutes // 10) * 2
-    active_xp  = active_minutes * 2
+    prev = get_health_sync_today() or {}
+    prev_is_today = prev.get("log_date") == log_date
+    prev_steps = prev.get("steps", 0) if prev_is_today else 0
+    prev_active = prev.get("active_minutes", 0) if prev_is_today else 0
+    sleep_already_credited_today = prev_is_today and prev.get("sleep_hours", 0.0) >= 5.5
+
+    steps_delta  = max(0, steps - prev_steps)
+    active_delta = max(0, active_minutes - prev_active)
+
+    step_xp    = (steps_delta // 1000) * 10
+    wil_gained = steps_delta // 1000
+    str_gained = (active_delta // 10) * 2
+    active_xp  = active_delta * 2
     total_xp   = step_xp + active_xp
 
     energy_restored = 0.0
-    if sleep_hours >= 7.0:
-        energy_restored = 35.0
-    elif sleep_hours >= 5.5:
-        energy_restored = 15.0
+    if not sleep_already_credited_today:
+        if sleep_hours >= 7.0:
+            energy_restored = 35.0
+        elif sleep_hours >= 5.5:
+            energy_restored = 15.0
 
     hrt_gained = 1 if (resting_hr and 50 <= resting_hr <= 70) else 0
 
@@ -2042,6 +2079,12 @@ def process_health_sync(steps: int = 0, distance_km: float = 0.0, active_minutes
             state["walk_completed"] = 1
         if energy_restored > 0:
             state["energy"] = min(100.0, state.get("energy", 100.0) + energy_restored)
+        # Steps-based recovery (separate from sleep), also gated to once per day
+        if not prev_is_today or prev_steps < 5000:
+            if steps >= 5000:
+                state = apply_energy_action(state, "walk_5000")
+            elif steps >= 2000 and prev_steps < 2000:
+                state = apply_energy_action(state, "walk_2000")
         save_state(state)
 
     # Powers the PHYSICAL pillar in the weekly consistency report

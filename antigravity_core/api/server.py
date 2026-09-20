@@ -31,7 +31,7 @@ try:
 except ImportError:
     pass
 
-from engine.database import get_state, save_state, add_xp, calculate_xp_required, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, get_consistency_report, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count
+from engine.database import get_state, save_state, add_xp, calculate_xp_required, apply_energy_action, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, get_consistency_report, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count
 from config import IS_SERVERLESS, DATABASE_URL
 from engine.fatigue_governor import update_daily_energy
 
@@ -1093,6 +1093,8 @@ def toggle_syllabus_item(payload: SyllabusTogglePayload):
 
     if payload.completed and not already_completed:
         state["int"] = state.get("int", 10) + 1
+        if not state.get("study_completed"):
+            state = apply_energy_action(state, "study")
         state["study_completed"] = 1
         save_state(state)
         add_xp(xp_value)
@@ -1215,6 +1217,8 @@ def save_study_journal(payload: StudyJournalPayload):
         conn.close()
 
     state = get_state()
+    if not state.get("study_completed"):
+        state = apply_energy_action(state, "study")
     state["study_completed"] = 1
     state["int"] = state.get("int", 10) + 1
     save_state(state)
@@ -1790,12 +1794,15 @@ def toggle_checklist(payload: ChecklistTogglePayload):
     if payload.value and not prev_val:
         if payload.item == "cooking":
             xp_to_add = 10
+            state = apply_energy_action(state, "cooking")
         elif payload.item == "nopmo":
             xp_to_add = 15
             state["wil"] = state.get("wil", 10) + 1
+            state = apply_energy_action(state, "nopmo")
         elif payload.item == "reading":
             xp_to_add = 10
             state["int"] = state.get("int", 10) + 1
+            state = apply_energy_action(state, "reading")
         elif payload.item == "walk":
             xp_to_add = 15
             state["wil"] = state.get("wil", 10) + 1
@@ -1803,29 +1810,36 @@ def toggle_checklist(payload: ChecklistTogglePayload):
             xp_to_add = 20
             state["stoic"] = state.get("stoic", 10) + 2
             state["wil"] = state.get("wil", 10) + 1
+            state = apply_energy_action(state, "meditation")
         elif payload.item == "mindos":
             xp_to_add = 15
             state["stoic"] = state.get("stoic", 10) + 1
+            state = apply_energy_action(state, "mindos")
         elif payload.item == "english":
             xp_to_add = 15
             state["wil"] = state.get("wil", 10) + 1
             state["int"] = state.get("int", 10) + 1
+            state = apply_energy_action(state, "english")
         elif payload.item == "health":
             xp_to_add = 15
             state["wil"] = state.get("wil", 10) + 1
     elif not payload.value and prev_val:
         if payload.item == "cooking":
             xp_to_remove = 10
+            state = apply_energy_action(state, "cooking", reverse=True)
         elif payload.item == "nopmo":
             xp_to_remove = 15
             state["wil"] = max(10, state.get("wil", 10) - 1)
+            state = apply_energy_action(state, "nopmo", reverse=True)
         elif payload.item == "reading":
             xp_to_remove = 10
             state["int"] = max(10, state.get("int", 10) - 1)
+            state = apply_energy_action(state, "reading", reverse=True)
         elif payload.item == "english":
             xp_to_remove = 15
             state["wil"] = max(10, state.get("wil", 10) - 1)
             state["int"] = max(10, state.get("int", 10) - 1)
+            state = apply_energy_action(state, "english", reverse=True)
         elif payload.item == "health":
             xp_to_remove = 15
             state["wil"] = max(10, state.get("wil", 10) - 1)
@@ -1954,6 +1968,7 @@ def log_reading_session(payload: LogReadingPayload):
         int_earned = 1
         if not prev_completed:
             state["int"] = state.get("int", 10) + int_earned
+            state = apply_energy_action(state, "reading")
             try:
                 log_task_completion("reading")
             except Exception:
@@ -4250,6 +4265,7 @@ def api_log_meditation(payload: MeditationPayload):
         state["meditation_completed"] = 1
         state["stoic"] = state.get("stoic", 10) + 2
         state["wil"] = state.get("wil", 10) + 1
+        state = apply_energy_action(state, "meditation")
         save_state(state)
         add_xp(xp)
         
@@ -4287,15 +4303,18 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
                 
             if item_short == "cooking":
                 xp_awarded = 10
+                state = apply_energy_action(state, "cooking")
                 log_activity_file("Meal Prep", "Completed home cooking / meal prep (+10 XP).")
             elif item_short == "nopmo":
                 xp_awarded = 15
                 state["wil"] = state.get("wil", 10) + 1
+                state = apply_energy_action(state, "nopmo")
                 stat_msg = "+1 WIL"
                 log_activity_file("NoPMO Discipline", "Maintained NoPMO discipline (+15 XP, +1 WIL).")
             elif item_short == "english":
                 xp_awarded = 20
                 state["int"] = state.get("int", 10) + 1
+                state = apply_energy_action(state, "english")
                 stat_msg = "+1 INT"
                 log_activity_file("English Practice", "Completed 5-min English booster (+20 XP, +1 INT).")
             
@@ -4304,8 +4323,12 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
         elif not payload.value and prev_val:
             if item_short == "nopmo":
                 state["wil"] = max(10, state.get("wil", 10) - 1)
+                state = apply_energy_action(state, "nopmo", reverse=True)
             elif item_short == "english":
                 state["int"] = max(10, state.get("int", 10) - 1)
+                state = apply_energy_action(state, "english", reverse=True)
+            elif item_short == "cooking":
+                state = apply_energy_action(state, "cooking", reverse=True)
                 
         save_state(state)
         return {"status": "SUCCESS", "task_key": key, "value": bool(val), "xp_awarded": xp_awarded, "message": f"Updated {key}! {stat_msg}"}

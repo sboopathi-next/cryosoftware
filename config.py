@@ -22,6 +22,26 @@ GAMMA = 10.0  # Micro-dopamine reward replenishment
 CIRCUIT_BREAKER_LIMIT = 20.0
 MAX_STREAK_LIMIT = 21
 
+# ── Cognitive Energy Action Deltas ──────────────────────────────────────────
+# Applied once, at the moment each real action is actually logged (checklist
+# toggle, Canvas sync, LeetCode sync, health sync) — NOT via a manual timer.
+# Negative = mental/physical exertion cost. Positive = recovery.
+# This is what keeps state["energy"] moving instead of sitting at 100 forever.
+ENERGY_ACTION_DELTAS = {
+    "study":        -18.0,   # Deep focused study session — heaviest cognitive cost
+    "leetcode":     -8.0,    # Algorithmic problem solving, once per day it flips to solved
+    "english":      -6.0,    # Language practice session
+    "reading":      -5.0,    # Book reading session
+    "canvas_video": -3.0,    # Per auto-synced Canvas video/page watched
+    "canvas_quiz":  -10.0,   # Per auto-synced Canvas quiz/assignment submitted
+    "cooking":      4.0,     # Self-care / nourishment
+    "nopmo":        3.0,     # Discipline win reduces internal stress
+    "meditation":   8.0,     # Dedicated mindfulness recovery (was miscoded as gym before)
+    "mindos":       5.0,     # Emotional processing / reality check relief
+    "walk_5000":    10.0,    # Steps >= 5000 today (on top of existing sleep recovery)
+    "walk_2000":    5.0,     # Steps >= 2000 today
+}
+
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
 
 # ── Serverless / read-only filesystem detection ────────────────────────────

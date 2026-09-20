@@ -9,7 +9,7 @@ pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if pkg_root not in sys.path:
     sys.path.insert(0, pkg_root)
 
-from engine.database import get_db_connection, get_state, save_state, add_xp, log_activity_file
+from engine.database import get_db_connection, get_state, save_state, add_xp, log_activity_file, apply_energy_action
 
 
 LEETCODE_ENDPOINT = "https://leetcode.com/graphql"
@@ -155,6 +155,8 @@ def sync_leetcode(username: str = LEETCODE_USERNAME, force: bool = False) -> dic
         update_stored_leetcode_stats(current_stats)
         if solved_today:
             state = get_state()
+            if not state.get("leetcode_completed"):
+                state = apply_energy_action(state, "leetcode")
             state["leetcode_completed"] = 1
             save_state(state)
         return {
@@ -182,6 +184,8 @@ def sync_leetcode(username: str = LEETCODE_USERNAME, force: bool = False) -> dic
         # 1. Update stats (STR) and checklist completion
         state = get_state()
         state["str"] = state.get("str", 10) + str_gain
+        if not state.get("leetcode_completed"):
+            state = apply_energy_action(state, "leetcode")
         state["leetcode_completed"] = 1
         save_state(state)
         
@@ -200,12 +204,14 @@ def sync_leetcode(username: str = LEETCODE_USERNAME, force: bool = False) -> dic
         print("[LeetCode Sync] Solved problem today! Marking daily checklist item completed.")
         state = get_state()
         if not state.get("leetcode_completed"):
+            state = apply_energy_action(state, "leetcode")
             state["leetcode_completed"] = 1
             save_state(state)
     else:
         print("[LeetCode Sync] No solves detected today. Resetting daily checklist item to uncompleted.")
         state = get_state()
         if state.get("leetcode_completed"):
+            state = apply_energy_action(state, "leetcode", reverse=True)
             state["leetcode_completed"] = 0
             save_state(state)
 
