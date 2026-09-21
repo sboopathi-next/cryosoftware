@@ -55,7 +55,7 @@ except ImportError:
     def add_xp(x): pass
 
 # ── 12-Week Semester Configuration ─────────────────────────────────────────────
-SEMESTER_START_DATE = datetime.date(2026, 8, 10)   # Monday — Week 1 Day 1 (Aug 11 was actually a Tuesday, off by one)
+SEMESTER_START_DATE = datetime.date(2026, 8, 24)   # Monday — shifted +2 weeks (2026-09-21) so current week reads 5, not 7, to allow catching up on old weeks
 SEMESTER_WEEKS      = 12
 
 # 5-Day Rotating Course Schedule (weekday 0=Mon ... 4=Fri)
