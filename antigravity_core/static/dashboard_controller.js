@@ -11,6 +11,7 @@
   let currentStats = null;
   let currentEnergy = null;
   let currentFitness = null;
+  let _learningLogPlatform = 'azure';
 
   // DOM Helper
   const $ = (id) => document.getElementById(id);
@@ -285,6 +286,7 @@
     updateChecklistItem('chk-meditation', data.meditation_completed);
     updateChecklistItem('chk-semester', data.canvas_semester_completed);
     updateChecklistItem('chk-mindos', data.mindos_completed);
+    updateChecklistItem('chk-azure', data.azure_completed);
   }
 
   function updateChecklistItem(elementId, isCompleted, subtitleOverride) {
@@ -654,6 +656,66 @@
       if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
       window.location.href = '/mind-os';
     });
+
+    // 12. Azure Cloud Learning (manual daily self-report via Learning Log modal)
+    $('chk-azure')?.addEventListener('click', () => {
+      triggerTaskFeedback('completion');
+      openLearningLogModal('azure', 'Azure');
+    });
+
+    $('learning-log-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const platform = _learningLogPlatform || 'azure';
+      const topic = $('learning-log-topic')?.value || '';
+      const duration = parseInt($('learning-log-duration')?.value) || 30;
+      const notes = $('learning-log-notes')?.value || '';
+      if (!topic) { notify('Pick a topic first', 'err'); return; }
+
+      try {
+        const r = await fetch('/api/learning/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform, topic, duration_minutes: duration, notes })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+          updateChecklistItem(`chk-${platform}`, true);
+          if (currentStats) currentStats[`${platform}_completed`] = true;
+          notify(d.message || 'Learning session logged!', 'ok');
+          closeModal('learning-log-modal');
+          const notesEl = $('learning-log-notes');
+          if (notesEl) notesEl.value = '';
+          hydrateTelemetry();
+        } else {
+          notify(d.detail || 'Error logging session', 'err');
+        }
+      } catch (err) {
+        notify('Network error logging session', 'err');
+      }
+    });
+  }
+
+  // Populates the Learning Log modal's topic dropdown from the real syllabus for that platform
+  async function openLearningLogModal(platform, displayName) {
+    _learningLogPlatform = platform;
+    const titleEl = $('learning-log-title');
+    if (titleEl) titleEl.textContent = `Log ${displayName} Learning`;
+    const sel = $('learning-log-topic');
+    if (sel) {
+      sel.innerHTML = '<option value="">Loading topics...</option>';
+      try {
+        const r = await fetch(`/api/learning/topics?platform=${encodeURIComponent(platform)}`);
+        const d = await r.json();
+        const topics = d.topics || [];
+        sel.innerHTML = topics.length
+          ? topics.map(t => `<option value="${t.replace(/"/g, '&quot;')}">${t}</option>`).join('')
+          : '<option value="General study session">General study session</option>';
+      } catch (e) {
+        sel.innerHTML = '<option value="General study session">General study session</option>';
+      }
+    }
+    openModal('learning-log-modal');
   }
 
   // ─── 6. Energy Side Dock & Modal Controls ──────────────────────────────────

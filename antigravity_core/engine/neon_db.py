@@ -930,7 +930,7 @@ def neon_get_task_streaks() -> dict:
     TASK_KEYS = [
         "study", "leetcode", "gym", "english", "cooking",
         "nopmo", "reading", "walk", "meditation", "mindos",
-        "health", "canvas_semester",
+        "health", "canvas_semester", "azure",
     ]
 
     try:
@@ -1294,6 +1294,46 @@ def neon_backfill_task_daily_log() -> dict:
         filled["error"] = str(e)
 
     return filled
+
+
+# ─── Learning Sessions (Azure / O'Reilly / other self-reported study platforms) ──
+
+def _init_pg_learning_sessions(cur):
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pg_learning_sessions (
+            id SERIAL PRIMARY KEY,
+            platform TEXT NOT NULL,
+            topic TEXT NOT NULL,
+            duration_minutes INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            xp_awarded INTEGER DEFAULT 0,
+            log_date TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        );
+    """)
+
+
+def neon_save_learning_session(platform: str, topic: str, duration_minutes: int, notes: str, xp_awarded: int, log_date: str, timestamp: str) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            _init_pg_learning_sessions(cur)
+            cur.execute(
+                "INSERT INTO pg_learning_sessions (platform, topic, duration_minutes, notes, xp_awarded, log_date, timestamp) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                (platform, topic, duration_minutes, notes or "", xp_awarded, log_date, timestamp)
+            )
+            new_id = cur.fetchone()[0]
+    return {"id": new_id}
+
+
+def neon_get_learning_sessions(platform: Optional[str] = None, limit: int = 20) -> list:
+    with _conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            _init_pg_learning_sessions(cur)
+            if platform:
+                cur.execute("SELECT * FROM pg_learning_sessions WHERE platform = %s ORDER BY id DESC LIMIT %s", (platform, limit))
+            else:
+                cur.execute("SELECT * FROM pg_learning_sessions ORDER BY id DESC LIMIT %s", (limit,))
+            return [dict(r) for r in cur.fetchall()]
 
 
 # ─── In-App Notifications (Serverless) ──────────────────────────────────────

@@ -648,7 +648,7 @@ def get_task_streaks() -> dict:
     TASK_KEYS = [
         "study", "leetcode", "gym", "english", "cooking",
         "nopmo", "reading", "walk", "meditation", "mindos",
-        "health", "canvas_semester",
+        "health", "canvas_semester", "azure",
     ]
 
     try:
@@ -885,6 +885,66 @@ def backfill_task_daily_log() -> dict:
         filled["error"] = str(e)
 
     return filled
+
+
+# ─── Learning Sessions (Azure / O'Reilly / other self-reported study platforms) ──
+
+def save_learning_session(platform: str, topic: str, duration_minutes: int, notes: str, xp_awarded: int) -> dict:
+    import datetime as _dt
+    now = _dt.datetime.now()
+    log_date = now.date().isoformat()
+    timestamp = now.isoformat()
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_save_learning_session
+        neon_save_learning_session(platform, topic, duration_minutes, notes, xp_awarded, log_date, timestamp)
+        return {"status": "success", "log_date": log_date}
+    conn = get_db_connection()
+    with _DB_WRITE_LOCK:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS learning_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                platform TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                duration_minutes INTEGER DEFAULT 0,
+                notes TEXT DEFAULT '',
+                xp_awarded INTEGER DEFAULT 0,
+                log_date TEXT NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+        """)
+        conn.execute(
+            "INSERT INTO learning_sessions (platform, topic, duration_minutes, notes, xp_awarded, log_date, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (platform, topic, duration_minutes, notes or "", xp_awarded, log_date, timestamp)
+        )
+        conn.commit()
+    conn.close()
+    return {"status": "success", "log_date": log_date}
+
+
+def get_learning_sessions(platform: str = None, limit: int = 20) -> list:
+    if IS_SERVERLESS:
+        from engine.neon_db import neon_get_learning_sessions
+        return neon_get_learning_sessions(platform, limit)
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS learning_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            platform TEXT NOT NULL,
+            topic TEXT NOT NULL,
+            duration_minutes INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            xp_awarded INTEGER DEFAULT 0,
+            log_date TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    """)
+    if platform:
+        rows = conn.execute("SELECT * FROM learning_sessions WHERE platform = ? ORDER BY id DESC LIMIT ?", (platform, limit)).fetchall()
+    else:
+        rows = conn.execute("SELECT * FROM learning_sessions ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 def get_notifications(limit: int = 20, unread_only: bool = False) -> list:

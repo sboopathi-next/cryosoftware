@@ -31,7 +31,7 @@ try:
 except ImportError:
     pass
 
-from engine.database import get_state, save_state, add_xp, calculate_xp_required, apply_energy_action, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, get_consistency_report, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count
+from engine.database import get_state, save_state, add_xp, calculate_xp_required, apply_energy_action, get_db_connection, log_activity_file, save_chat_message, get_chat_history, save_bad_experience, get_bad_experiences, _DB_WRITE_LOCK, get_recent_offline_logs, update_stat, save_human_connection, get_human_connections, save_human_context, get_human_contexts, get_unique_people, save_stoic_reflection, get_stoic_reflections, clear_chat_history, save_translation, get_translation_history, get_cached_daily_lesson, save_cached_daily_lesson, save_teacher_topics, get_teacher_topics, toggle_teacher_topic, clear_teacher_topics, delete_translation_history_item, clear_translation_history, get_english_user_progress, save_english_speech_log, save_reality_check, get_reality_checks, verify_reality_check, save_rumination_log, get_rumination_logs, save_relationship, get_relationships, get_mind_summary, save_meditation_log, get_meditation_logs, log_task_completion, get_task_streaks, get_consistency_report, backfill_task_daily_log, get_notifications, mark_notifications_read, get_unread_notification_count, save_learning_session, get_learning_sessions
 from config import IS_SERVERLESS, DATABASE_URL
 from engine.fatigue_governor import update_daily_energy
 
@@ -852,6 +852,7 @@ def get_stats():
         # ── Per-task individual streak counts (from task_daily_log) ──────────
         "task_streaks": (lambda: {k: v.get("current_streak", 0) for k, v in get_task_streaks().items()})(),
         "canvas_semester_completed": (lambda: get_task_streaks().get("canvas_semester", {}).get("done_today", False))(),
+        "azure_completed": (lambda: get_task_streaks().get("azure", {}).get("done_today", False))(),
         "neon_online": (lambda: (__import__('sync').is_online()))()
     }
 
@@ -4293,12 +4294,16 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
             key = f"{key}_completed"
         val = 1 if payload.value else 0
         state = get_state() or {}
-        prev_val = bool(state.get(key, 0))
+        item_short = key.replace("_completed", "")
+        if item_short == "azure":
+            # No dedicated system_state column — task_daily_log is the source of truth for "already done today"
+            prev_val = bool(get_task_streaks().get("azure", {}).get("done_today", False))
+        else:
+            prev_val = bool(state.get(key, 0))
         state[key] = val
         
         xp_awarded = 0
         stat_msg = ""
-        item_short = key.replace("_completed", "")
         
         if payload.value and not prev_val:
             try:
@@ -4322,6 +4327,11 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
                 state = apply_energy_action(state, "english")
                 stat_msg = "+1 INT"
                 log_activity_file("English Practice", "Completed 5-min English booster (+20 XP, +1 INT).")
+            elif item_short == "azure":
+                xp_awarded = 20
+                state["int"] = state.get("int", 10) + 1
+                stat_msg = "+1 INT"
+                log_activity_file("Azure Cloud Learning", "Studied Azure course material today (+20 XP, +1 INT).")
             
             if xp_awarded > 0:
                 add_xp(xp_awarded)
@@ -4334,9 +4344,99 @@ def api_toggle_checklist_task(payload: TaskChecklistTogglePayload):
                 state = apply_energy_action(state, "english", reverse=True)
             elif item_short == "cooking":
                 state = apply_energy_action(state, "cooking", reverse=True)
+            elif item_short == "azure":
+                state["int"] = max(10, state.get("int", 10) - 1)
+                try:
+                    log_task_completion("azure", completed=False)
+                except Exception as te:
+                    print(f"[Task Streak Log Note] {te}")
                 
         save_state(state)
         return {"status": "SUCCESS", "task_key": key, "value": bool(val), "xp_awarded": xp_awarded, "message": f"Updated {key}! {stat_msg}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── Learning Log (Azure / O'Reilly / other self-reported study platforms) ───
+# Real syllabus outlines so the "what did you study" dropdown means something,
+# instead of free-typing the same topic every day.
+LEARNING_TOPICS = {
+    "azure": [
+        "Cloud computing basics & shared responsibility model",
+        "Cloud models & consumption-based pricing",
+        "Benefits of cloud (scalability, reliability, security, manageability)",
+        "Cloud service types (IaaS / PaaS / SaaS)",
+        "Core architecture (regions, availability zones, resource groups, subscriptions)",
+        "Compute & networking (VMs, containers, Functions, VNets, VPN Gateway, ExpressRoute)",
+        "Storage services (Blob/Disk/Files, tiers, redundancy)",
+        "Identity, access & security (Entra ID, MFA, RBAC, Zero Trust, Defender for Cloud)",
+        "Cost management (pricing calculator, tags, Cost Management tool)",
+        "Governance & compliance (Azure Policy, resource locks, Purview)",
+        "Management tools (Portal, CLI, PowerShell, ARM templates, IaC, Azure Arc)",
+        "Monitoring tools (Azure Advisor, Service Health, Azure Monitor)",
+    ],
+}
+
+
+@app.get("/api/learning/topics")
+def api_get_learning_topics(platform: str = "azure"):
+    """Real syllabus topics for the Learning Log modal's dropdown (AZ-900 outline for Azure)."""
+    return {"status": "success", "platform": platform, "topics": LEARNING_TOPICS.get(platform.lower(), [])}
+
+
+class LearningLogPayload(BaseModel):
+    platform: str
+    topic: str
+    duration_minutes: int = 30
+    notes: Optional[str] = ""
+
+
+@app.post("/api/learning/log")
+def api_log_learning_session(payload: LearningLogPayload):
+    """Manual daily study log for platforms with no real sync API (Azure course, O'Reilly, etc).
+    XP scales with duration instead of a flat amount, and it doubles as the daily checklist toggle."""
+    try:
+        platform = payload.platform.strip().lower()
+        if not platform:
+            raise HTTPException(status_code=400, detail="Platform is required.")
+        if not payload.topic.strip():
+            raise HTTPException(status_code=400, detail="Topic is required.")
+
+        duration = max(0, payload.duration_minutes or 0)
+        xp_awarded = min(60, 10 + (duration // 10) * 5)
+
+        already_done_today = bool(get_task_streaks().get(platform, {}).get("done_today", False))
+
+        save_learning_session(platform, payload.topic.strip(), duration, payload.notes or "", xp_awarded)
+
+        state = get_state() or {}
+        if not already_done_today:
+            state["int"] = state.get("int", 10) + 1
+            state[f"{platform}_completed"] = 1
+            save_state(state)
+            add_xp(xp_awarded)
+            log_task_completion(platform)
+        log_activity_file(
+            f"{platform.title()} Learning Session",
+            f"Studied '{payload.topic.strip()}' for {duration} min. {(payload.notes or '').strip()[:120]} (+{xp_awarded if not already_done_today else 0} XP)"
+        )
+
+        return {
+            "status": "SUCCESS",
+            "xp_awarded": xp_awarded if not already_done_today else 0,
+            "already_done_today": already_done_today,
+            "message": f"Logged {duration} min on '{payload.topic.strip()}'! +{xp_awarded if not already_done_today else 0} XP, +1 INT" if not already_done_today else "Session logged (today's task was already marked done, no extra XP)."
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/learning/sessions")
+def api_get_learning_sessions(platform: Optional[str] = None, limit: int = 20):
+    try:
+        return {"status": "success", "sessions": get_learning_sessions(platform, limit)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

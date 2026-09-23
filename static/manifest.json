@@ -1,16 +1,13 @@
 {
-  "name": "Antigravity OS",
+  "name": "Antigravity Core",
   "short_name": "Antigravity",
-  "description": "Gamified discipline tracker — study, health, routine & XP system",
+  "description": "Gamified World-Class Curriculum Study & Discipline Tracker",
   "id": "/",
-  "start_url": "/?source=pwa",
-  "scope": "/",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0f1d",
   "theme_color": "#0a0f1d",
-  "lang": "en",
-  "categories": ["productivity", "education", "health"],
   "icons": [
     {
       "src": "/static/icon-192.png",
@@ -31,22 +28,13 @@
       "purpose": "any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/static/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Antigravity OS Dashboard"
-    }
-  ],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dash",
-      "description": "Open main dashboard",
-      "url": "/?source=shortcut",
-      "icons": [{"src": "/static/icon-192.png", "sizes": "192x192"}]
+      "name": "Quick Status",
+      "short_name": "Status",
+      "description": "Level, XP, streak and pending tasks — read aloud instantly",
+      "url": "/assistant",
+      "icons": [{ "src": "/static/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

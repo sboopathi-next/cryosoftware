@@ -11,6 +11,7 @@
   let currentStats = null;
   let currentEnergy = null;
   let currentFitness = null;
+  let _learningLogPlatform = 'azure';
 
   // DOM Helper
   const $ = (id) => document.getElementById(id);
@@ -83,6 +84,25 @@
     }
   }
 
+  // ─── 1a. Auto Live Google Fit Sync ─────────────────────────────────────────
+  // Pulls fresh numbers straight from Google Fit on load & periodically, so the
+  // widget never shows a stale/previous-day DB value until the user manually
+  // taps "Sync Fit". Silent on failure (e.g. auth not configured) — the manual
+  // button still surfaces errors to the user.
+  async function autoSyncGoogleFit() {
+    try {
+      const r = await fetch('/api/health_sync/google_fit', { method: 'POST' });
+      const d = await r.json();
+      if (r.ok && d.status !== 'ERROR') {
+        currentFitness = d;
+        _lastLiveFitSyncAt = Date.now();
+        renderFitnessUI(d);
+      }
+    } catch (e) {
+      console.warn('[Auto Google Fit Sync Warning]', e);
+    }
+  }
+
   // ─── 1b. Semester Subject-of-the-Day (Task 10 + Active Quest banner) ──────
   async function loadSemesterTask() {
     try {
@@ -110,6 +130,48 @@
       if (clockTag) clockTag.textContent = clockText;
     } catch (e) {
       console.warn('[Semester Task Warning]', e);
+    }
+  }
+
+  // Breaks "Task 10" into its real 4-8 sub-items (videos + quiz/assignment) so
+  // it stops feeling like one giant unfinishable blob.
+  const SUBTASK_TYPE_ICON = {
+    Video: 'fa-circle-play', Page: 'fa-circle-play',
+    Quiz: 'fa-file-circle-question', Assignment: 'fa-file-pen',
+    Practice: 'fa-code', Review: 'fa-magnifying-glass', Study: 'fa-book',
+    Reflection: 'fa-brain', Planning: 'fa-list-check'
+  };
+
+  function _escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // Read-only: Task 10 is auto-synced/audited from real Canvas completion,
+  // so sub-tasks reflect Canvas's own progress and can't be manually faked.
+  async function loadSemesterSubtasks() {
+    const box = $('semester-subtasks');
+    if (!box) return;
+    try {
+      const r = await fetch('/api/semester/today/subtasks');
+      if (!r.ok) return;
+      const d = await r.json();
+      const items = d.items || [];
+      if (!items.length) { box.innerHTML = ''; return; }
+
+      box.innerHTML = items.map(it => {
+        const icon = SUBTASK_TYPE_ICON[it.type] || 'fa-circle-play';
+        const title = _escHtml(it.title);
+        return `
+          <div class="flex items-center gap-2 text-[10px] font-mono ${it.completed ? 'text-emerald-400' : 'text-slate-400'}">
+            <div class="w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${it.completed ? 'bg-emerald-600 border-emerald-500' : 'border-slate-600 bg-slate-900/50'}">
+              <i class="fa-solid fa-check text-[7px] ${it.completed ? 'text-white' : 'opacity-0'}"></i>
+            </div>
+            <i class="fa-solid ${icon} text-[9px] opacity-60"></i>
+            <span class="${it.completed ? 'line-through opacity-70' : ''}">${title}</span>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      console.warn('[Semester Subtasks Warning]', e);
     }
   }
 
@@ -224,6 +286,7 @@
     updateChecklistItem('chk-meditation', data.meditation_completed);
     updateChecklistItem('chk-semester', data.canvas_semester_completed);
     updateChecklistItem('chk-mindos', data.mindos_completed);
+    updateChecklistItem('chk-azure', data.azure_completed);
   }
 
   function updateChecklistItem(elementId, isCompleted, subtitleOverride) {
@@ -581,6 +644,7 @@
           notify('Canvas LMS Sync Triggered!', 'ok');
           hydrateTelemetry();
           loadSemesterTask();
+          loadSemesterSubtasks();
         }
       } catch (e) {
         notify('Error triggering Canvas sync', 'err');
@@ -592,6 +656,66 @@
       if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
       window.location.href = '/mind-os';
     });
+
+    // 12. Azure Cloud Learning (manual daily self-report via Learning Log modal)
+    $('chk-azure')?.addEventListener('click', () => {
+      triggerTaskFeedback('completion');
+      openLearningLogModal('azure', 'Azure');
+    });
+
+    $('learning-log-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const platform = _learningLogPlatform || 'azure';
+      const topic = $('learning-log-topic')?.value || '';
+      const duration = parseInt($('learning-log-duration')?.value) || 30;
+      const notes = $('learning-log-notes')?.value || '';
+      if (!topic) { notify('Pick a topic first', 'err'); return; }
+
+      try {
+        const r = await fetch('/api/learning/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform, topic, duration_minutes: duration, notes })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          if (window.triggerDopamineSurge) window.triggerDopamineSurge('completion');
+          updateChecklistItem(`chk-${platform}`, true);
+          if (currentStats) currentStats[`${platform}_completed`] = true;
+          notify(d.message || 'Learning session logged!', 'ok');
+          closeModal('learning-log-modal');
+          const notesEl = $('learning-log-notes');
+          if (notesEl) notesEl.value = '';
+          hydrateTelemetry();
+        } else {
+          notify(d.detail || 'Error logging session', 'err');
+        }
+      } catch (err) {
+        notify('Network error logging session', 'err');
+      }
+    });
+  }
+
+  // Populates the Learning Log modal's topic dropdown from the real syllabus for that platform
+  async function openLearningLogModal(platform, displayName) {
+    _learningLogPlatform = platform;
+    const titleEl = $('learning-log-title');
+    if (titleEl) titleEl.textContent = `Log ${displayName} Learning`;
+    const sel = $('learning-log-topic');
+    if (sel) {
+      sel.innerHTML = '<option value="">Loading topics...</option>';
+      try {
+        const r = await fetch(`/api/learning/topics?platform=${encodeURIComponent(platform)}`);
+        const d = await r.json();
+        const topics = d.topics || [];
+        sel.innerHTML = topics.length
+          ? topics.map(t => `<option value="${t.replace(/"/g, '&quot;')}">${t}</option>`).join('')
+          : '<option value="General study session">General study session</option>';
+      } catch (e) {
+        sel.innerHTML = '<option value="General study session">General study session</option>';
+      }
+    }
+    openModal('learning-log-modal');
   }
 
   // ─── 6. Energy Side Dock & Modal Controls ──────────────────────────────────
@@ -1038,7 +1162,9 @@
   // ─── 8. Initialization ────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     hydrateTelemetry();
+    autoSyncGoogleFit();
     loadSemesterTask();
+    loadSemesterSubtasks();
     loadConsistencyReport();
     setupAccountabilityHandlers();
     setupSideDockControls();
@@ -1046,8 +1172,11 @@
 
     // 8-second background polling
     setInterval(hydrateTelemetry, 8000);
+    setInterval(autoSyncGoogleFit, 10 * 60000); // refresh live Google Fit numbers every 10 minutes
     setInterval(loadSemesterTask, 60000); // refresh subject-of-the-day countdown every minute
+    setInterval(loadSemesterSubtasks, 10 * 60000); // refresh sub-task checklist every 10 minutes
     setInterval(loadConsistencyReport, 300000); // refresh truth report every 5 minutes
   });
 
 })();
+

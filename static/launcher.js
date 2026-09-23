@@ -500,14 +500,29 @@
 
       positionDockAboveFooterNav(mobileNav);
       window.addEventListener('resize', () => positionDockAboveFooterNav(mobileNav));
-      setTimeout(() => positionDockAboveFooterNav(mobileNav), 300); // catches late Tailwind CDN reflow
+
+      // Tailwind's CDN build applies classes asynchronously, so the bottom nav's
+      // real height isn't known yet on first paint — a single blind timeout guess
+      // was unreliable (this is what caused the dock to float mid-screen after a
+      // fresh install/cold cache). Watch the actual element for size changes instead.
+      const existingNav = document.querySelector('[data-purpose="mobile-bottom-navigation"]') || document.querySelector('.mobile-bottom-nav');
+      if (existingNav && window.ResizeObserver) {
+        new ResizeObserver(() => positionDockAboveFooterNav(mobileNav)).observe(existingNav);
+      } else {
+        // Fallback for browsers without ResizeObserver: a few retries covers late reflow.
+        [100, 300, 800, 1500].forEach(ms => setTimeout(() => positionDockAboveFooterNav(mobileNav), ms));
+      }
     }
   }
 
   // Keeps the floating dock from overlapping whatever bottom nav the page already renders
   function positionDockAboveFooterNav(dockEl) {
     const existingNav = document.querySelector('[data-purpose="mobile-bottom-navigation"]') || document.querySelector('.mobile-bottom-nav');
-    const clearance = existingNav ? existingNav.getBoundingClientRect().height : 0;
+    let clearance = existingNav ? existingNav.getBoundingClientRect().height : 0;
+    // A nav that hasn't finished laying out yet (0) or something clearly broken
+    // (taller than half the screen) would push the dock to a nonsense position —
+    // fall back to a safe default instead of trusting the raw measurement.
+    if (!clearance || clearance > window.innerHeight * 0.5) clearance = 56;
     dockEl.style.bottom = `calc(${clearance}px + env(safe-area-inset-bottom, 0px) + 10px)`;
   }
 

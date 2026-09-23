@@ -292,7 +292,7 @@
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-list-check text-indigo-400 text-xs"></i>
             <h3 class="text-xs font-mono font-bold tracking-wide text-slate-200 uppercase">
-              DAILY ACCOUNTABILITY CHECKLIST (11 TASKS)
+              DAILY ACCOUNTABILITY CHECKLIST (12 TASKS)
             </h3>
           </div>
           <a class="text-[11px] font-semibold text-amber-400 flex items-center gap-1 hover:text-amber-300" href="/task-streaks">
@@ -460,6 +460,20 @@
               </div>
             </div>
             <span class="text-[10px] font-mono font-bold text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-600/30">+15 XP</span>
+          </div>
+
+          <!-- Task 12: Azure Cloud Learning (manual daily self-report, same pattern as NoPMO/Cooking) -->
+          <div class="chk-item border rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 opacity-80 border-slate-800 bg-[#101524]" id="chk-azure">
+            <div class="flex items-center gap-3">
+              <div class="chk-box w-5 h-5 rounded-md border border-slate-600 bg-slate-900/50 flex items-center justify-center shrink-0">
+                <i class="chk-icon fa-solid fa-check text-xs opacity-0"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-semibold text-slate-200">12. Azure Cloud Learning</h4>
+                <p class="chk-sub text-[10px] font-mono text-slate-400">Manual: Log topic + minutes studied (XP scales with time)</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono font-bold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-600/30">LOG</span>
           </div>
         </div>
       </section>
@@ -724,6 +738,36 @@
       </div>
       <button type="submit" class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold text-xs rounded-xl shadow-md transition-transform active:scale-95">
         Log Workout (+80 XP, +2 STR, +1 WIL)
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 12. Learning Log Modal (Azure / O'Reilly / any manual-report study platform) -->
+<div id="learning-log-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+  <div class="bg-[#0e1422] border border-slate-700/80 rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-cloud text-sky-400"></i>
+        <span id="learning-log-title">Log Azure Learning</span>
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('learning-log-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="learning-log-form" class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Topic Studied</label>
+        <select id="learning-log-topic" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-sky-400 focus:outline-none" required></select>
+      </div>
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">Duration (Minutes)</label>
+        <input type="number" id="learning-log-duration" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-sky-400 focus:outline-none" value="30" min="5" max="240" required/>
+      </div>
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">What did you understand? (optional)</label>
+        <textarea id="learning-log-notes" rows="2" class="w-full bg-[#141b2c] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-sky-400 focus:outline-none" placeholder="e.g. Understood how availability zones differ from regions..."></textarea>
+      </div>
+      <button type="submit" class="w-full py-2 bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white font-semibold text-xs rounded-xl shadow-md transition-transform active:scale-95">
+        Log Session
       </button>
     </form>
   </div>
