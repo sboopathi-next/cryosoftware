@@ -42,7 +42,7 @@ except ImportError:
     DATABASE_URL  = ""
 
 try:
-    from engine.database import get_state, save_state, add_xp, DB_PATH
+    from engine.database import get_state, save_state, add_xp, log_task_completion, DB_PATH
 except ImportError:
     IS_SERVERLESS = IS_SERVERLESS  # keep
     _db_dir = os.path.join(_CORE_DIR, "data")
@@ -53,6 +53,7 @@ except ImportError:
     def get_state(): return {}
     def save_state(s): pass
     def add_xp(x): pass
+    def log_task_completion(task_key, completed=True, log_date=None): pass
 
 # ── 12-Week Semester Configuration ─────────────────────────────────────────────
 SEMESTER_START_DATE = datetime.date(2026, 8, 24)   # Monday — shifted +2 weeks (2026-09-21) so current week reads 5, not 7, to allow catching up on old weeks
@@ -716,6 +717,11 @@ def _apply_audit_result(items_completed, quizzes_done, assignments_done,
                 save_state(state)
         except Exception:
             pass
+        try:
+            # Without this, the dashboard's Task 10 checkbox never ticks even though XP was awarded.
+            log_task_completion("canvas_semester", True, today_str)
+        except Exception:
+            pass
 
         if not is_pg:
             cursor.execute(f"""
@@ -815,6 +821,10 @@ def mark_day_cleared(date_str: str = None, notes: str = "") -> dict:
 
     try:
         add_xp(XP_ON_TIME_BONUS)
+    except Exception:
+        pass
+    try:
+        log_task_completion("canvas_semester", True, target_date.isoformat())
     except Exception:
         pass
 

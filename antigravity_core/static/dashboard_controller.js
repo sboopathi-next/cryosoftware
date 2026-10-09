@@ -12,6 +12,7 @@
   let currentEnergy = null;
   let currentFitness = null;
   let _learningLogPlatform = 'azure';
+  let _semesterAutoAuditTried = false;
 
   // DOM Helper
   const $ = (id) => document.getElementById(id);
@@ -170,6 +171,25 @@
             <span class="${it.completed ? 'line-through opacity-70' : ''}">${title}</span>
           </div>`;
       }).join('');
+
+      // All items already done? Settle today's audit now instead of leaving the
+      // Task 10 checkbox (and its XP) stuck behind the 23:30 nightly cron.
+      if (items.every(it => it.completed) && !_semesterAutoAuditTried) {
+        _semesterAutoAuditTried = true;
+        try {
+          // Force-refresh the local Canvas completion cache first — the audit reads
+          // from that cache, not live Canvas, so a stale cache could misfire a PENALIZED result.
+          await fetch('/api/canvas/sync');
+          const auditRes = await fetch('/api/semester/audit?force=false', { method: 'POST' });
+          const auditData = await auditRes.json();
+          if (auditData.status === 'CLEARED' && !auditData.already_audited) {
+            notify(`Semester task cleared! +${auditData.xp_delta} XP`, 'milestone');
+          }
+          hydrateTelemetry();
+        } catch (e) {
+          console.warn('[Semester Auto-Audit Warning]', e);
+        }
+      }
     } catch (e) {
       console.warn('[Semester Subtasks Warning]', e);
     }
