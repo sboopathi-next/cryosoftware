@@ -200,10 +200,10 @@
 
   // ─── 1c. Weekly Truth Report ─── honest 7-day consistency across the 4 pillars
   const TRUTH_CATEGORY_META = {
-    PHYSICAL:  { label: 'Physical',  color: '#f87171' },
-    MIND:      { label: 'Mind',      color: '#a78bfa' },
+    PHYSICAL: { label: 'Physical', color: '#f87171' },
+    MIND: { label: 'Mind', color: '#a78bfa' },
     INTELLECT: { label: 'Intellect', color: '#38bdf8' },
-    LIFE:      { label: 'Life',      color: '#34d399' },
+    LIFE: { label: 'Life', color: '#34d399' },
   };
 
   async function loadConsistencyReport() {
@@ -245,7 +245,7 @@
       }
 
       const calloutText = $('truth-callout-text');
-      const calloutIcon  = calloutText?.parentElement?.querySelector('i');
+      const calloutIcon = calloutText?.parentElement?.querySelector('i');
       if (calloutText) {
         if (rep.overall_week_pct >= 85) {
           if (calloutIcon) calloutIcon.className = 'fa-solid fa-fire text-emerald-400 shrink-0';
@@ -649,7 +649,7 @@
       openModal('meditation-modal');
     });
 
-    window.selectMeditationMins = function(mins) {
+    window.selectMeditationMins = function (mins) {
       const input = $('meditation-duration-input');
       const tag = $('meditation-gains-tag');
       if (input) input.value = mins;
@@ -825,7 +825,7 @@
     { id: 'journal', name: 'Study Journal', icon: 'fa-pen-to-square', url: '/journal', color: '#00e5ff' },
     { id: 'english', name: 'English Booster', icon: 'fa-language', url: '/english', color: '#38bdf8' },
     { id: 'stoic', name: 'Stoic Log', icon: 'fa-crown', url: '/stoic', color: '#fbbf24' },
-    { id: 'human', name: 'Human Journal', icon: 'fa-heart', url: '/human', color: '#f43f5e' },
+    { id: 'human', name: 'Journal', icon: 'fa-heart', url: '/human', color: '#f43f5e' },
     { id: 'badlog', name: 'Rage Fuel', icon: 'fa-fire-flame-curved', url: '/badlog', color: '#ef4444' },
     { id: 'work-tracker', name: 'Work Tracker', icon: 'fa-briefcase', url: '/work-tracker', color: '#818cf8' },
     { id: 'news', name: 'Tech News', icon: 'fa-newspaper', url: '/news', color: '#60a5fa' },
@@ -837,7 +837,7 @@
     try {
       const saved = localStorage.getItem('antigravity_dock_pinned_apps');
       if (saved) return JSON.parse(saved);
-    } catch(e) {}
+    } catch (e) { }
     return ['canvas', 'gym-pro', 'cadence', 'finance'];
   }
 
@@ -888,7 +888,7 @@
     }).join('');
   }
 
-  window.toggleDockAppPin = function(appId) {
+  window.toggleDockAppPin = function (appId) {
     let pinnedIds = getPinnedDockAppIds();
     if (pinnedIds.includes(appId)) {
       pinnedIds = pinnedIds.filter(id => id !== appId);
@@ -1043,7 +1043,7 @@
     }
   }
 
-  window.selectBookTitle = function(title) {
+  window.selectBookTitle = function (title) {
     const selectEl = $('rd-title');
     const customInput = $('rd-title-custom');
     if (!selectEl) return;

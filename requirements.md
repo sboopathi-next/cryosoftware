@@ -213,7 +213,7 @@ To update your Scriptable JS (`mobile_widget.js`) navigation bar layout, order t
 2. **Canvas**
 3. **GymPro** (Moved from 4 to 3)
 4. **MindOS** (Moved to 4)
-5. **More (`---`)** $\rightarrow$ *(Syllabus, Tech Affairs, Human Journal, Stoic Log)*
+5. **More (`---`)** $\rightarrow$ *(Syllabus, Tech Affairs, Journal, Stoic Log)*
 
 ### Scriptable Widget Configuration (`mobile_widget.js`)
 

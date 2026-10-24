@@ -163,7 +163,7 @@ async function syncDynamicGroqModels(forceRefresh = false) {
         }));
         return GROQ_DYNAMIC_MODELS;
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   try {
@@ -180,7 +180,7 @@ async function syncDynamicGroqModels(forceRefresh = false) {
         localStorage.setItem('groq_models_cache', JSON.stringify(data.models));
       }
     }
-  } catch(e) {
+  } catch (e) {
     console.warn('[Groq Sync Warning] Failed to fetch live models:', e);
   }
 
@@ -867,7 +867,7 @@ function injectMobileNavigation() {
         <a href="/english" class="sheet-grid-item"><i class="fa-solid fa-language" style="color:var(--cyan)"></i><span>English Booster</span></a>
         <a href="/badlog" class="sheet-grid-item"><i class="fa-solid fa-fire-flame-curved" style="color:#ef4444"></i><span>Rage Fuel</span></a>
         <a href="/stoic" class="sheet-grid-item"><i class="fa-solid fa-crown" style="color:var(--amber)"></i><span>Stoic Log</span></a>
-        <a href="/human" class="sheet-grid-item"><i class="fa-solid fa-heart" style="color:var(--red)"></i><span>Human Journal</span></a>
+        <a href="/human" class="sheet-grid-item"><i class="fa-solid fa-heart" style="color:var(--red)"></i><span>Journal</span></a>
         <a href="/logs" class="sheet-grid-item"><i class="fa-solid fa-list-check"></i><span>Activity Logs</span></a>
         <a href="/news" class="sheet-grid-item"><i class="fa-solid fa-newspaper" style="color:var(--blue)"></i><span>Tech News</span></a>
         <a href="/exam" class="sheet-grid-item"><i class="fa-solid fa-square-root-variable" style="color:var(--indigo)"></i><span>Exam Editor</span></a>
@@ -1227,7 +1227,7 @@ if ("serviceWorker" in navigator) {
   }
 
   // ── Render notifications in the panel ──────────────────────────────
-  window.renderNotifications = function(items) {
+  window.renderNotifications = function (items) {
     const list = document.getElementById('ag-notif-list');
     if (!list) return;
     if (!items || !items.length) {
@@ -1240,7 +1240,7 @@ if ("serviceWorker" in navigator) {
         n.is_read ? '' : 'unread',
         n.level === 'danger' ? 'danger' : n.level === 'warning' ? 'warning' : ''
       ].filter(Boolean).join(' ');
-      const time = new Date(n.created_at).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+      const time = new Date(n.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       return `<div class="${cls}">
         <div class="ag-notif-title">${n.title}</div>
         <div class="ag-notif-body">${n.body}</div>
@@ -1250,7 +1250,7 @@ if ("serviceWorker" in navigator) {
   };
 
   // ── Toggle panel open/close ─────────────────────────────────────────
-  window.toggleNotificationPanel = function() {
+  window.toggleNotificationPanel = function () {
     const panel = document.getElementById('ag-notif-panel');
     if (!panel) return;
     const isOpen = panel.style.display === 'block';
@@ -1264,12 +1264,12 @@ if ("serviceWorker" in navigator) {
           // Mark all as read
           fetch('/api/notifications/read', { method: 'POST' });
           _updateBadge(0);
-        }).catch(() => {});
+        }).catch(() => { });
     }
   };
 
   // ── Mark all as read ───────────────────────────────────────────────
-  window.markAllNotificationsRead = function() {
+  window.markAllNotificationsRead = function () {
     fetch('/api/notifications/read', { method: 'POST' })
       .then(() => {
         _updateBadge(0);
@@ -1282,7 +1282,7 @@ if ("serviceWorker" in navigator) {
   // ── Update badge count ─────────────────────────────────────────────
   function _updateBadge(count) {
     const badge = document.getElementById('ag-bell-badge');
-    const btn   = document.getElementById('ag-bell-btn');
+    const btn = document.getElementById('ag-bell-btn');
     if (!badge) return;
     if (count > 0) {
       badge.textContent = count > 9 ? '9+' : count;
@@ -1327,7 +1327,7 @@ if ("serviceWorker" in navigator) {
         });
       }
       _lastUnread = count;
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // ── Initialize on DOM ready ────────────────────────────────────────
@@ -1374,7 +1374,7 @@ window.AIChatUI = {
       ta.style.opacity = '0';
       document.body.appendChild(ta);
       ta.select();
-      try { document.execCommand('copy'); } catch (_) {}
+      try { document.execCommand('copy'); } catch (_) { }
       document.body.removeChild(ta);
       flash();
     }
