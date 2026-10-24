@@ -515,6 +515,24 @@ def get_today_course_subtasks() -> dict:
         }
 
 
+def _check_live_canvas_subtasks_complete() -> bool:
+    """
+    Fallback check: query live Canvas subtask data to see if ALL items
+    for today's course are marked completed.  This covers the case where
+    canvas_completed_items DB table has no rows for today (sync timing
+    issues, VIT Canvas quirks, etc.) but the student genuinely finished.
+    """
+    try:
+        data = get_today_course_subtasks()
+        items = data.get("items", [])
+        if not items:
+            return False
+        return all(it.get("completed") for it in items)
+    except Exception as e:
+        print(f"[Semester Audit] Live subtask fallback check failed: {e}")
+        return False
+
+
 # ── Daily Audit Engine ───────────────────────────────────────────────────────────
 
 def run_daily_audit(force: bool = False) -> dict:
@@ -565,7 +583,9 @@ def _run_audit_sqlite(today_str, weekday, week_number, now_ts, force):
             "SELECT status FROM daily_academic_cadence WHERE log_date = ?",
             (today_str,)
         ).fetchone()
-        if row and row[0] in ("CLEARED", "PENALIZED", "WEEKEND"):
+        # Only skip re-audit for CLEARED/WEEKEND — a PENALIZED result should be
+        # re-evaluable so that finishing subtasks later can flip it to CLEARED.
+        if row and row[0] in ("CLEARED", "WEEKEND"):
             conn.close()
             return {"already_audited": True, "status": row[0], "date": today_str}
 
@@ -597,6 +617,13 @@ def _run_audit_sqlite(today_str, weekday, week_number, now_ts, force):
     items_completed  = int(row[0] or 0)
     quizzes_done     = int(row[1] or 0)
     assignments_done = int(row[2] or 0)
+
+    # Fallback: canvas_completed_items may have no rows for today (sync timing,
+    # items tracked under a different date, etc.) but live Canvas shows all
+    # subtasks completed — trust the live source in that case.
+    if items_completed == 0 and _check_live_canvas_subtasks_complete():
+        print(f"[Semester Audit] DB shows 0 items but live Canvas subtasks all done — crediting.")
+        items_completed = 1  # minimum to pass the audit
 
     status, xp_awarded = _apply_audit_result(
         items_completed, quizzes_done, assignments_done,
@@ -633,7 +660,8 @@ def _run_audit_neon(today_str, weekday, week_number, now_ts, force):
                 (today_str,)
             )
             row = cursor.fetchone()
-            if row and row[0] in ("CLEARED", "PENALIZED", "WEEKEND"):
+            # Only skip re-audit for CLEARED/WEEKEND — allow re-evaluation of PENALIZED.
+            if row and row[0] in ("CLEARED", "WEEKEND"):
                 cursor.close(); conn.close()
                 return {"already_audited": True, "status": row[0], "date": today_str}
 
@@ -666,6 +694,11 @@ def _run_audit_neon(today_str, weekday, week_number, now_ts, force):
             items_completed  = int(row[0] or 0)
             quizzes_done     = int(row[1] or 0)
             assignments_done = int(row[2] or 0)
+
+            # Fallback: live Canvas subtask check when DB has no matching rows
+            if items_completed == 0 and _check_live_canvas_subtasks_complete():
+                print(f"[Semester Audit Neon] DB shows 0 items but live Canvas subtasks all done — crediting.")
+                items_completed = 1
         except Exception as e:
             print(f"[Semester Audit Neon] Canvas items query failed (pg_canvas_completed_items may be empty or missing): {e}")
             items_completed = quizzes_done = assignments_done = 0

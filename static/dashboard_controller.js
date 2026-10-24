@@ -180,9 +180,12 @@
           // Force-refresh the local Canvas completion cache first — the audit reads
           // from that cache, not live Canvas, so a stale cache could misfire a PENALIZED result.
           await fetch('/api/canvas/sync');
-          const auditRes = await fetch('/api/semester/audit?force=false', { method: 'POST' });
+          // Use force=true so that a previous PENALIZED result (from an earlier
+          // audit when subtasks weren't yet done) gets re-evaluated now that
+          // all subtasks are genuinely complete.
+          const auditRes = await fetch('/api/semester/audit?force=true', { method: 'POST' });
           const auditData = await auditRes.json();
-          if (auditData.status === 'CLEARED' && !auditData.already_audited) {
+          if (auditData.status === 'CLEARED') {
             notify(`Semester task cleared! +${auditData.xp_delta} XP`, 'milestone');
           }
           hydrateTelemetry();
